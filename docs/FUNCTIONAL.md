@@ -151,7 +151,9 @@ avanza di uno.
 - Tocchi una lettera nella colonna → viene forzata nel testo, la colonna avanza alla
   posizione successiva. Ripetendo, componi la parola lettera per lettera.
 - **Anteprima nel campo:** se stai forzando (`isForcing`), il campo mostra la parola
-  forzata; altrimenti la predizione migliore (o le cifre grezze se sconosciuta). La barra
+  forzata; altrimenti la predizione migliore; se la sequenza non è nel dizionario, mostra
+  le **lettere di default** (prima lettera di ogni tasto, es. 2272→"aapa") — **mai le
+  cifre** (`ComposeState.defaultLetters()`), che poi correggi dalla colonna. La barra
   suggerimenti resta attiva in parallelo: puoi sempre scegliere una predizione invece.
 - **`⌫` (backspace) = pop dell'intera coppia** (cifra + lettera insieme), mai solo il
   carattere — evita cifre "orfane" (piano §3.6). Se la coda ha una cifra non ancora

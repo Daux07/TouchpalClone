@@ -88,6 +88,13 @@ class ComposeStateTest {
     }
 
     @Test
+    fun defaultLetters_usesFirstLetterOfEachDigit_neverDigits() {
+        // Regression: an unknown sequence must preview letters, never raw digits.
+        state.pressDigit(2); state.pressDigit(2); state.pressDigit(7); state.pressDigit(2)
+        assertEquals("aapa", state.defaultLetters()) // 2→a, 2→a, 7→p, 2→a
+    }
+
+    @Test
     fun reset_clearsEverything() {
         state.pressDigit(2); state.chooseLetter('c')
         state.reset()

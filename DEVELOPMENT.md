@@ -9,8 +9,8 @@
 
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
-- **Fase in corso:** Fase 1 — MVP. Step 1.4e (proporzioni) completato e verificato.
-- **Ultimo step completato:** Step 1.4e — tastiera meno alta (`BODY_HEIGHT_FRACTION=0.34`, tasti più larghi che alti, come il riferimento); celle colonna dimensionate per **riempire lo spazio con 3–4 elementi** (altezza = viewport/conteggio, cap a 4 → oltre scorre). Verificato su emulatore.
+- **Fase in corso:** Fase 1 — MVP. Fix scrittura (numeri→lettere) completato e verificato.
+- **Ultimo step completato:** Fix bug — digitando una sequenza senza match nel dizionario venivano scritte/confermate le **cifre**; ora l'anteprima usa le **lettere di default** (`ComposeState.defaultLetters()`), mai numeri. Verificato su emulatore ("casa" confermato con spazio, "www" per 9-9-9). + Step 1.4e (proporzioni).
 - **Prossimo step:** **Step 1.5** — apprendimento persistente con Room: la parola forzata/confermata viene salvata (peso alto) e riproposta per prima; salvataggio automatico su spazio. Poi Step 1.6 = corpus Leipzig reale.
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
 
@@ -108,6 +108,16 @@
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-27 — Fix: scrittura di numeri invece di lettere
+**Bug (segnalato):** digitando dall'emulatore, per sequenze **non nel dizionario**
+l'anteprima ripiegava sulle cifre grezze (`sequenceString()`), quindi premendo spazio
+venivano scritti i **numeri** (es. "36987").
+**Fix:** `currentPreview()` ora usa `ComposeState.defaultLetters()` (prima lettera di ogni
+tasto) come fallback → sempre lettere, mai cifre; la colonna corregge le singole lettere.
+**File:** `input/ComposeState.kt` (+`defaultLetters()`), `service/T9ImeService.kt`.
+Test di regressione in `ComposeStateTest`. **Verificato** su emulatore: "casa"+spazio →
+"casa ", 9-9-9 → "www" (non "999"). Screenshot `docs/screenshots/type-*.png` non salvati.
 
 ### 2026-07-27 — Step 1.4e: proporzioni (meno verticale, colonna a riempimento)
 **Fatto:** (feedback utente) tastiera **meno alta** per avvicinarsi alle proporzioni del

@@ -167,7 +167,7 @@ class T9ImeService : InputMethodService() {
     private fun currentPreview(): String = when {
         state.isForcing() -> state.forcedText()
         candidates.isNotEmpty() -> candidates.first().word
-        else -> state.sequenceString()
+        else -> state.defaultLetters() // letters, never raw digits
     }
 
     private fun commitCurrentWord() {

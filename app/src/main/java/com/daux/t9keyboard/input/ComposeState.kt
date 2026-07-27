@@ -65,6 +65,19 @@ class ComposeState {
     /** The full digit sequence pressed (e.g. "2272"), for dictionary lookup. */
     fun sequenceString(): String = digits.joinToString("")
 
+    /**
+     * Letters-only fallback preview when nothing in the dictionary matches: the
+     * default (first) letter of each pressed digit. Used so typing always shows
+     * letters, never the raw digits — the column then corrects individual letters.
+     */
+    fun defaultLetters(): String {
+        val sb = StringBuilder(digits.size)
+        for (digit in digits) {
+            sb.append(T9Keypad.letters[digit]?.firstOrNull() ?: ' ')
+        }
+        return sb.toString()
+    }
+
     /** True once the user has forced at least one letter via the column. */
     fun isForcing(): Boolean = chosen.isNotEmpty()
 
