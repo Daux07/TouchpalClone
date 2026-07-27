@@ -9,14 +9,15 @@
 
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
-- **Fase in corso:** Fase 1 — MVP. Step 1.1 (griglia 12 tasti + multi-tap) completato lato codice.
-- **Ultimo step completato:** Step 1.1 — griglia 12 tasti responsive (`T9KeyboardView`) + inserimento multi-tap collegato al campo di testo (`T9ImeService`).
-- **Prossimo step:** **Step 1.2** — introdurre il motore predittivo (`DictionaryEngine` + `ItalianDictionaryEngine` da asset di test), la barra suggerimenti e sostituire il multi-tap con l'inserimento a sequenza di cifre. Poi Step 1.3 = colonna di disambiguazione.
-- **Come riprendere:** leggi questa sezione + i task non spuntati della fase corrente qui sotto. Verifica in Android Studio che lo Step 1.1 funzioni (vedi log 2026-07-27 Step 1.1) prima di procedere.
+- **Fase in corso:** Fase 1 — MVP. Step 1.2 (predittivo + barra suggerimenti) completato lato codice.
+- **Ultimo step completato:** Step 1.2 — motore predittivo (`DictionaryEngine`/`ItalianDictionaryEngine` da asset di test), barra suggerimenti, inserimento a sequenza di cifre. Sostituito il multi-tap.
+- **Prossimo step:** **Step 1.3** — la **colonna di disambiguazione manuale** (funzione centrale): stack di coppie (cifra, lettera), sempre visibile a lato della griglia, per forzare parole non nel dizionario. Introdurre `ComposeState`.
+- **Come riprendere:** leggi questa sezione + i task non spuntati della fase corrente qui sotto. Verifica in Android Studio lo Step 1.2 (vedi log 2026-07-27 Step 1.2) prima di procedere.
 
-> ℹ️ **Il multi-tap dello Step 1.1 è un trampolino**: serve a validare la pipeline
-> griglia→testo. Verrà sostituito dalla modalità predittiva + colonna nello Step 1.2/1.3,
-> riusando la stessa `T9KeyboardView`.
+> ℹ️ **Multi-tap rimosso**: dallo Step 1.2 l'inserimento è predittivo (digiti la
+> sequenza di cifre → parole proposte). Se una sequenza non ha match nel dizionario,
+> per ora l'anteprima mostra le cifre grezze; sarà la **colonna** (Step 1.3) a permettere
+> di forzare parole non presenti.
 
 > ⚠️ **Il Gradle wrapper JAR e gli script `gradlew` non sono nel repo** (non generabili in
 > questo ambiente senza SDK). Alla prima apertura in Android Studio, lascia che sincronizzi
@@ -52,15 +53,15 @@
 - [~] Layout 12 tasti ITU-T E.161 (griglia custom) + tasti funzione
       → griglia responsive 4×3 fatta (`T9KeyboardView`); tasti funzione minimi (⌫, 0=spazio, ⏎).
         Shift, `*`, `#`, mode-switch arriveranno in Fase 3.
-- [x] Inserimento multi-tap (trampolino Step 1.1) — da rimpiazzare con predittivo
-- [ ] `DictionaryEngine` (interfaccia) + `ItalianDictionaryEngine` da asset di test
-- [ ] Modalità predittiva T9 + barra suggerimenti orizzontale
-- [ ] **Colonna di disambiguazione manuale posizionale** (stack di coppie cifra/lettera)
+- [x] Inserimento multi-tap (trampolino Step 1.1) — rimpiazzato dal predittivo in 1.2
+- [x] `DictionaryEngine` (interfaccia) + `ItalianDictionaryEngine` da asset di test
+- [x] Modalità predittiva T9 + barra suggerimenti orizzontale
+- [ ] **Colonna di disambiguazione manuale posizionale** (stack di coppie cifra/lettera) ← Step 1.3
 - [ ] Backspace = pop della coppia (cifra+lettera insieme)
 - [ ] Estendere/correggere parola (push nuova coppia)
 - [ ] Apprendimento persistente (Room) + salvataggio automatico su spazio
 - [ ] Integrazione corpus Leipzig italiano → file binario indicizzato in `assets/`
-- [ ] Test unitari su `ComposeState` e `DictionaryEngine`
+- [~] Test unitari: fatti `T9Keypad.sequenceFor` e `ItalianDictionaryEngine`; manca `ComposeState` (Step 1.3)
 
 ## Fase 2 — Bilingue IT+EN
 
@@ -88,6 +89,32 @@
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-27 — Step 1.2: motore predittivo + barra suggerimenti
+**Fatto:** l'inserimento ora è **predittivo T9**. I tasti 2–9 costruiscono una sequenza
+di cifre; il motore la mappa alle parole del dizionario ordinate per frequenza. La prima
+scelta appare come anteprima (composing text), l'intera lista nella barra suggerimenti
+(tap per scegliere). `0`/spazio conferma la parola, `⌫` accorcia la sequenza, `⏎` conferma
+ed esegue l'azione editor. Multi-tap rimosso.
+
+**File creati/modificati:**
+- `engine/Candidate.kt` — modello candidato (word, sequence, weight su scala confrontabile).
+- `engine/DictionaryEngine.kt` — interfaccia unica di lookup (seam per il bilingue Fase 2).
+- `engine/ItalianDictionaryEngine.kt` — indice in RAM `sequenza → [candidati]`; `fromAssets()`
+  + `build(lines)` puro e testabile.
+- `model/T9Keypad.kt` — aggiunto `sequenceFor(word)` (parola→cifre, con fold accenti IT).
+- `assets/dict/it_test.txt` — dizionario di test (~40 parole, con collisioni per il ranking).
+- `ui/SuggestionBarView.kt` — barra suggerimenti orizzontale scrollabile (chip tap-abili).
+- `ui/T9KeyboardView.kt` — ora contiene barra suggerimenti + griglia; `setSuggestions()`.
+- `service/T9ImeService.kt` — logica predittiva (buffer sequenza, anteprima, commit, pick).
+- Test JVM: `model/T9KeypadTest.kt`, `engine/ItalianDictionaryEngineTest.kt`.
+
+**Come verificare (Android Studio):**
+1. Test logici: esegui gli unit test (`app/src/test/...`) — devono passare senza emulatore.
+2. Sul device/emulatore: digita `2272` → la barra mostra "casa, cara, bara" (casa prima);
+   `2663` → "come". Tocca un suggerimento per sceglierlo; `0` conferma + spazio.
+3. Sequenza senza match (es. `99999`) → anteprima mostra le cifre grezze (atteso finché
+   non c'è la colonna, Step 1.3).
 
 ### 2026-07-27 — Step 1.1: griglia 12 tasti + multi-tap
 **Fatto:** sostituito il placeholder con la vera griglia della tastiera e l'inserimento testo.

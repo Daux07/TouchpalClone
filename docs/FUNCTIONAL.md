@@ -91,3 +91,46 @@ in corso), `⏎` esegue l'azione dell'editor (search/done/invio).
 **Mapping lettere (`T9Keypad.letters`):** 1=`. , ? ! '`, 2=abc, 3=def, 4=ghi, 5=jkl,
 6=mno, 7=pqrs, 8=tuv, 9=wxyz, 0=spazio. È la fonte di verità dei gruppi di lettere,
 riusata anche dal motore predittivo e dalla colonna.
+
+### Motore predittivo — `DictionaryEngine` (Fase 1.2)
+
+**Cosa fa:** trasforma una sequenza di cifre T9 (es. "2272") nella lista di parole
+del dizionario che la producono, ordinate per frequenza (peso) decrescente.
+
+**Architettura (seam per il bilingue):** tutto passa dall'interfaccia
+`DictionaryEngine.lookup(sequence): List<Candidate>`. La UI e il service non conoscono
+l'implementazione: in Fase 2 basterà una `BilingualDictionaryEngine` che fonde due
+sorgenti dietro lo stesso metodo, senza toccare il resto (piano §5/§8).
+
+- `Candidate(word, sequence, weight)` — il `weight` è su scala confrontabile, così
+  liste da sorgenti diverse (corpus, dizionario personale, seconda lingua) si fondono
+  con un semplice sort.
+- `ItalianDictionaryEngine` — tiene in RAM un indice `Map<sequenza, [Candidate ordinati]>`,
+  così il lookup durante la digitazione non fa I/O (piano §5). In Fase 1.2 è caricato da
+  `assets/dict/it_test.txt` (dizionario di test); in Fase 1.6 la sorgente diventerà il
+  corpus Leipzig compilato, mantenendo la stessa struttura in memoria.
+- `T9Keypad.sequenceFor(word)` — converte parola → sequenza cifre, con **fold degli
+  accenti** italiani (perché/perché stessa sequenza), fonte di verità condivisa.
+
+**Testabilità:** `ItalianDictionaryEngine.build(lines)` è puro (nessuna dipendenza
+Android) ed è coperto da unit test JVM insieme a `T9Keypad.sequenceFor`.
+
+### Inserimento predittivo — `T9ImeService` (Fase 1.2)
+
+**Cosa fa (sostituisce il multi-tap):** i tasti 2–9 costruiscono una **sequenza di
+cifre**; ad ogni tasto il service interroga il motore e mostra la parola più probabile
+come *composing text* nel campo, con l'intera lista di candidati nella barra suggerimenti.
+
+- **Barra suggerimenti** (`SuggestionBarView`): riga orizzontale scrollabile; il primo
+  candidato è evidenziato (è anche l'anteprima nel campo). Tap su un candidato → lo
+  conferma nel testo.
+- **`0` / spazio:** conferma la parola in composizione e inserisce uno spazio.
+- **`⌫`:** accorcia la sequenza di una cifra (ricalcolando i candidati); a sequenza vuota
+  cancella il carattere precedente nel campo.
+- **`⏎`:** conferma la parola ed esegue l'azione dell'editor.
+
+> ⚠️ **Limite temporaneo:** se la sequenza non ha corrispondenze nel dizionario,
+> l'anteprima mostra le **cifre grezze**. Sarà la **colonna di disambiguazione**
+> (Fase 1.3) a permettere di forzare parole non presenti, lettera per lettera — è la
+> funzione centrale del progetto. L'apprendimento (salvare le parole forzate) arriva in
+> Fase 1.5 con Room.

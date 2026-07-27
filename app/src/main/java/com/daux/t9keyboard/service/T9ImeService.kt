@@ -1,37 +1,63 @@
 package com.daux.t9keyboard.service
 
 import android.inputmethodservice.InputMethodService
-import android.os.Handler
-import android.os.Looper
 import android.view.View
+import android.view.inputmethod.EditorInfo
+import com.daux.t9keyboard.engine.Candidate
+import com.daux.t9keyboard.engine.DictionaryEngine
+import com.daux.t9keyboard.engine.ItalianDictionaryEngine
 import com.daux.t9keyboard.model.KeyAction
-import com.daux.t9keyboard.model.T9Keypad
 import com.daux.t9keyboard.ui.T9KeyboardView
 
 /**
  * Entry point of the T9 keyboard.
  *
- * Phase 1.1: classic multi-tap text entry, as a first tangible, testable slice
- * that exercises the whole pipeline (grid → keys → InputConnection, backspace,
- * space, enter). This multi-tap logic is a stepping stone: Phase 1.2 replaces it
- * with predictive T9 + the manual disambiguation column, reusing the same grid.
+ * Phase 1.2: predictive T9. Digit keys 2–9 build a numeric sequence; the engine
+ * maps it to dictionary words ordered by frequency. The best guess is shown as
+ * composing text and the full list in the suggestion bar (tap to pick). Space/0
+ * commits the current word, backspace shortens the sequence, enter runs the
+ * editor action.
+ *
+ * Not yet here: the manual disambiguation column (Phase 1.3) and learning/Room
+ * (Phase 1.5). Until the column exists, an unknown sequence (no dictionary match)
+ * previews the raw digits.
  */
 class T9ImeService : InputMethodService() {
 
-    private val handler = Handler(Looper.getMainLooper())
-    private val commitRunnable = Runnable { finalizePending() }
+    private lateinit var engine: DictionaryEngine
+    private var keyboardView: T9KeyboardView? = null
 
-    /** Digit whose letters are currently being cycled, or -1 if none pending. */
-    private var pendingDigit: Int = -1
-    private var pendingIndex: Int = 0
+    /** Digits typed for the word currently being composed. */
+    private val sequence = StringBuilder()
+    private var candidates: List<Candidate> = emptyList()
 
-    override fun onCreateInputView(): View =
-        T9KeyboardView(this) { action -> onKey(action) }
+    override fun onCreate() {
+        super.onCreate()
+        engine = ItalianDictionaryEngine.fromAssets(this, "dict/it_test.txt")
+    }
+
+    override fun onCreateInputView(): View {
+        val view = T9KeyboardView(
+            context = this,
+            onKey = ::onKey,
+            onPickCandidate = ::onPickCandidate
+        )
+        keyboardView = view
+        return view
+    }
+
+    override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
+        super.onStartInputView(info, restarting)
+        resetComposition()
+    }
 
     override fun onFinishInput() {
         super.onFinishInput()
-        finalizePending()
+        currentInputConnection?.finishComposingText()
+        resetComposition()
     }
+
+    // --- Key handling ---------------------------------------------------------
 
     private fun onKey(action: KeyAction) {
         when (action) {
@@ -43,63 +69,76 @@ class T9ImeService : InputMethodService() {
 
     private fun onDigit(n: Int) {
         val ic = currentInputConnection ?: return
-        val letters = T9Keypad.letters[n] ?: return
-        handler.removeCallbacks(commitRunnable)
-
-        // 0 is a space: commit any pending char first, then a space.
-        if (n == 0) {
-            finalizePending()
-            ic.commitText(" ", 1)
-            return
+        when (n) {
+            0 -> { // space: commit the word in progress, then a space
+                if (sequence.isNotEmpty()) commitCurrentWord()
+                ic.commitText(" ", 1)
+            }
+            1 -> { // punctuation key: handled in Phase 3; for now just commit
+                if (sequence.isNotEmpty()) commitCurrentWord()
+            }
+            else -> { // 2–9: extend the sequence and refresh predictions
+                sequence.append(n)
+                refreshPredictions()
+            }
         }
-
-        if (pendingDigit == n) {
-            // Same key again: cycle to the next letter in place.
-            pendingIndex = (pendingIndex + 1) % letters.size
-        } else {
-            // Different key: commit the previous pending char, start a new one.
-            finalizePending()
-            pendingDigit = n
-            pendingIndex = 0
-        }
-        ic.setComposingText(letters[pendingIndex].toString(), 1)
-        handler.postDelayed(commitRunnable, MULTITAP_TIMEOUT_MS)
     }
 
     private fun onBackspace() {
         val ic = currentInputConnection ?: return
-        if (pendingDigit != -1) {
-            // Remove the in-progress (composing) char without committing it.
-            ic.setComposingText("", 1)
-            ic.finishComposingText()
-            resetPending()
+        if (sequence.isNotEmpty()) {
+            sequence.deleteCharAt(sequence.length - 1)
+            if (sequence.isEmpty()) {
+                ic.setComposingText("", 1)
+                ic.finishComposingText()
+                setSuggestions(emptyList())
+            } else {
+                refreshPredictions()
+            }
         } else {
             ic.deleteSurroundingText(1, 0)
         }
     }
 
     private fun onEnter() {
-        finalizePending()
-        // Respects the field's action (search/done/next) and inserts a newline in
-        // multiline fields, instead of blindly committing "\n".
+        if (sequence.isNotEmpty()) commitCurrentWord()
         sendDefaultEditorAction(true)
     }
 
-    /** Commit whatever char is currently being cycled and clear the pending state. */
-    private fun finalizePending() {
-        if (pendingDigit != -1) {
-            currentInputConnection?.finishComposingText()
-            resetPending()
-        }
-        handler.removeCallbacks(commitRunnable)
+    // --- Composition helpers --------------------------------------------------
+
+    /** Look up the current sequence and show the best guess + the candidate list. */
+    private fun refreshPredictions() {
+        val ic = currentInputConnection ?: return
+        candidates = engine.lookup(sequence.toString())
+        val preview = candidates.firstOrNull()?.word ?: sequence.toString()
+        ic.setComposingText(preview, 1)
+        setSuggestions(candidates)
     }
 
-    private fun resetPending() {
-        pendingDigit = -1
-        pendingIndex = 0
+    /** Commit the current best guess (or raw digits if no match) and reset. */
+    private fun commitCurrentWord() {
+        val ic = currentInputConnection ?: return
+        val word = candidates.firstOrNull()?.word ?: sequence.toString()
+        ic.setComposingText(word, 1)
+        ic.finishComposingText()
+        resetComposition()
     }
 
-    companion object {
-        private const val MULTITAP_TIMEOUT_MS = 800L
+    private fun onPickCandidate(candidate: Candidate) {
+        val ic = currentInputConnection ?: return
+        ic.setComposingText(candidate.word, 1)
+        ic.finishComposingText()
+        resetComposition()
+    }
+
+    private fun resetComposition() {
+        sequence.setLength(0)
+        candidates = emptyList()
+        setSuggestions(emptyList())
+    }
+
+    private fun setSuggestions(list: List<Candidate>) {
+        keyboardView?.setSuggestions(list)
     }
 }

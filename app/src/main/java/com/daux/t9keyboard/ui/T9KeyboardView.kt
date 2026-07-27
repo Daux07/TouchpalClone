@@ -12,35 +12,50 @@ import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
+import com.daux.t9keyboard.engine.Candidate
+import com.daux.t9keyboard.model.KeyAction
 import com.daux.t9keyboard.model.KeySpec
 import com.daux.t9keyboard.model.T9Layout
 
 /**
- * The on-screen keyboard: a responsive grid of keys.
+ * The whole input surface: a suggestion bar on top of a responsive key grid.
  *
- * Sizing is proportional, not fixed: rows share the height via layout weights and
- * keys share each row's width via weights, so the same layout scales cleanly
- * between the Galaxy S25 and S25 Ultra without device-specific dimensions
- * (see plan §6). The overall height is a fraction of the screen height.
+ * Sizing is proportional, not fixed: the grid rows share their height via layout
+ * weights and keys share each row's width via weights, so the same layout scales
+ * cleanly between the Galaxy S25 and S25 Ultra (plan §6). The suggestion bar has a
+ * fixed height; the grid takes a fraction of the screen height below it.
  *
- * The view is display-only: every tap is reported through [onKey]; the service
- * owns all input logic.
+ * Display-only: taps are reported through [onKey]; candidate picks through
+ * [onPickCandidate]. All input logic lives in the service.
  */
 @SuppressLint("ViewConstructor")
 class T9KeyboardView(
     context: Context,
-    private val onKey: (com.daux.t9keyboard.model.KeyAction) -> Unit
+    private val onKey: (KeyAction) -> Unit,
+    onPickCandidate: (Candidate) -> Unit
 ) : LinearLayout(context) {
+
+    private val suggestionBar = SuggestionBarView(context, onPickCandidate)
 
     init {
         orientation = VERTICAL
         setBackgroundColor(BG)
-        val gap = dp(2)
-        setPadding(gap, gap, gap, gap)
 
-        for (row in T9Layout.rows) {
-            addView(buildRow(row))
+        addView(suggestionBar, LayoutParams(LayoutParams.MATCH_PARENT, dp(BAR_DP)))
+
+        val gap = dp(2)
+        val gridWrap = LinearLayout(context).apply {
+            orientation = VERTICAL
+            setPadding(gap, gap, gap, gap)
+            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f)
         }
+        for (row in T9Layout.rows) gridWrap.addView(buildRow(row))
+        addView(gridWrap)
+    }
+
+    /** Replace the candidates shown in the suggestion bar. */
+    fun setSuggestions(candidates: List<Candidate>) {
+        suggestionBar.setCandidates(candidates)
     }
 
     private fun buildRow(keys: List<KeySpec>): View {
@@ -54,7 +69,7 @@ class T9KeyboardView(
 
     private fun buildKey(key: KeySpec): View {
         val gap = dp(3)
-        val tv = TextView(context).apply {
+        return TextView(context).apply {
             text = keyLabel(key)
             gravity = Gravity.CENTER
             setTextColor(Color.WHITE)
@@ -67,7 +82,6 @@ class T9KeyboardView(
             }
             setOnClickListener { onKey(key.action) }
         }
-        return tv
     }
 
     /** Big label with a smaller, dimmer subtitle underneath (e.g. "2" / "ABC"). */
@@ -81,10 +95,10 @@ class T9KeyboardView(
         }
     }
 
-    /** Force the keyboard to occupy a fraction of the screen height. */
+    /** Force the whole view to occupy the bar height plus a fraction of the screen. */
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val screenH = resources.displayMetrics.heightPixels
-        val desired = (screenH * KEYBOARD_HEIGHT_FRACTION).toInt()
+        val desired = dp(BAR_DP) + (screenH * GRID_HEIGHT_FRACTION).toInt()
         val hSpec = MeasureSpec.makeMeasureSpec(desired, MeasureSpec.EXACTLY)
         super.onMeasure(widthMeasureSpec, hSpec)
     }
@@ -93,7 +107,8 @@ class T9KeyboardView(
         (resources.displayMetrics.density * value).toInt()
 
     companion object {
-        private const val KEYBOARD_HEIGHT_FRACTION = 0.42f
+        private const val BAR_DP = 46
+        private const val GRID_HEIGHT_FRACTION = 0.40f
         private const val BG = 0xFF1E1E1E.toInt()
         private const val KEY_BG = 0xFF2C2C2C.toInt()
         private val SUB_COLOR = 0xFF9E9E9E.toInt()

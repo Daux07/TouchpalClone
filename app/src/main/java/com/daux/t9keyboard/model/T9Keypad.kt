@@ -27,6 +27,36 @@ object T9Keypad {
         in 2..9 -> letters[digit]!!.joinToString("").uppercase()
         else -> null
     }
+
+    /** Reverse map: a→2, b→2, …, z→9. Only a–z letters (no punctuation/space). */
+    private val digitForChar: Map<Char, Int> = buildMap {
+        for ((digit, chars) in letters) {
+            for (c in chars) if (c in 'a'..'z') put(c, digit)
+        }
+    }
+
+    /** Italian accented vowels fold to their base letter for lookup (plan §1). */
+    private val accentFold: Map<Char, Char> = mapOf(
+        'à' to 'a', 'á' to 'a',
+        'è' to 'e', 'é' to 'e',
+        'ì' to 'i', 'í' to 'i',
+        'ò' to 'o', 'ó' to 'o',
+        'ù' to 'u', 'ú' to 'u'
+    )
+
+    /**
+     * The T9 digit sequence for a word (e.g. "casa" → "2272"), or null if the word
+     * contains a character with no digit mapping. Accents are folded first.
+     */
+    fun sequenceFor(word: String): String? {
+        val sb = StringBuilder(word.length)
+        for (raw in word.lowercase()) {
+            val c = accentFold[raw] ?: raw
+            val digit = digitForChar[c] ?: return null
+            sb.append(digit)
+        }
+        return if (sb.isEmpty()) null else sb.toString()
+    }
 }
 
 /** One key on screen: what to draw and what it does when tapped. */
