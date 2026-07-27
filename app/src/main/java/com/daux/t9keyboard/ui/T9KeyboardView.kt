@@ -16,17 +16,23 @@ import com.daux.t9keyboard.model.KeySpec
 import com.daux.t9keyboard.model.T9Layout
 
 /**
- * The whole input surface: suggestion bar on top, then the disambiguation column
- * beside the responsive key grid, styled to resemble the classic TouchPal T9
- * (dark charcoal, rounded keys, teal accents; big lowercase letters with a small
- * corner number).
+ * The whole input surface, reproducing the classic TouchPal T9 structure:
  *
- * Sizing is proportional, not fixed: rows share height via weights, keys share
- * each row's width via weights, and the column takes a small weighted slice — so
- * the layout scales cleanly between the Galaxy S25 and S25 Ultra (plan §6).
+ * ```
+ * ┌───────────────────────────────────────────┐
+ * │ suggestion bar                             │
+ * ├──────┬───────────────────────────┬─────────┤
+ * │ dis- │  @   abc   def             │   ⌫     │
+ * │ amb. │  ghi jkl   mno             │   ⇧     │
+ * │ col. │  pqrs tuv  wxyz            │   ☺     │
+ * │      ├───────────────────────────┴─────────┤
+ * │      │ 12# ,   [   space   ] 🎙   ⏎         │
+ * └──────┴─────────────────────────────────────┘
+ * ```
  *
- * Display-only: taps are reported through [onKey], candidate picks through
- * [onPickCandidate], column letter picks through [onPickLetter].
+ * Sizing is proportional (weights), so it scales cleanly between the Galaxy S25
+ * and S25 Ultra (plan §6); the dark palette and rounded keys mimic the original.
+ * Display-only: taps go out through [onKey]/[onPickCandidate]/[onPickLetter].
  */
 @SuppressLint("ViewConstructor")
 class T9KeyboardView(
@@ -52,70 +58,79 @@ class T9KeyboardView(
         addView(buildBody(), LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
     }
 
-    override fun onApplyWindowInsets(insets: WindowInsets): WindowInsets {
-        navBottomPx = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            insets.getInsets(WindowInsets.Type.navigationBars()).bottom
-        } else {
-            @Suppress("DEPRECATION") insets.systemWindowInsetBottom
-        }
-        applyBottomPadding()
-        requestLayout()
-        return insets
-    }
+    // --- Layout ---------------------------------------------------------------
 
-    private fun applyBottomPadding() {
-        setPadding(0, 0, 0, navBottomPx + dp(6))
-    }
-
-    /** Body row: disambiguation column (left, default) beside the key grid. */
     private fun buildBody(): View {
         val gap = dp(3)
         val body = LinearLayout(context).apply {
             orientation = HORIZONTAL
             setPadding(gap, gap, gap, gap)
         }
+        // Far-left disambiguation column, full height.
         body.addView(column, LayoutParams(0, LayoutParams.MATCH_PARENT, COLUMN_WEIGHT))
 
-        val grid = LinearLayout(context).apply { orientation = VERTICAL }
-        for (row in T9Layout.rows) grid.addView(buildRow(row))
-        body.addView(grid, LayoutParams(0, LayoutParams.MATCH_PARENT, GRID_WEIGHT))
+        val rightSide = LinearLayout(context).apply {
+            orientation = VERTICAL
+            layoutParams = LayoutParams(0, LayoutParams.MATCH_PARENT, RIGHT_SIDE_WEIGHT)
+        }
+        rightSide.addView(buildUpperArea(), LayoutParams(LayoutParams.MATCH_PARENT, 0, 3f))
+        rightSide.addView(buildRow(T9Layout.bottomRow), LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
+        body.addView(rightSide)
         return body
     }
 
-    fun setSuggestions(candidates: List<Candidate>) = suggestionBar.setCandidates(candidates)
+    /** Central 3×3 letter grid plus the right-hand function column. */
+    private fun buildUpperArea(): View {
+        val upper = LinearLayout(context).apply { orientation = HORIZONTAL }
 
-    fun setColumnLetters(letters: List<Char>) = column.setLetters(letters)
+        val grid = LinearLayout(context).apply {
+            orientation = VERTICAL
+            layoutParams = LayoutParams(0, LayoutParams.MATCH_PARENT, LETTERS_WEIGHT)
+        }
+        for (row in T9Layout.letterRows) {
+            grid.addView(buildRow(row), LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
+        }
+        upper.addView(grid)
+
+        val funcColumn = LinearLayout(context).apply {
+            orientation = VERTICAL
+            layoutParams = LayoutParams(0, LayoutParams.MATCH_PARENT, FUNC_COLUMN_WEIGHT)
+        }
+        for (key in T9Layout.rightColumn) {
+            funcColumn.addView(buildKey(key, LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f)))
+        }
+        upper.addView(funcColumn)
+        return upper
+    }
 
     private fun buildRow(keys: List<KeySpec>): View {
-        val rowView = LinearLayout(context).apply {
-            orientation = HORIZONTAL
-            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f)
+        val rowView = LinearLayout(context).apply { orientation = HORIZONTAL }
+        for (key in keys) {
+            rowView.addView(buildKey(key, LayoutParams(0, LayoutParams.MATCH_PARENT, key.weight)))
         }
-        for (key in keys) rowView.addView(buildKey(key))
         return rowView
     }
 
-    /** A TouchPal-style key: rounded face, centred label, small corner number. */
-    private fun buildKey(key: KeySpec): View {
+    /** A TouchPal-style key: rounded face, centred label, optional corner number. */
+    private fun buildKey(key: KeySpec, lp: LayoutParams): View {
         val gap = dp(3)
+        lp.setMargins(gap, gap, gap, gap)
         val frame = FrameLayout(context).apply {
+            layoutParams = lp
             background = KeyboardTheme.keyBackground(
                 context,
                 normal = if (key.isFunction) KeyboardTheme.FUNC_KEY else KeyboardTheme.KEY
             )
             isClickable = true
             isFocusable = true
-            layoutParams = LayoutParams(0, LayoutParams.MATCH_PARENT, 1f).apply {
-                setMargins(gap, gap, gap, gap)
-            }
             setOnClickListener { onKey(key.action) }
         }
 
         val label = TextView(context).apply {
             text = key.mainLabel
             gravity = Gravity.CENTER
-            setTextColor(if (key.isFunction) KeyboardTheme.ACCENT else KeyboardTheme.TEXT)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, if (key.isFunction) 22f else 18f)
+            setTextColor(labelColor(key))
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, labelSize(key))
             layoutParams = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
@@ -141,10 +156,41 @@ class T9KeyboardView(
         return frame
     }
 
-    /** Force the whole view to occupy the bar height plus a fraction of the screen. */
+    private fun labelColor(key: KeySpec): Int = when {
+        key.mainLabel == "space" -> KeyboardTheme.TEXT_DIM
+        key.isFunction -> KeyboardTheme.ACCENT
+        else -> KeyboardTheme.TEXT
+    }
+
+    private fun labelSize(key: KeySpec): Float = when {
+        key.action is KeyAction.ModeSwitch -> 15f
+        key.mainLabel == "space" -> 15f
+        key.isFunction -> 20f
+        else -> 18f
+    }
+
+    fun setSuggestions(candidates: List<Candidate>) = suggestionBar.setCandidates(candidates)
+
+    fun setColumnLetters(letters: List<Char>) = column.setLetters(letters)
+
+    // --- Insets & sizing ------------------------------------------------------
+
+    override fun onApplyWindowInsets(insets: WindowInsets): WindowInsets {
+        navBottomPx = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            insets.getInsets(WindowInsets.Type.navigationBars()).bottom
+        } else {
+            @Suppress("DEPRECATION") insets.systemWindowInsetBottom
+        }
+        applyBottomPadding()
+        requestLayout()
+        return insets
+    }
+
+    private fun applyBottomPadding() = setPadding(0, 0, 0, navBottomPx + dp(6))
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val screenH = resources.displayMetrics.heightPixels
-        val desired = dp(BAR_DP) + (screenH * GRID_HEIGHT_FRACTION).toInt() + navBottomPx + dp(6)
+        val desired = dp(BAR_DP) + (screenH * BODY_HEIGHT_FRACTION).toInt() + navBottomPx + dp(6)
         val hSpec = MeasureSpec.makeMeasureSpec(desired, MeasureSpec.EXACTLY)
         super.onMeasure(widthMeasureSpec, hSpec)
     }
@@ -154,8 +200,10 @@ class T9KeyboardView(
 
     companion object {
         private const val BAR_DP = 48
-        private const val GRID_HEIGHT_FRACTION = 0.40f
-        private const val COLUMN_WEIGHT = 1f   // ~1/6 of the width
-        private const val GRID_WEIGHT = 5f
+        private const val BODY_HEIGHT_FRACTION = 0.44f
+        private const val COLUMN_WEIGHT = 1.1f
+        private const val RIGHT_SIDE_WEIGHT = 7f
+        private const val LETTERS_WEIGHT = 5.4f
+        private const val FUNC_COLUMN_WEIGHT = 1.1f
     }
 }

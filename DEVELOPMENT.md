@@ -9,9 +9,9 @@
 
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
-- **Fase in corso:** Fase 1 — MVP. Step 1.4 (restyle grafico TouchPal) completato e verificato.
-- **Ultimo step completato:** Step 1.4 — overhaul grafico in stile TouchPal (tema scuro, tasti arrotondati, lettere grandi + numero teal, feedback al tocco, gestione insdi nav bar). Verificato su emulatore.
-- **Prossimo step:** a scelta — **Step 1.5** (apprendimento Room: parola forzata salvata e riproposta per prima; salvataggio su spazio) oppure completare la **fedeltà strutturale** al layout originale (colonna funzioni a destra con shift, riga inferiore con `12#`/virgola/space bar con lingua/mic/emoji).
+- **Fase in corso:** Fase 1 — MVP. Step 1.4b (struttura layout fedele all'originale) completato e verificato.
+- **Ultimo step completato:** Step 1.4b — layout strutturale completo stile TouchPal: colonna disambiguazione a sinistra (piena altezza), griglia 3×3 lettere, colonna funzioni a destra (⌫/⇧/☺), riga inferiore (12#/virgola/space/🎙/⏎). Verificato su emulatore.
+- **Prossimo step:** **Step 1.5** — apprendimento persistente con Room: la parola forzata/confermata viene salvata (peso alto) e riproposta per prima; salvataggio automatico su spazio. Poi Step 1.6 = corpus Leipzig reale.
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
 
 > ℹ️ **Multi-tap rimosso**: dallo Step 1.2 l'inserimento è predittivo (digiti la
@@ -108,6 +108,25 @@
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-27 — Step 1.4b: struttura layout fedele all'originale
+**Fatto:** riprodotta la struttura esatta di `docs/screenshots/layout.jpg`: colonna
+disambiguazione a sinistra (piena altezza), griglia 3×3 lettere al centro, **colonna
+funzioni a destra** (⌫ backspace, ⇧ shift, ☺ emoji), **riga inferiore full-width**
+(12# · virgola · space bar larga · 🎙 mic · ⏎ invio).
+
+**File modificati:**
+- `model/KeyAction.kt` — nuove azioni: `Space`, `Insert(text)`, `Shift`, `ModeSwitch`,
+  `Emoji`, `Mic` (le ultime 4 sono stub per Fase 3, presenti per fedeltà).
+- `model/T9Keypad.kt` — `KeySpec` ora ha `weight`; layout diviso in `letterRows` (3×3),
+  `rightColumn`, `bottomRow`.
+- `ui/T9KeyboardView.kt` — nuova composizione a pesi (colonna | [griglia+colonna funzioni]
+  sopra, riga inferiore sotto).
+- `service/T9ImeService.kt` — gestione `Space` (commit+spazio), `Insert` (virgola),
+  stub no-op per shift/mode/emoji/mic.
+
+**Funzionanti:** ⌫, virgola, space, ⏎. **Stub (Fase 3):** ⇧, 12#, ☺, 🎙.
+**Verificato:** build+install OK, screenshot `docs/screenshots/step-1.4b-struttura-completa.png`.
 
 ### 2026-07-27 — Step 1.4: restyle grafico stile TouchPal
 **Fatto:** overhaul visivo per avvicinarsi all'originale (riferimento in

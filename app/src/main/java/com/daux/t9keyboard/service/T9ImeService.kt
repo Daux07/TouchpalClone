@@ -71,9 +71,25 @@ class T9ImeService : InputMethodService() {
     private fun onKey(action: KeyAction) {
         when (action) {
             is KeyAction.Digit -> onDigit(action.n)
+            KeyAction.Space -> onSpace()
             KeyAction.Backspace -> onBackspace()
             KeyAction.Enter -> onEnter()
+            is KeyAction.Insert -> onInsert(action.text)
+            // Wired for real in Phase 3; no-ops for now (present for layout fidelity).
+            KeyAction.Shift, KeyAction.ModeSwitch, KeyAction.Emoji, KeyAction.Mic -> Unit
         }
+    }
+
+    private fun onSpace() {
+        val ic = currentInputConnection ?: return
+        if (!state.isEmpty()) commitCurrentWord()
+        ic.commitText(" ", 1)
+    }
+
+    private fun onInsert(text: String) {
+        val ic = currentInputConnection ?: return
+        if (!state.isEmpty()) commitCurrentWord()
+        ic.commitText(text, 1)
     }
 
     private fun onDigit(n: Int) {

@@ -63,31 +63,48 @@ object T9Keypad {
  * One key on screen (TouchPal-style): a large [mainLabel] (lowercase letters for
  * digit keys, or an icon/glyph for function keys) with a small [number] in the
  * corner. [isFunction] keys are tinted with the accent colour and carry no number.
+ * [weight] sets the relative width within its row (default 1).
  */
 data class KeySpec(
     val mainLabel: String,
     val number: String?,
     val isFunction: Boolean,
-    val action: KeyAction
+    val action: KeyAction,
+    val weight: Float = 1f
 )
 
-/** The default 4×3 keypad layout. */
+/**
+ * The keypad layout, reproducing the original TouchPal structure:
+ * - [letterRows]: the central 3×3 letter grid.
+ * - [rightColumn]: the right-hand function column (backspace, shift, emoji).
+ * - [bottomRow]: the full-width bottom row (12#, comma, space, mic, enter).
+ * The disambiguation column on the far left is a separate dynamic view.
+ */
 object T9Layout {
 
     private fun letterKey(n: Int) =
         KeySpec(T9Keypad.labelFor(n)!!, n.toString(), isFunction = false, KeyAction.Digit(n))
 
-    val rows: List<List<KeySpec>> = listOf(
+    val letterRows: List<List<KeySpec>> = listOf(
         listOf(
             KeySpec("@", "1", isFunction = false, KeyAction.Digit(1)),
             letterKey(2), letterKey(3)
         ),
         listOf(letterKey(4), letterKey(5), letterKey(6)),
-        listOf(letterKey(7), letterKey(8), letterKey(9)),
-        listOf(
-            KeySpec("⌫", null, isFunction = true, KeyAction.Backspace),
-            KeySpec("space", null, isFunction = false, KeyAction.Digit(0)),
-            KeySpec("⏎", null, isFunction = true, KeyAction.Enter)
-        )
+        listOf(letterKey(7), letterKey(8), letterKey(9))
+    )
+
+    val rightColumn: List<KeySpec> = listOf(
+        KeySpec("⌫", null, isFunction = true, KeyAction.Backspace),
+        KeySpec("⇧", null, isFunction = true, KeyAction.Shift),
+        KeySpec("☺", null, isFunction = true, KeyAction.Emoji)
+    )
+
+    val bottomRow: List<KeySpec> = listOf(
+        KeySpec("12#", null, isFunction = true, KeyAction.ModeSwitch, weight = 1.4f),
+        KeySpec(",", null, isFunction = false, KeyAction.Insert(","), weight = 1f),
+        KeySpec("space", null, isFunction = false, KeyAction.Space, weight = 4.5f),
+        KeySpec("🎙", null, isFunction = true, KeyAction.Mic, weight = 1f), // 🎙
+        KeySpec("⏎", null, isFunction = true, KeyAction.Enter, weight = 1.4f)
     )
 }
