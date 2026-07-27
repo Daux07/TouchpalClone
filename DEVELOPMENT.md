@@ -122,6 +122,10 @@ ed esegue l'azione editor. Multi-tap rimosso.
 3. Sequenza senza match (es. `99999`) → anteprima mostra le cifre grezze (atteso finché
    non c'è la colonna, Step 1.3).
 
+**Screenshot (verifica su emulatore Android 15):**
+- `docs/screenshots/step-1.1-griglia-tastiera.png` — la griglia 12 tasti.
+- `docs/screenshots/step-1.2-predittivo-casa.png` — `2272` → "casa" + suggerimenti cara/bara/basa.
+
 ### 2026-07-27 — Step 1.1: griglia 12 tasti + multi-tap
 **Fatto:** sostituito il placeholder con la vera griglia della tastiera e l'inserimento testo.
 
