@@ -19,6 +19,9 @@ object KeyboardTheme {
     const val KEY_PRESSED = 0xFF4A515C.toInt() // key pressed
     const val FUNC_KEY = 0xFF2E333C.toInt()    // function key face (slightly darker)
 
+    const val COLUMN_CELL = 0xFF66707D.toInt()         // disambiguation cell (lighter, to stand out)
+    const val COLUMN_CELL_PRESSED = 0xFF7B8593.toInt()
+
     const val TEXT = 0xFFF2F4F7.toInt()        // primary text (letters)
     const val TEXT_DIM = 0xFFAEB4BF.toInt()    // secondary text
     const val ACCENT = 0xFF35C5D0.toInt()      // teal accent (numbers, icons, 1st suggestion)

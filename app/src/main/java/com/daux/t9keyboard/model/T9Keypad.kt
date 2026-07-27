@@ -97,14 +97,20 @@ object T9Layout {
     val rightColumn: List<KeySpec> = listOf(
         KeySpec("⌫", null, isFunction = true, KeyAction.Backspace),
         KeySpec("⇧", null, isFunction = true, KeyAction.Shift),
-        KeySpec("☺", null, isFunction = true, KeyAction.Emoji)
+        // U+FE0E forces monochrome (outline) rendering instead of a colour emoji.
+        KeySpec("☺︎", null, isFunction = true, KeyAction.Emoji)
     )
 
+    /**
+     * Full-width bottom row. `12#` sits under the disambiguation column; the rest
+     * (comma, space, period, enter) align under the letter grid + right column.
+     * Weights sum to the upper area's total (7.6) so the columns line up.
+     */
     val bottomRow: List<KeySpec> = listOf(
-        KeySpec("12#", null, isFunction = true, KeyAction.ModeSwitch, weight = 1.4f),
+        KeySpec("12#", null, isFunction = true, KeyAction.ModeSwitch, weight = 1.1f),
         KeySpec(",", null, isFunction = false, KeyAction.Insert(","), weight = 1f),
-        KeySpec("space", null, isFunction = false, KeyAction.Space, weight = 4.5f),
-        KeySpec("🎙", null, isFunction = true, KeyAction.Mic, weight = 1f), // 🎙
-        KeySpec("⏎", null, isFunction = true, KeyAction.Enter, weight = 1.4f)
+        KeySpec("space", null, isFunction = false, KeyAction.Space, weight = 3.3f),
+        KeySpec(".", null, isFunction = false, KeyAction.Insert("."), weight = 1f),
+        KeySpec("⏎", null, isFunction = true, KeyAction.Enter, weight = 1.2f)
     )
 }

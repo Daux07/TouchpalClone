@@ -63,25 +63,21 @@ class T9KeyboardView(
     private fun buildBody(): View {
         val gap = dp(3)
         val body = LinearLayout(context).apply {
-            orientation = HORIZONTAL
+            orientation = VERTICAL
             setPadding(gap, gap, gap, gap)
         }
-        // Far-left disambiguation column, full height.
-        body.addView(column, LayoutParams(0, LayoutParams.MATCH_PARENT, COLUMN_WEIGHT))
-
-        val rightSide = LinearLayout(context).apply {
-            orientation = VERTICAL
-            layoutParams = LayoutParams(0, LayoutParams.MATCH_PARENT, RIGHT_SIDE_WEIGHT)
-        }
-        rightSide.addView(buildUpperArea(), LayoutParams(LayoutParams.MATCH_PARENT, 0, 3f))
-        rightSide.addView(buildRow(T9Layout.bottomRow), LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
-        body.addView(rightSide)
+        // Upper area (column + letters + right functions) over a full-width bottom row.
+        body.addView(buildUpperArea(), LayoutParams(LayoutParams.MATCH_PARENT, 0, 3f))
+        body.addView(buildRow(T9Layout.bottomRow), LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
         return body
     }
 
-    /** Central 3×3 letter grid plus the right-hand function column. */
+    /** Disambiguation column + central 3×3 letter grid + right-hand function column. */
     private fun buildUpperArea(): View {
         val upper = LinearLayout(context).apply { orientation = HORIZONTAL }
+
+        // Far-left disambiguation column — stops above the bottom row.
+        upper.addView(column, LayoutParams(0, LayoutParams.MATCH_PARENT, COLUMN_WEIGHT))
 
         val grid = LinearLayout(context).apply {
             orientation = VERTICAL
@@ -202,7 +198,6 @@ class T9KeyboardView(
         private const val BAR_DP = 48
         private const val BODY_HEIGHT_FRACTION = 0.44f
         private const val COLUMN_WEIGHT = 1.1f
-        private const val RIGHT_SIDE_WEIGHT = 7f
         private const val LETTERS_WEIGHT = 5.4f
         private const val FUNC_COLUMN_WEIGHT = 1.1f
     }

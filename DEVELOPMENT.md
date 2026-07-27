@@ -9,8 +9,8 @@
 
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
-- **Fase in corso:** Fase 1 — MVP. Step 1.4b (struttura layout fedele all'originale) completato e verificato.
-- **Ultimo step completato:** Step 1.4b — layout strutturale completo stile TouchPal: colonna disambiguazione a sinistra (piena altezza), griglia 3×3 lettere, colonna funzioni a destra (⌫/⇧/☺), riga inferiore (12#/virgola/space/🎙/⏎). Verificato su emulatore.
+- **Fase in corso:** Fase 1 — MVP. Step 1.4c (rifiniture layout) completato e verificato.
+- **Ultimo step completato:** Step 1.4c — colonna disambiguazione più chiara e limitata all'area superiore (si ferma sopra la riga inferiore), `12#` spostato sotto la colonna, riga inferiore full-width (12#/,/space/./⏎, mic→punto), icone outline monocromatiche (faccina teal). Verificato su emulatore.
 - **Prossimo step:** **Step 1.5** — apprendimento persistente con Room: la parola forzata/confermata viene salvata (peso alto) e riproposta per prima; salvataggio automatico su spazio. Poi Step 1.6 = corpus Leipzig reale.
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
 
@@ -108,6 +108,18 @@
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-27 — Step 1.4c: rifiniture layout (feedback utente)
+**Fatto:** (su richiesta) colonna disambiguazione **più chiara** (`COLUMN_CELL` slate) e
+**limitata all'area superiore** (non arriva più fino in fondo: si ferma sopra la riga
+inferiore); `12#` ora sta **sotto la colonna** (angolo in basso a sx); riga inferiore
+**full-width** con `12# · , · space · . · ⏎` (microfono sostituito dal **punto**);
+**icone outline** monocromatiche (faccina `☺︎` teal via U+FE0E, niente emoji colorata).
+
+**File modificati:** `ui/KeyboardTheme.kt` (colori cella colonna), `ui/DisambiguationColumnView.kt`
+(cella chiara, testo bianco), `model/T9Keypad.kt` (rightColumn/bottomRow, pesi allineati a 7.6),
+`ui/T9KeyboardView.kt` (body verticale: upperArea con colonna+griglia+funzioni, poi bottomRow full-width).
+**Verificato:** screenshot `docs/screenshots/step-1.4c-layout-rifinito.png`.
 
 ### 2026-07-27 — Step 1.4b: struttura layout fedele all'originale
 **Fatto:** riprodotta la struttura esatta di `docs/screenshots/layout.jpg`: colonna

@@ -36,9 +36,13 @@ class DisambiguationColumnView(
         return TextView(context).apply {
             text = letter.uppercaseChar().toString()
             gravity = Gravity.CENTER
-            setTextColor(KeyboardTheme.ACCENT)
+            setTextColor(KeyboardTheme.TEXT)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 17f)
-            background = KeyboardTheme.keyBackground(context, normal = KeyboardTheme.KEY)
+            background = KeyboardTheme.keyBackground(
+                context,
+                normal = KeyboardTheme.COLUMN_CELL,
+                pressed = KeyboardTheme.COLUMN_CELL_PRESSED
+            )
             isClickable = true
             layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f).apply {
                 setMargins(gap, gap, gap, gap)
