@@ -9,9 +9,9 @@
 
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
-- **Fase in corso:** Fase 1 — MVP. Step 1.3 (colonna di disambiguazione) completato e verificato.
-- **Ultimo step completato:** Step 1.3 — colonna di disambiguazione manuale (`ComposeState` + `DisambiguationColumnView`), forcing lettera-per-lettera di parole non nel dizionario. Compila, test verdi, verificato su emulatore ("bau" forzato).
-- **Prossimo step:** **Step 1.5** — apprendimento persistente con Room: la parola forzata/confermata viene salvata (peso alto) e riproposta per prima; salvataggio automatico su spazio. Poi Step 1.6 = corpus Leipzig reale.
+- **Fase in corso:** Fase 1 — MVP. Step 1.4 (restyle grafico TouchPal) completato e verificato.
+- **Ultimo step completato:** Step 1.4 — overhaul grafico in stile TouchPal (tema scuro, tasti arrotondati, lettere grandi + numero teal, feedback al tocco, gestione insdi nav bar). Verificato su emulatore.
+- **Prossimo step:** a scelta — **Step 1.5** (apprendimento Room: parola forzata salvata e riproposta per prima; salvataggio su spazio) oppure completare la **fedeltà strutturale** al layout originale (colonna funzioni a destra con shift, riga inferiore con `12#`/virgola/space bar con lingua/mic/emoji).
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
 
 > ℹ️ **Multi-tap rimosso**: dallo Step 1.2 l'inserimento è predittivo (digiti la
@@ -108,6 +108,30 @@
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-27 — Step 1.4: restyle grafico stile TouchPal
+**Fatto:** overhaul visivo per avvicinarsi all'originale (riferimento in
+`docs/screenshots/layout.jpg`). Tema scuro definito. Prima era "grezzo" (rettangoli
+piatti); ora tasti arrotondati con feedback al tocco, lettere grandi minuscole con
+numero piccolo teal, accenti ciano su colonna e tasti funzione.
+
+**File creati/modificati:**
+- `ui/KeyboardTheme.kt` — palette condivisa (BG, KEY, ACCENT teal, ecc.) + builder di
+  sfondi arrotondati con stato "pressed" (`keyBackground`, `ghostBackground`).
+- `model/T9Keypad.kt` — `KeySpec` ora ha `mainLabel`/`number`/`isFunction`; `T9Layout`
+  mostra le lettere in grande e il numero piccolo (tasto 1 = "@").
+- `ui/T9KeyboardView.kt` — tasti come `FrameLayout` (label centrata + numero d'angolo),
+  palette nuova, **gestione WindowInsets** per non finire sotto la nav bar (edge-to-edge
+  di targetSdk 35), altezza che tiene conto dell'inset.
+- `ui/SuggestionBarView.kt` / `ui/DisambiguationColumnView.kt` — restilizzati (primo
+  suggerimento teal, celle arrotondate con feedback).
+
+**Verificato (2026-07-27):** build+install OK, screenshot
+`docs/screenshots/step-1.4-restyle-touchpal.png` — riga inferiore ora sopra la nav bar.
+
+**Da fare per fedeltà piena (opzionale, prossimo step possibile):** colonna funzioni a
+destra (shift/redo), riga inferiore con `12#` + virgola + space bar con lingua + mic +
+emoji, come nell'originale. Attuale set funzioni è semplificato (⌫, space, ⏎).
 
 ### 2026-07-27 — Step 1.3: colonna di disambiguazione manuale (funzione centrale)
 **Fatto:** implementata la colonna posizionale che permette di **forzare parole non nel

@@ -22,9 +22,9 @@ object T9Keypad {
         0 to listOf(' ')
     )
 
-    /** Letters shown as the small subtitle under a digit key (e.g. "ABC"). */
-    fun subtitleFor(digit: Int): String? = when (digit) {
-        in 2..9 -> letters[digit]!!.joinToString("").uppercase()
+    /** Letters shown as the main label on a digit key (e.g. "abc"). */
+    fun labelFor(digit: Int): String? = when (digit) {
+        in 2..9 -> letters[digit]!!.joinToString("")
         else -> null
     }
 
@@ -59,27 +59,35 @@ object T9Keypad {
     }
 }
 
-/** One key on screen: what to draw and what it does when tapped. */
+/**
+ * One key on screen (TouchPal-style): a large [mainLabel] (lowercase letters for
+ * digit keys, or an icon/glyph for function keys) with a small [number] in the
+ * corner. [isFunction] keys are tinted with the accent colour and carry no number.
+ */
 data class KeySpec(
-    val label: String,
-    val subtitle: String?,
+    val mainLabel: String,
+    val number: String?,
+    val isFunction: Boolean,
     val action: KeyAction
 )
 
-/** The default 4×3 keypad layout for Phase 1.1. */
+/** The default 4×3 keypad layout. */
 object T9Layout {
 
-    private fun digit(n: Int, label: String = n.toString()) =
-        KeySpec(label, T9Keypad.subtitleFor(n), KeyAction.Digit(n))
+    private fun letterKey(n: Int) =
+        KeySpec(T9Keypad.labelFor(n)!!, n.toString(), isFunction = false, KeyAction.Digit(n))
 
     val rows: List<List<KeySpec>> = listOf(
-        listOf(digit(1), digit(2), digit(3)),
-        listOf(digit(4), digit(5), digit(6)),
-        listOf(digit(7), digit(8), digit(9)),
         listOf(
-            KeySpec("⌫", null, KeyAction.Backspace),   // ⌫
-            KeySpec("0", "space", KeyAction.Digit(0)),
-            KeySpec("⏎", null, KeyAction.Enter)         // ⏎
+            KeySpec("@", "1", isFunction = false, KeyAction.Digit(1)),
+            letterKey(2), letterKey(3)
+        ),
+        listOf(letterKey(4), letterKey(5), letterKey(6)),
+        listOf(letterKey(7), letterKey(8), letterKey(9)),
+        listOf(
+            KeySpec("⌫", null, isFunction = true, KeyAction.Backspace),
+            KeySpec("space", null, isFunction = false, KeyAction.Digit(0)),
+            KeySpec("⏎", null, isFunction = true, KeyAction.Enter)
         )
     )
 }
