@@ -11,12 +11,12 @@ import android.widget.TextView
 
 /**
  * The manual disambiguation column (plan §3): a narrow vertical strip beside the
- * keypad showing the letters of the digit at the current position. Cells have a
- * small fixed height and the whole strip **scrolls** when there are more items
- * than fit — useful for longer candidate lists and for the favourite-symbols rest
- * state (Phase 3). Tapping a cell forces that letter into the word.
+ * keypad showing the letters of the digit at the current position.
  *
- * Styled lighter than the keys so it stands out (plan §3.2/§3.10).
+ * Cells are sized to **fill the column with 3–4 items** (the usual letter count):
+ * with up to 4 items they divide the height evenly; with more the cells keep the
+ * 4-item size and the strip **scrolls** (useful for the favourite-symbols rest
+ * state in Phase 3). Styled lighter than the keys so it stands out.
  */
 @SuppressLint("ViewConstructor")
 class DisambiguationColumnView(
@@ -28,6 +28,9 @@ class DisambiguationColumnView(
         orientation = LinearLayout.VERTICAL
     }
 
+    private var letters: List<Char> = emptyList()
+    private var viewportHeight = 0
+
     init {
         isVerticalScrollBarEnabled = false
         setBackgroundColor(KeyboardTheme.COLUMN_BG)
@@ -37,20 +40,35 @@ class DisambiguationColumnView(
         )
     }
 
-    /** Show one small tappable cell per letter (lowercase chars from the keypad). */
+    /** Show one tappable cell per letter (lowercase chars from the keypad). */
     fun setLetters(letters: List<Char>) {
-        container.removeAllViews()
-        for (letter in letters) container.addView(buildCell(letter))
-        scrollY = 0
+        this.letters = letters
+        rebuild()
     }
 
-    private fun buildCell(letter: Char): View {
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        viewportHeight = h
+        rebuild()
+    }
+
+    private fun rebuild() {
+        container.removeAllViews()
+        scrollY = 0
+        if (letters.isEmpty() || viewportHeight == 0) return
+        // Divide by the item count (so 3–4 items fill), capped at 4 (more scroll).
+        val divisor = letters.size.coerceIn(3, 4)
+        val cellHeight = (viewportHeight / divisor - dp(4)).coerceAtLeast(dp(30))
+        for (letter in letters) container.addView(buildCell(letter, cellHeight))
+    }
+
+    private fun buildCell(letter: Char, heightPx: Int): View {
         val gap = dp(2)
         return TextView(context).apply {
             text = letter.uppercaseChar().toString()
             gravity = Gravity.CENTER
             setTextColor(KeyboardTheme.TEXT)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 17f)
             background = KeyboardTheme.keyBackground(
                 context,
                 normal = KeyboardTheme.COLUMN_CELL,
@@ -59,7 +77,7 @@ class DisambiguationColumnView(
             isClickable = true
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(CELL_HEIGHT_DP)
+                heightPx
             ).apply { setMargins(gap, gap, gap, gap) }
             setOnClickListener { onPickLetter(letter) }
         }
@@ -67,8 +85,4 @@ class DisambiguationColumnView(
 
     private fun dp(value: Int): Int =
         (resources.displayMetrics.density * value).toInt()
-
-    companion object {
-        private const val CELL_HEIGHT_DP = 40
-    }
 }

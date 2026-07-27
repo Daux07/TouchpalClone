@@ -9,8 +9,8 @@
 
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
-- **Fase in corso:** Fase 1 — MVP. Step 1.4d (rifiniture layout 2) completato e verificato.
-- **Ultimo step completato:** Step 1.4d — celle colonna piccole ad altezza fissa (~40dp) + colonna **scorrevole** (`ScrollView`, pronta per candidati>3 e simboli preferiti); riga inferiore più sottile (~0.72× una riga lettere). Verificato su emulatore.
+- **Fase in corso:** Fase 1 — MVP. Step 1.4e (proporzioni) completato e verificato.
+- **Ultimo step completato:** Step 1.4e — tastiera meno alta (`BODY_HEIGHT_FRACTION=0.34`, tasti più larghi che alti, come il riferimento); celle colonna dimensionate per **riempire lo spazio con 3–4 elementi** (altezza = viewport/conteggio, cap a 4 → oltre scorre). Verificato su emulatore.
 - **Prossimo step:** **Step 1.5** — apprendimento persistente con Room: la parola forzata/confermata viene salvata (peso alto) e riproposta per prima; salvataggio automatico su spazio. Poi Step 1.6 = corpus Leipzig reale.
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
 
@@ -108,6 +108,16 @@
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-27 — Step 1.4e: proporzioni (meno verticale, colonna a riempimento)
+**Fatto:** (feedback utente) tastiera **meno alta** per avvicinarsi alle proporzioni del
+riferimento (`BODY_HEIGHT_FRACTION` 0.44→0.34): tasti più larghi che alti. Celle colonna
+non più minuscole a altezza fissa ma **dinamiche**: `cellHeight = viewport / count`
+(count limitato a 3–4), così 3–4 elementi **riempiono** la colonna; oltre 4 mantengono la
+dimensione da 4 e la colonna **scorre**. `onSizeChanged` ricalcola al variare dell'altezza.
+**File:** `ui/DisambiguationColumnView.kt`, `ui/T9KeyboardView.kt`.
+**Verificato:** `docs/screenshots/step-1.4e-proporzioni.png` (colonna P/Q/R/S che riempie).
+**Nota:** l'altezza sarà comunque resa **regolabile dall'utente** in Fase 3.
 
 ### 2026-07-27 — Step 1.4d: colonna piccola+scorrevole, riga inferiore più sottile
 **Fatto:** (feedback utente) `DisambiguationColumnView` ora è una `ScrollView` con celle
