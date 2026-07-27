@@ -6,29 +6,30 @@ import android.view.inputmethod.EditorInfo
 import com.daux.t9keyboard.engine.Candidate
 import com.daux.t9keyboard.engine.DictionaryEngine
 import com.daux.t9keyboard.engine.ItalianDictionaryEngine
+import com.daux.t9keyboard.input.ComposeState
 import com.daux.t9keyboard.model.KeyAction
+import com.daux.t9keyboard.model.T9Keypad
 import com.daux.t9keyboard.ui.T9KeyboardView
 
 /**
  * Entry point of the T9 keyboard.
  *
- * Phase 1.2: predictive T9. Digit keys 2–9 build a numeric sequence; the engine
- * maps it to dictionary words ordered by frequency. The best guess is shown as
- * composing text and the full list in the suggestion bar (tap to pick). Space/0
- * commits the current word, backspace shortens the sequence, enter runs the
- * editor action.
+ * Phase 1.3: predictive T9 plus the manual disambiguation column (the project's
+ * core feature). Digit keys 2–9 extend a sequence; the engine predicts words for
+ * it (shown as composing text + in the suggestion bar). In parallel the column
+ * shows the letters of the current position's digit — tapping them forces a word
+ * letter by letter, even one the dictionary doesn't know. Space/0 commits, enter
+ * runs the editor action, backspace pops the last (digit, letter) pair.
  *
- * Not yet here: the manual disambiguation column (Phase 1.3) and learning/Room
- * (Phase 1.5). Until the column exists, an unknown sequence (no dictionary match)
- * previews the raw digits.
+ * Not yet here: learning forced words into a personal dictionary (Phase 1.5) and
+ * favourite symbols in the column's rest state (Phase 3).
  */
 class T9ImeService : InputMethodService() {
 
     private lateinit var engine: DictionaryEngine
     private var keyboardView: T9KeyboardView? = null
 
-    /** Digits typed for the word currently being composed. */
-    private val sequence = StringBuilder()
+    private val state = ComposeState()
     private var candidates: List<Candidate> = emptyList()
 
     override fun onCreate() {
@@ -40,9 +41,11 @@ class T9ImeService : InputMethodService() {
         val view = T9KeyboardView(
             context = this,
             onKey = ::onKey,
-            onPickCandidate = ::onPickCandidate
+            onPickCandidate = ::onPickCandidate,
+            onPickLetter = ::onPickLetter
         )
         keyboardView = view
+        render()
         return view
     }
 
@@ -51,20 +54,16 @@ class T9ImeService : InputMethodService() {
         resetComposition()
     }
 
-    /**
-     * Always show the soft keyboard, even when a hardware keyboard is attached
-     * (typical on the emulator, where it otherwise stays hidden). On real phones
-     * there is no hardware keyboard, so this is a no-op there.
-     */
-    override fun onEvaluateInputViewShown(): Boolean {
-        super.onEvaluateInputViewShown()
-        return true
-    }
-
     override fun onFinishInput() {
         super.onFinishInput()
         currentInputConnection?.finishComposingText()
         resetComposition()
+    }
+
+    /** Always show our soft keyboard, even with a hardware keyboard attached. */
+    override fun onEvaluateInputViewShown(): Boolean {
+        super.onEvaluateInputViewShown()
+        return true
     }
 
     // --- Key handling ---------------------------------------------------------
@@ -81,58 +80,36 @@ class T9ImeService : InputMethodService() {
         val ic = currentInputConnection ?: return
         when (n) {
             0 -> { // space: commit the word in progress, then a space
-                if (sequence.isNotEmpty()) commitCurrentWord()
+                if (!state.isEmpty()) commitCurrentWord()
                 ic.commitText(" ", 1)
             }
             1 -> { // punctuation key: handled in Phase 3; for now just commit
-                if (sequence.isNotEmpty()) commitCurrentWord()
+                if (!state.isEmpty()) commitCurrentWord()
             }
-            else -> { // 2–9: extend the sequence and refresh predictions
-                sequence.append(n)
-                refreshPredictions()
+            else -> { // 2–9: extend the sequence
+                state.pressDigit(n)
+                render()
             }
         }
     }
 
+    /** Tap on a letter in the disambiguation column: force it into the word. */
+    private fun onPickLetter(letter: Char) {
+        if (state.chooseLetter(letter)) render()
+    }
+
     private fun onBackspace() {
         val ic = currentInputConnection ?: return
-        if (sequence.isNotEmpty()) {
-            sequence.deleteCharAt(sequence.length - 1)
-            if (sequence.isEmpty()) {
-                ic.setComposingText("", 1)
-                ic.finishComposingText()
-                setSuggestions(emptyList())
-            } else {
-                refreshPredictions()
-            }
+        if (state.backspace()) {
+            render()
         } else {
             ic.deleteSurroundingText(1, 0)
         }
     }
 
     private fun onEnter() {
-        if (sequence.isNotEmpty()) commitCurrentWord()
+        if (!state.isEmpty()) commitCurrentWord()
         sendDefaultEditorAction(true)
-    }
-
-    // --- Composition helpers --------------------------------------------------
-
-    /** Look up the current sequence and show the best guess + the candidate list. */
-    private fun refreshPredictions() {
-        val ic = currentInputConnection ?: return
-        candidates = engine.lookup(sequence.toString())
-        val preview = candidates.firstOrNull()?.word ?: sequence.toString()
-        ic.setComposingText(preview, 1)
-        setSuggestions(candidates)
-    }
-
-    /** Commit the current best guess (or raw digits if no match) and reset. */
-    private fun commitCurrentWord() {
-        val ic = currentInputConnection ?: return
-        val word = candidates.firstOrNull()?.word ?: sequence.toString()
-        ic.setComposingText(word, 1)
-        ic.finishComposingText()
-        resetComposition()
     }
 
     private fun onPickCandidate(candidate: Candidate) {
@@ -142,13 +119,55 @@ class T9ImeService : InputMethodService() {
         resetComposition()
     }
 
-    private fun resetComposition() {
-        sequence.setLength(0)
-        candidates = emptyList()
-        setSuggestions(emptyList())
+    // --- Rendering & commit ---------------------------------------------------
+
+    /**
+     * Push the current state to the field (composing preview) and the keyboard
+     * (suggestion bar + column). The preview is the forced word while the user is
+     * disambiguating, otherwise the best prediction (or the raw digits if unknown).
+     */
+    private fun render() {
+        val ic = currentInputConnection ?: return
+
+        candidates = if (state.isEmpty()) emptyList()
+        else engine.lookup(state.sequenceString())
+
+        val columnDigit = state.activeColumnDigit()
+        keyboardView?.setColumnLetters(
+            if (columnDigit != null) T9Keypad.letters[columnDigit].orEmpty() else emptyList()
+        )
+        keyboardView?.setSuggestions(candidates)
+
+        val preview = currentPreview()
+        if (preview.isEmpty()) {
+            ic.setComposingText("", 1)
+            ic.finishComposingText()
+        } else {
+            ic.setComposingText(preview, 1)
+        }
     }
 
-    private fun setSuggestions(list: List<Candidate>) {
-        keyboardView?.setSuggestions(list)
+    /** What should currently appear (as composing text) in the field. */
+    private fun currentPreview(): String = when {
+        state.isForcing() -> state.forcedText()
+        candidates.isNotEmpty() -> candidates.first().word
+        else -> state.sequenceString()
+    }
+
+    private fun commitCurrentWord() {
+        val ic = currentInputConnection ?: return
+        val word = currentPreview()
+        if (word.isNotEmpty()) {
+            ic.setComposingText(word, 1)
+            ic.finishComposingText()
+        }
+        resetComposition()
+    }
+
+    private fun resetComposition() {
+        state.reset()
+        candidates = emptyList()
+        keyboardView?.setColumnLetters(emptyList())
+        keyboardView?.setSuggestions(emptyList())
     }
 }

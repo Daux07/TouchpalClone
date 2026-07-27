@@ -9,10 +9,10 @@
 
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
-- **Fase in corso:** Fase 1 — MVP. Step 1.2 (predittivo + barra suggerimenti) completato lato codice.
-- **Ultimo step completato:** Step 1.2 — motore predittivo (`DictionaryEngine`/`ItalianDictionaryEngine` da asset di test), barra suggerimenti, inserimento a sequenza di cifre. Sostituito il multi-tap.
-- **Prossimo step:** **Step 1.3** — la **colonna di disambiguazione manuale** (funzione centrale): stack di coppie (cifra, lettera), sempre visibile a lato della griglia, per forzare parole non nel dizionario. Introdurre `ComposeState`.
-- **Come riprendere:** leggi questa sezione + i task non spuntati della fase corrente qui sotto. Verifica in Android Studio lo Step 1.2 (vedi log 2026-07-27 Step 1.2) prima di procedere.
+- **Fase in corso:** Fase 1 — MVP. Step 1.3 (colonna di disambiguazione) completato e verificato.
+- **Ultimo step completato:** Step 1.3 — colonna di disambiguazione manuale (`ComposeState` + `DisambiguationColumnView`), forcing lettera-per-lettera di parole non nel dizionario. Compila, test verdi, verificato su emulatore ("bau" forzato).
+- **Prossimo step:** **Step 1.5** — apprendimento persistente con Room: la parola forzata/confermata viene salvata (peso alto) e riproposta per prima; salvataggio automatico su spazio. Poi Step 1.6 = corpus Leipzig reale.
+- **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
 
 > ℹ️ **Multi-tap rimosso**: dallo Step 1.2 l'inserimento è predittivo (digiti la
 > sequenza di cifre → parole proposte). Se una sequenza non ha match nel dizionario,
@@ -24,6 +24,19 @@
 > tastiera hardware del PC nasconde quella software). Fix rapido:
 > `adb shell settings put secure show_ime_with_hard_keyboard 1`. Il codice ora forza
 > comunque la visualizzazione via `onEvaluateInputViewShown()` (no-op sui telefoni reali).
+
+> 🛠️ **Build & test da riga di comando (senza Android Studio aperto).** Il wrapper
+> `gradlew` non è nel repo, ma si può usare il Gradle+JDK già scaricati da Android Studio.
+> Da Git Bash, dalla root del progetto:
+> ```bash
+> export JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"
+> export ANDROID_HOME="/c/Users/Antonio/AppData/Local/Android/Sdk"
+> GRADLE=$(ls /c/Users/Antonio/.gradle/wrapper/dists/gradle-8.13-bin/*/gradle-8.13/bin/gradle | head -1)
+> "$GRADLE" :app:testDebugUnitTest --console=plain   # unit test
+> "$GRADLE" :app:installDebug --console=plain         # build+install su emulatore/S25
+> ```
+> adb sta in `$ANDROID_HOME/platform-tools/adb.exe`. Screenshot emulatore:
+> `adb exec-out screencap -p > out.png`.
 
 > ⚠️ **Il Gradle wrapper JAR e gli script `gradlew` non sono nel repo** (non generabili in
 > questo ambiente senza SDK). Alla prima apertura in Android Studio, lascia che sincronizzi
@@ -62,12 +75,12 @@
 - [x] Inserimento multi-tap (trampolino Step 1.1) — rimpiazzato dal predittivo in 1.2
 - [x] `DictionaryEngine` (interfaccia) + `ItalianDictionaryEngine` da asset di test
 - [x] Modalità predittiva T9 + barra suggerimenti orizzontale
-- [ ] **Colonna di disambiguazione manuale posizionale** (stack di coppie cifra/lettera) ← Step 1.3
-- [ ] Backspace = pop della coppia (cifra+lettera insieme)
-- [ ] Estendere/correggere parola (push nuova coppia)
-- [ ] Apprendimento persistente (Room) + salvataggio automatico su spazio
-- [ ] Integrazione corpus Leipzig italiano → file binario indicizzato in `assets/`
-- [~] Test unitari: fatti `T9Keypad.sequenceFor` e `ItalianDictionaryEngine`; manca `ComposeState` (Step 1.3)
+- [x] **Colonna di disambiguazione manuale posizionale** (stack di coppie cifra/lettera) — `ComposeState` + `DisambiguationColumnView`
+- [x] Backspace = pop della coppia (cifra+lettera insieme)
+- [x] Estendere/correggere parola (push nuova coppia) — stessa operazione, nessuna distinzione di codice
+- [ ] Apprendimento persistente (Room) + salvataggio automatico su spazio ← Step 1.5
+- [ ] Integrazione corpus Leipzig italiano → file binario indicizzato in `assets/` ← Step 1.6
+- [x] Test unitari: `T9Keypad.sequenceFor`, `ItalianDictionaryEngine`, `ComposeState`
 
 ## Fase 2 — Bilingue IT+EN
 
@@ -95,6 +108,32 @@
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-27 — Step 1.3: colonna di disambiguazione manuale (funzione centrale)
+**Fatto:** implementata la colonna posizionale che permette di **forzare parole non nel
+dizionario** lettera per lettera (sez. 3 del piano).
+
+**File creati/modificati:**
+- `input/ComposeState.kt` — stato della composizione: `digits` (cifre premute) + `chosen`
+  (lettere forzate), invariante `chosen.length ≤ digits.size`. Op: `pressDigit`,
+  `chooseLetter` (valida che la lettera appartenga alla cifra), `backspace` (pop della
+  coppia intera, o della cifra non risolta in coda), `activeColumnDigit` (posizione
+  corrente della colonna), `forcedText`, `sequenceString`, `isForcing`, `reset`.
+  Estendere e correggere sono la stessa operazione (backspace + ripressione).
+- `ui/DisambiguationColumnView.kt` — striscia verticale a lato della griglia con le
+  lettere del tasto alla posizione corrente; tap = forza la lettera.
+- `ui/T9KeyboardView.kt` — body ora orizzontale: colonna (peso 1) + griglia (peso 5),
+  responsivo; nuovo `setColumnLetters()`; callback `onPickLetter`.
+- `service/T9ImeService.kt` — integra `ComposeState`: `render()` unico che aggiorna
+  anteprima (parola forzata se in forcing, altrimenti predizione), barra e colonna.
+- Test: `input/ComposeStateTest.kt` (8 casi: forcing, walk, pop-coppia, correzione, ecc.).
+
+**Verificato (2026-07-27):** `:app:testDebugUnitTest` verde; su emulatore forzata la
+parola **"bau"** (2‑2‑8, non nel dizionario) scegliendo B‑A‑U dalla colonna.
+Screenshot: `docs/screenshots/step-1.3-colonna-lettere.png`, `step-1.3-forcing-bau.png`.
+
+**Nota:** la colonna a riposo (stack vuoto) è per ora vuota; i simboli preferiti
+configurabili arrivano in Fase 3. L'apprendimento della parola forzata è Step 1.5.
 
 ### 2026-07-27 — Step 1.2: motore predittivo + barra suggerimenti
 **Fatto:** l'inserimento ora è **predittivo T9**. I tasti 2–9 costruiscono una sequenza

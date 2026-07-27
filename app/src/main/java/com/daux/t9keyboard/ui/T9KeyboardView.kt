@@ -18,44 +18,61 @@ import com.daux.t9keyboard.model.KeySpec
 import com.daux.t9keyboard.model.T9Layout
 
 /**
- * The whole input surface: a suggestion bar on top of a responsive key grid.
+ * The whole input surface: a suggestion bar on top, then the disambiguation
+ * column beside the responsive key grid.
  *
  * Sizing is proportional, not fixed: the grid rows share their height via layout
- * weights and keys share each row's width via weights, so the same layout scales
- * cleanly between the Galaxy S25 and S25 Ultra (plan §6). The suggestion bar has a
- * fixed height; the grid takes a fraction of the screen height below it.
+ * weights, keys share each row's width via weights, and the column takes a small
+ * weighted fraction of the width — so the same layout scales cleanly between the
+ * Galaxy S25 and S25 Ultra (plan §6). The bar has a fixed height; the body takes a
+ * fraction of the screen height below it.
  *
- * Display-only: taps are reported through [onKey]; candidate picks through
- * [onPickCandidate]. All input logic lives in the service.
+ * Display-only: taps are reported through [onKey], candidate picks through
+ * [onPickCandidate], and column letter picks through [onPickLetter]. All input
+ * logic lives in the service.
  */
 @SuppressLint("ViewConstructor")
 class T9KeyboardView(
     context: Context,
     private val onKey: (KeyAction) -> Unit,
-    onPickCandidate: (Candidate) -> Unit
+    onPickCandidate: (Candidate) -> Unit,
+    onPickLetter: (Char) -> Unit
 ) : LinearLayout(context) {
 
     private val suggestionBar = SuggestionBarView(context, onPickCandidate)
+    private val column = DisambiguationColumnView(context, onPickLetter)
 
     init {
         orientation = VERTICAL
         setBackgroundColor(BG)
 
         addView(suggestionBar, LayoutParams(LayoutParams.MATCH_PARENT, dp(BAR_DP)))
+        addView(buildBody(), LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
+    }
 
+    /** Body row: disambiguation column (left, default) beside the key grid. */
+    private fun buildBody(): View {
         val gap = dp(2)
-        val gridWrap = LinearLayout(context).apply {
-            orientation = VERTICAL
+        val body = LinearLayout(context).apply {
+            orientation = HORIZONTAL
             setPadding(gap, gap, gap, gap)
-            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f)
         }
-        for (row in T9Layout.rows) gridWrap.addView(buildRow(row))
-        addView(gridWrap)
+        body.addView(column, LayoutParams(0, LayoutParams.MATCH_PARENT, COLUMN_WEIGHT))
+
+        val grid = LinearLayout(context).apply { orientation = VERTICAL }
+        for (row in T9Layout.rows) grid.addView(buildRow(row))
+        body.addView(grid, LayoutParams(0, LayoutParams.MATCH_PARENT, GRID_WEIGHT))
+        return body
     }
 
     /** Replace the candidates shown in the suggestion bar. */
     fun setSuggestions(candidates: List<Candidate>) {
         suggestionBar.setCandidates(candidates)
+    }
+
+    /** Replace the letters shown in the disambiguation column (empty = at rest). */
+    fun setColumnLetters(letters: List<Char>) {
+        column.setLetters(letters)
     }
 
     private fun buildRow(keys: List<KeySpec>): View {
@@ -109,6 +126,8 @@ class T9KeyboardView(
     companion object {
         private const val BAR_DP = 46
         private const val GRID_HEIGHT_FRACTION = 0.40f
+        private const val COLUMN_WEIGHT = 1f   // ~1/6 of the width
+        private const val GRID_WEIGHT = 5f
         private const val BG = 0xFF1E1E1E.toInt()
         private const val KEY_BG = 0xFF2C2C2C.toInt()
         private val SUB_COLOR = 0xFF9E9E9E.toInt()

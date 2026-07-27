@@ -129,8 +129,46 @@ come *composing text* nel campo, con l'intera lista di candidati nella barra sug
   cancella il carattere precedente nel campo.
 - **`⏎`:** conferma la parola ed esegue l'azione dell'editor.
 
-> ⚠️ **Limite temporaneo:** se la sequenza non ha corrispondenze nel dizionario,
-> l'anteprima mostra le **cifre grezze**. Sarà la **colonna di disambiguazione**
-> (Fase 1.3) a permettere di forzare parole non presenti, lettera per lettera — è la
-> funzione centrale del progetto. L'apprendimento (salvare le parole forzate) arriva in
-> Fase 1.5 con Room.
+### Colonna di disambiguazione manuale — `ComposeState` + `DisambiguationColumnView` (Fase 1.3)
+
+**È la funzione centrale del progetto.** Permette di comporre una parola qualsiasi —
+anche **non presente nel dizionario** — scegliendo le lettere una per una da una colonna
+sempre visibile a lato della griglia (piano §3).
+
+**Modello di stato (`ComposeState`):** due liste parallele con invariante
+`chosen.length ≤ digits.size`:
+- `digits` — le cifre premute, nell'ordine (la "sequenza originale").
+- `chosen` — le lettere forzate finora, una per cifra, risolte da sinistra a destra.
+
+Una posizione risolta `i` è la coppia `(digits[i], chosen[i])` — lo "stack di coppie
+(cifra, lettera)" del piano. La colonna indirizza sempre la **prima posizione non
+risolta** (`activeColumnDigit`): mostra le lettere di quella cifra; scegliendone una si
+avanza di uno.
+
+**Comportamento:**
+- Premi una cifra 2–9 → si aggiunge alla sequenza; la colonna mostra le lettere della
+  posizione corrente (es. dopo `2` → `A B C`).
+- Tocchi una lettera nella colonna → viene forzata nel testo, la colonna avanza alla
+  posizione successiva. Ripetendo, componi la parola lettera per lettera.
+- **Anteprima nel campo:** se stai forzando (`isForcing`), il campo mostra la parola
+  forzata; altrimenti la predizione migliore (o le cifre grezze se sconosciuta). La barra
+  suggerimenti resta attiva in parallelo: puoi sempre scegliere una predizione invece.
+- **`⌫` (backspace) = pop dell'intera coppia** (cifra + lettera insieme), mai solo il
+  carattere — evita cifre "orfane" (piano §3.6). Se la coda ha una cifra non ancora
+  risolta, rimuove quella.
+- **Estendere** una parola (più lunga) e **correggere** l'ultima lettera sono la
+  **stessa identica operazione** (backspace + ripressione + scelta): nessuna distinzione
+  di codice (piano §3.7–3.8).
+- **Limite noto:** nessun editing in-place a metà parola; si cancella dalla coda e si
+  ridigita (piano §3.9).
+
+**Stato a riposo:** con lo stack vuoto la colonna è per ora vuota; i **simboli preferiti**
+configurabili (piano §3.10) arrivano in Fase 3.
+
+**File:** `input/ComposeState.kt` (logica, coperta da `ComposeStateTest`),
+`ui/DisambiguationColumnView.kt` (vista), integrazione in `service/T9ImeService.kt`
+(metodo `render()` unico per anteprima + barra + colonna).
+
+> ⏭️ **Prossimo:** l'**apprendimento** — la parola forzata/confermata verrà salvata nel
+> dizionario personale (Room) con peso alto e riproposta per prima (Fase 1.5). Poi il
+> corpus reale Leipzig (Fase 1.6).
