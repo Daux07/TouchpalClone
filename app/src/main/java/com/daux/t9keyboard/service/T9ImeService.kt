@@ -51,6 +51,16 @@ class T9ImeService : InputMethodService() {
         resetComposition()
     }
 
+    /**
+     * Always show the soft keyboard, even when a hardware keyboard is attached
+     * (typical on the emulator, where it otherwise stays hidden). On real phones
+     * there is no hardware keyboard, so this is a no-op there.
+     */
+    override fun onEvaluateInputViewShown(): Boolean {
+        super.onEvaluateInputViewShown()
+        return true
+    }
+
     override fun onFinishInput() {
         super.onFinishInput()
         currentInputConnection?.finishComposingText()

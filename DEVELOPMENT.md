@@ -19,6 +19,12 @@
 > per ora l'anteprima mostra le cifre grezze; sarà la **colonna** (Step 1.3) a permettere
 > di forzare parole non presenti.
 
+> 🐞 **Gotcha emulatore (tastiera non compare):** se sull'emulatore l'IME è selezionato
+> ma non appare nessuna tastiera, è l'impostazione `show_ime_with_hard_keyboard=0` (la
+> tastiera hardware del PC nasconde quella software). Fix rapido:
+> `adb shell settings put secure show_ime_with_hard_keyboard 1`. Il codice ora forza
+> comunque la visualizzazione via `onEvaluateInputViewShown()` (no-op sui telefoni reali).
+
 > ⚠️ **Il Gradle wrapper JAR e gli script `gradlew` non sono nel repo** (non generabili in
 > questo ambiente senza SDK). Alla prima apertura in Android Studio, lascia che sincronizzi
 > (rigenera il wrapper), oppure esegui `gradle wrapper --gradle-version 8.9`. Serve anche
@@ -46,7 +52,7 @@
 - [x] `res/xml/method.xml` (metadati IME)
 - [x] `T9ImeService.kt` minimale che mostra una view placeholder (`PlaceholderKeyboardView`)
 - [x] Risorse base: `strings.xml`, tema, icona placeholder (`ic_launcher.xml`)
-- [ ] **Milestone (richiede Android Studio):** buildare, installare, abilitare la tastiera nelle impostazioni di sistema, selezionarla e vederla comparire
+- [x] **Milestone:** buildare, installare, abilitare e selezionare la tastiera — ✅ verificata su emulatore Android 15 (2026-07-27): la griglia compare e il predittivo funziona.
 
 ## Fase 1 — MVP: funzione centrale (la colonna)
 
