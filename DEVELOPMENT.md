@@ -9,10 +9,14 @@
 
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
-- **Fase in corso:** Fase 0 — Scaffolding progetto (codice completo; manca solo la verifica su dispositivo/emulatore)
-- **Ultimo step completato:** scaffolding Gradle + modulo `app` + `T9ImeService` con view placeholder
-- **Prossimo step:** aprire il progetto in Android Studio, generare il Gradle wrapper, buildare, installare ed **eseguire la Milestone Fase 0** (abilitare e selezionare la tastiera). Poi iniziare la **Fase 1** dal layout 12 tasti.
-- **Come riprendere:** leggi questa sezione + i task non spuntati della fase corrente qui sotto.
+- **Fase in corso:** Fase 1 — MVP. Step 1.1 (griglia 12 tasti + multi-tap) completato lato codice.
+- **Ultimo step completato:** Step 1.1 — griglia 12 tasti responsive (`T9KeyboardView`) + inserimento multi-tap collegato al campo di testo (`T9ImeService`).
+- **Prossimo step:** **Step 1.2** — introdurre il motore predittivo (`DictionaryEngine` + `ItalianDictionaryEngine` da asset di test), la barra suggerimenti e sostituire il multi-tap con l'inserimento a sequenza di cifre. Poi Step 1.3 = colonna di disambiguazione.
+- **Come riprendere:** leggi questa sezione + i task non spuntati della fase corrente qui sotto. Verifica in Android Studio che lo Step 1.1 funzioni (vedi log 2026-07-27 Step 1.1) prima di procedere.
+
+> ℹ️ **Il multi-tap dello Step 1.1 è un trampolino**: serve a validare la pipeline
+> griglia→testo. Verrà sostituito dalla modalità predittiva + colonna nello Step 1.2/1.3,
+> riusando la stessa `T9KeyboardView`.
 
 > ⚠️ **Il Gradle wrapper JAR e gli script `gradlew` non sono nel repo** (non generabili in
 > questo ambiente senza SDK). Alla prima apertura in Android Studio, lascia che sincronizzi
@@ -45,7 +49,10 @@
 
 ## Fase 1 — MVP: funzione centrale (la colonna)
 
-- [ ] Layout 12 tasti ITU-T E.161 (griglia custom) + tasti funzione
+- [~] Layout 12 tasti ITU-T E.161 (griglia custom) + tasti funzione
+      → griglia responsive 4×3 fatta (`T9KeyboardView`); tasti funzione minimi (⌫, 0=spazio, ⏎).
+        Shift, `*`, `#`, mode-switch arriveranno in Fase 3.
+- [x] Inserimento multi-tap (trampolino Step 1.1) — da rimpiazzare con predittivo
 - [ ] `DictionaryEngine` (interfaccia) + `ItalianDictionaryEngine` da asset di test
 - [ ] Modalità predittiva T9 + barra suggerimenti orizzontale
 - [ ] **Colonna di disambiguazione manuale posizionale** (stack di coppie cifra/lettera)
@@ -81,6 +88,28 @@
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-27 — Step 1.1: griglia 12 tasti + multi-tap
+**Fatto:** sostituito il placeholder con la vera griglia della tastiera e l'inserimento testo.
+
+**File creati/modificati:**
+- `model/KeyAction.kt` — azioni tasto (Digit/Backspace/Enter).
+- `model/T9Keypad.kt` — mapping ITU-T E.161 (`letters`), `KeySpec`, layout `T9Layout` 4×3.
+- `ui/T9KeyboardView.kt` — griglia responsive (righe/tasti con `weight`, altezza = 42% schermo),
+  tasti con label grande + sottotitolo lettere; ogni tap notificato via callback.
+- `service/T9ImeService.kt` — logica **multi-tap**: stessa cifra ripetuta cicla le lettere
+  (via composing text, timeout 800ms), cifra diversa conferma la precedente; `0`=spazio,
+  `⌫`=cancella (annulla il composing se in corso), `⏎`=azione editor.
+- Rimosso `ui/PlaceholderKeyboardView.kt`.
+
+**Come verificare (in Android Studio, emulatore o S25):**
+1. Run/reinstalla, seleziona **T9 Keyboard** in un campo di testo.
+2. Deve comparire la griglia 4×3 scura (1–9, ⌫, 0, ⏎).
+3. Digita: es. `8`→"t", subito ancora `8`→"u", ancora→"v"; pausa >0.8s conferma la lettera.
+   Prova a scrivere "ciao" (2·2·2→c pausa, 4·4·4→i, 2→a, 6·6·6→o).
+4. `0` inserisce spazio, `⌫` cancella, `⏎` invia/va a capo secondo il campo.
+
+**Nota:** il multi-tap è temporaneo (trampolino); Step 1.2 introduce il predittivo.
 
 ### 2026-07-27 — Fase 0: scaffolding progetto Android
 **Fatto:** creato l'intero scheletro Gradle + modulo `app` di un IME Android installabile.

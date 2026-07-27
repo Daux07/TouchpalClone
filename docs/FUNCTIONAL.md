@@ -58,3 +58,36 @@ sistema e obbligatorio per qualsiasi IME.
 **Come si abilita:** *Impostazioni Android → Gestione generale → Elenco tastiere e
 predefinita → abilita "T9 Keyboard"*, poi la si seleziona dal selettore tastiera in un
 qualsiasi campo di testo.
+
+### Griglia 12 tasti — `T9KeyboardView` (Fase 1.1)
+
+**Cosa fa:** disegna la tastiera vera e propria: una griglia 4×3 con i tasti numerici
+1–9 (con sottotitolo delle lettere ITU-T E.161, es. "2/ABC") più una riga funzione
+`⌫  0  ⏎`. Ogni tocco è riportato al service tramite una callback `onKey(KeyAction)`;
+la view non contiene logica di input.
+
+**Responsività (piano §6):** nessuna dimensione fissa. Le righe si dividono l'altezza
+con `layout_weight`, i tasti si dividono la larghezza della riga con `weight`, e
+l'altezza totale è il **42% dell'altezza schermo** (`onMeasure`). Così la stessa UI si
+riproporziona tra S25 e S25 Ultra senza layout dedicati. Il ridimensionamento manuale
+e la gestione degli inset arriveranno in Fase 3.
+
+**File:** `ui/T9KeyboardView.kt`, `model/KeySpec`/`T9Layout` (layout), `model/T9Keypad`
+(mapping lettere).
+
+### Inserimento testo multi-tap — `T9ImeService` (Fase 1.1, temporaneo)
+
+**Cosa fa:** inserimento a **multi-tap** classico come primo slice funzionante.
+Toccando ripetutamente la stessa cifra si scorrono le sue lettere (`8`→t→u→v), usando
+il *composing text* per l'anteprima; una pausa di 800 ms o il tocco di una cifra diversa
+conferma la lettera. `0` inserisce uno spazio, `⌫` cancella (annullando l'anteprima se
+in corso), `⏎` esegue l'azione dell'editor (search/done/invio).
+
+> ⚠️ **Temporaneo:** questa modalità è un trampolino per validare la pipeline
+> griglia→`InputConnection`. Verrà **sostituita** in Fase 1.2/1.3 dalla modalità
+> predittiva T9 (digiti la sequenza di cifre, il motore propone le parole) + la colonna
+> di disambiguazione manuale, che sono la funzione centrale del progetto.
+
+**Mapping lettere (`T9Keypad.letters`):** 1=`. , ? ! '`, 2=abc, 3=def, 4=ghi, 5=jkl,
+6=mno, 7=pqrs, 8=tuv, 9=wxyz, 0=spazio. È la fonte di verità dei gruppi di lettere,
+riusata anche dal motore predittivo e dalla colonna.
