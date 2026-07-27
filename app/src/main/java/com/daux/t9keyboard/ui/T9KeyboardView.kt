@@ -66,9 +66,9 @@ class T9KeyboardView(
             orientation = VERTICAL
             setPadding(gap, gap, gap, gap)
         }
-        // Upper area (column + letters + right functions) over a full-width bottom row.
+        // Upper area (3 rows) over a shorter, full-width bottom row (thinner keys).
         body.addView(buildUpperArea(), LayoutParams(LayoutParams.MATCH_PARENT, 0, 3f))
-        body.addView(buildRow(T9Layout.bottomRow), LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
+        body.addView(buildRow(T9Layout.bottomRow), LayoutParams(LayoutParams.MATCH_PARENT, 0, BOTTOM_ROW_WEIGHT))
         return body
     }
 
@@ -197,8 +197,9 @@ class T9KeyboardView(
     companion object {
         private const val BAR_DP = 48
         private const val BODY_HEIGHT_FRACTION = 0.44f
-        private const val COLUMN_WEIGHT = 1.1f
+        private const val COLUMN_WEIGHT = 0.9f
         private const val LETTERS_WEIGHT = 5.4f
         private const val FUNC_COLUMN_WEIGHT = 1.1f
+        private const val BOTTOM_ROW_WEIGHT = 0.72f // thinner than the letter rows
     }
 }

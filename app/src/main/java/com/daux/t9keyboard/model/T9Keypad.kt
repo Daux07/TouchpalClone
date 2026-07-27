@@ -107,7 +107,7 @@ object T9Layout {
      * Weights sum to the upper area's total (7.6) so the columns line up.
      */
     val bottomRow: List<KeySpec> = listOf(
-        KeySpec("12#", null, isFunction = true, KeyAction.ModeSwitch, weight = 1.1f),
+        KeySpec("12#", null, isFunction = true, KeyAction.ModeSwitch, weight = 0.9f),
         KeySpec(",", null, isFunction = false, KeyAction.Insert(","), weight = 1f),
         KeySpec("space", null, isFunction = false, KeyAction.Space, weight = 3.3f),
         KeySpec(".", null, isFunction = false, KeyAction.Insert("."), weight = 1f),

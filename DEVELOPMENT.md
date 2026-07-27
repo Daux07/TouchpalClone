@@ -9,8 +9,8 @@
 
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
-- **Fase in corso:** Fase 1 — MVP. Step 1.4c (rifiniture layout) completato e verificato.
-- **Ultimo step completato:** Step 1.4c — colonna disambiguazione più chiara e limitata all'area superiore (si ferma sopra la riga inferiore), `12#` spostato sotto la colonna, riga inferiore full-width (12#/,/space/./⏎, mic→punto), icone outline monocromatiche (faccina teal). Verificato su emulatore.
+- **Fase in corso:** Fase 1 — MVP. Step 1.4d (rifiniture layout 2) completato e verificato.
+- **Ultimo step completato:** Step 1.4d — celle colonna piccole ad altezza fissa (~40dp) + colonna **scorrevole** (`ScrollView`, pronta per candidati>3 e simboli preferiti); riga inferiore più sottile (~0.72× una riga lettere). Verificato su emulatore.
 - **Prossimo step:** **Step 1.5** — apprendimento persistente con Room: la parola forzata/confermata viene salvata (peso alto) e riproposta per prima; salvataggio automatico su spazio. Poi Step 1.6 = corpus Leipzig reale.
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
 
@@ -108,6 +108,15 @@
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-27 — Step 1.4d: colonna piccola+scorrevole, riga inferiore più sottile
+**Fatto:** (feedback utente) `DisambiguationColumnView` ora è una `ScrollView` con celle
+ad **altezza fissa piccola** (`CELL_HEIGHT_DP=40`); scorre quando gli elementi eccedono
+lo spazio (pronta per liste candidati lunghe e per i simboli preferiti a riposo in Fase 3).
+Riga inferiore resa **più sottile** (`BOTTOM_ROW_WEIGHT=0.72` vs 1 delle righe lettere).
+Colonna leggermente più stretta (`COLUMN_WEIGHT=0.9`, `12#` allineato a 0.9).
+**File:** `ui/DisambiguationColumnView.kt`, `ui/T9KeyboardView.kt`, `model/T9Keypad.kt`.
+**Verificato:** `docs/screenshots/step-1.4d-colonna-piccola-scroll.png`.
 
 ### 2026-07-27 — Step 1.4c: rifiniture layout (feedback utente)
 **Fatto:** (su richiesta) colonna disambiguazione **più chiara** (`COLUMN_CELL` slate) e
