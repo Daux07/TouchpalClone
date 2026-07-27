@@ -84,6 +84,15 @@
       → per ora **testo**, non binario: a 50k parole il parse in background è rapido; il formato
         binario indicizzato resta un'ottimizzazione futura (non necessaria a questa dimensione).
 - [x] Test unitari: `T9Keypad.sequenceFor`, `ItalianDictionaryEngine`, `ComposeState`
+- [ ] **Step 1.7 — candidati "fuzzy" (tolleranti agli errori)** ← idea utente
+      Oltre ai match esatti, proporre parole a **distanza di modifica 1** dalla sequenza
+      digitata: togliendo una cifra (tasto premuto in più in mezzo alla parola),
+      aggiungendone una (tasto mancante) o cambiandone una (tasto sbagliato).
+      **Approccio:** dietro `DictionaryEngine`, dopo i match esatti, generare le varianti
+      della sequenza a distanza 1 (n cancellazioni + sostituzioni + inserimenti, ~decine di
+      lookup O(1)) e cercarle nell'indice; candidati **penalizzati nel peso** e mostrati in
+      coda (o solo se pochi match esatti), per non disturbare la digitazione normale.
+      UI/colonna invariate. Da fare dopo l'apprendimento (1.5).
 
 ## Fase 2 — Bilingue IT+EN
 
