@@ -9,8 +9,9 @@
 
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
-- **Fase in corso:** Fase 1 — MVP. Fix scrittura (numeri→lettere) completato e verificato.
-- **Ultimo step completato:** Fix bug — digitando una sequenza senza match nel dizionario venivano scritte/confermate le **cifre**; ora l'anteprima usa le **lettere di default** (`ComposeState.defaultLetters()`), mai numeri. Verificato su emulatore ("casa" confermato con spazio, "www" per 9-9-9). + Step 1.4e (proporzioni).
+- **Fase in corso:** Fase 1 — MVP. Step 1.6 (corpus reale Leipzig) completato e verificato.
+- **Ultimo step completato:** Step 1.6 — dizionario italiano **reale** da corpus Leipzig (CC BY): 50.000 parole con frequenze in `assets/dict/it.txt`, caricato in background. Verificato su emulatore ("grande" predetto, parola non presente nel vecchio dizionario di test).
+- **Prossimo step:** **Step 1.5** — apprendimento persistente (Room): parola forzata/confermata salvata con peso alto e riproposta per prima; salvataggio automatico su spazio.
 - **Prossimo step:** **Step 1.5** — apprendimento persistente con Room: la parola forzata/confermata viene salvata (peso alto) e riproposta per prima; salvataggio automatico su spazio. Poi Step 1.6 = corpus Leipzig reale.
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
 
@@ -79,7 +80,9 @@
 - [x] Backspace = pop della coppia (cifra+lettera insieme)
 - [x] Estendere/correggere parola (push nuova coppia) — stessa operazione, nessuna distinzione di codice
 - [ ] Apprendimento persistente (Room) + salvataggio automatico su spazio ← Step 1.5
-- [ ] Integrazione corpus Leipzig italiano → file binario indicizzato in `assets/` ← Step 1.6
+- [x] Integrazione corpus Leipzig italiano (50k parole, `assets/dict/it.txt`, caricato in background)
+      → per ora **testo**, non binario: a 50k parole il parse in background è rapido; il formato
+        binario indicizzato resta un'ottimizzazione futura (non necessaria a questa dimensione).
 - [x] Test unitari: `T9Keypad.sequenceFor`, `ItalianDictionaryEngine`, `ComposeState`
 
 ## Fase 2 — Bilingue IT+EN
@@ -108,6 +111,27 @@
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-27 — Step 1.6: corpus reale Leipzig (dizionario italiano da 50k parole)
+**Fatto:** sostituito il dizionario di test (~40 parole) con un dizionario **reale**.
+Scaricato il corpus **Leipzig `ita_news_2022_100K`** (CC BY-4.0), convertito con
+`tools/ConvertLeipzig.java` (filtra parole italiane a-z+accenti, unisce varianti
+maiuscole/minuscole sommando le frequenze, ordina, tiene le top 50k) → `assets/dict/it.txt`
+(~576KB, header con attribuzione CC BY). Caricato **in background** (`Thread` in `onCreate`)
+per non bloccare la comparsa della tastiera; `engine` reso nullable e i lookup null-safe.
+
+**Come rigenerare il dizionario** (se serve un taglio diverso):
+```
+JAVA="/c/Program Files/Android/Android Studio/jbr/bin/java.exe"
+# scarica ed estrai un corpus Leipzig italiano (es. da downloads.wortschatz-leipzig.de),
+# poi:
+"$JAVA" tools/ConvertLeipzig.java <path/...-words.txt> app/src/main/assets/dict/it.txt 50000
+```
+
+**File:** `tools/ConvertLeipzig.java` (nuovo), `assets/dict/it.txt` (nuovo), rimosso
+`assets/dict/it_test.txt`; `service/T9ImeService.kt` (load in background, engine nullable).
+**Verificato:** test verdi; su emulatore "grande" (4-7-2-6-3-3) predetto correttamente.
+Screenshot `docs/screenshots/step-1.6-dizionario-reale.png`.
 
 ### 2026-07-27 — Fix: scrittura di numeri invece di lettere
 **Bug (segnalato):** digitando dall'emulatore, per sequenze **non nel dizionario**

@@ -26,7 +26,9 @@ import com.daux.t9keyboard.ui.T9KeyboardView
  */
 class T9ImeService : InputMethodService() {
 
-    private lateinit var engine: DictionaryEngine
+    /** Loaded off the main thread; null until the dictionary finishes loading. */
+    @Volatile
+    private var engine: DictionaryEngine? = null
     private var keyboardView: T9KeyboardView? = null
 
     private val state = ComposeState()
@@ -34,7 +36,11 @@ class T9ImeService : InputMethodService() {
 
     override fun onCreate() {
         super.onCreate()
-        engine = ItalianDictionaryEngine.fromAssets(this, "dict/it_test.txt")
+        // ~50k-word Italian dictionary: parse off the main thread so the keyboard
+        // shows instantly (predictions appear once loading completes, ~a moment).
+        Thread {
+            engine = ItalianDictionaryEngine.fromAssets(this, "dict/it.txt")
+        }.apply { name = "dict-loader"; isDaemon = true }.start()
     }
 
     override fun onCreateInputView(): View {
@@ -146,7 +152,7 @@ class T9ImeService : InputMethodService() {
         val ic = currentInputConnection ?: return
 
         candidates = if (state.isEmpty()) emptyList()
-        else engine.lookup(state.sequenceString())
+        else engine?.lookup(state.sequenceString()).orEmpty()
 
         val columnDigit = state.activeColumnDigit()
         keyboardView?.setColumnLetters(

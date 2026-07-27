@@ -106,9 +106,12 @@ sorgenti dietro lo stesso metodo, senza toccare il resto (piano §5/§8).
   liste da sorgenti diverse (corpus, dizionario personale, seconda lingua) si fondono
   con un semplice sort.
 - `ItalianDictionaryEngine` — tiene in RAM un indice `Map<sequenza, [Candidate ordinati]>`,
-  così il lookup durante la digitazione non fa I/O (piano §5). In Fase 1.2 è caricato da
-  `assets/dict/it_test.txt` (dizionario di test); in Fase 1.6 la sorgente diventerà il
-  corpus Leipzig compilato, mantenendo la stessa struttura in memoria.
+  così il lookup durante la digitazione non fa I/O (piano §5). Sorgente attuale (Fase 1.6):
+  `assets/dict/it.txt`, **50.000 parole reali** dal corpus **Leipzig `ita_news_2022_100K`
+  (CC BY-4.0)**, generato da `tools/ConvertLeipzig.java`. Caricato **in background** all'avvio
+  del service (parse di 50k righe fuori dal main thread); i lookup prima del completamento
+  ritornano vuoto (l'anteprima usa intanto le lettere di default). A questa dimensione il
+  formato testo è adeguato; il file binario indicizzato resta un'ottimizzazione futura.
 - `T9Keypad.sequenceFor(word)` — converte parola → sequenza cifre, con **fold degli
   accenti** italiani (perché/perché stessa sequenza), fonte di verità condivisa.
 
