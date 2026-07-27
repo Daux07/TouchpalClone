@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- No launcher Activity in v1; this base theme exists only to satisfy the
+         application element. A settings Activity theme is added in Phase 3. -->
+    <style name="Theme.T9Keyboard" parent="@android:style/Theme.Material.Light.NoActionBar" />
+</resources>
