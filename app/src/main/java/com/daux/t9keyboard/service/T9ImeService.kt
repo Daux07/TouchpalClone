@@ -12,8 +12,9 @@ import com.daux.t9keyboard.engine.MergingDictionaryEngine
 import com.daux.t9keyboard.input.ComposeState
 import com.daux.t9keyboard.learning.RoomLearnedWordsStore
 import com.daux.t9keyboard.model.KeyAction
+import com.daux.t9keyboard.model.KeyboardMode
 import com.daux.t9keyboard.model.T9Keypad
-import com.daux.t9keyboard.ui.T9KeyboardView
+import com.daux.t9keyboard.ui.KeyboardView
 
 /**
  * Entry point of the T9 keyboard.
@@ -42,7 +43,7 @@ class T9ImeService : InputMethodService() {
     /** Learned + corpus. Reassigned once the corpus has been parsed. */
     @Volatile
     private var engine: DictionaryEngine? = null
-    private var keyboardView: T9KeyboardView? = null
+    private var keyboardView: KeyboardView? = null
 
     private val state = ComposeState()
     private var candidates: List<Candidate> = emptyList()
@@ -64,7 +65,7 @@ class T9ImeService : InputMethodService() {
     }
 
     override fun onCreateInputView(): View {
-        val view = T9KeyboardView(
+        val view = KeyboardView(
             context = this,
             onKey = ::onKey,
             onPickCandidate = ::onPickCandidate,
@@ -77,6 +78,8 @@ class T9ImeService : InputMethodService() {
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
+        // A new field starts on letters, wherever the previous one left the keyboard.
+        keyboardView?.setMode(KeyboardMode.T9)
         resetComposition()
     }
 
@@ -101,9 +104,20 @@ class T9ImeService : InputMethodService() {
             KeyAction.Backspace -> onBackspace()
             KeyAction.Enter -> onEnter()
             is KeyAction.Insert -> onInsert(action.text)
+            is KeyAction.Mode -> onModeSwitch(action.target)
             // Wired for real in Phase 3; no-ops for now (present for layout fidelity).
-            KeyAction.Shift, KeyAction.ModeSwitch, KeyAction.Emoji, KeyAction.Mic -> Unit
+            KeyAction.Shift, KeyAction.Emoji, KeyAction.Mic -> Unit
         }
+    }
+
+    /**
+     * Switch surface (T9 ↔ symbol pages). The word in progress is committed first:
+     * leaving the keypad mid-word would strand a composing text no key can finish.
+     */
+    private fun onModeSwitch(target: KeyboardMode) {
+        if (!state.isEmpty()) commitCurrentWord()
+        keyboardView?.setMode(target)
+        render()
     }
 
     private fun onSpace() {

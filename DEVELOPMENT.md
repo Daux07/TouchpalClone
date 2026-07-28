@@ -9,9 +9,9 @@
 
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
-- **Fase in corso:** Fase 1 — MVP. Step 1.5 (apprendimento persistente) completato e verificato.
-- **Ultimo step completato:** Step 1.5 — **apprendimento persistente (Room)**: ogni parola confermata (spazio, invio, punteggiatura, tap su un suggerimento) entra nel dizionario personale, che viene consultato **prima** del corpus. Verificato su emulatore, anche dopo `force-stop` del processo IME.
-- **Prossimo step:** **Step 1.7** — candidati "fuzzy" (tolleranti agli errori), vedi task in fondo alla Fase 1.
+- **Fase in corso:** Fase 1 — MVP **completa**. Ultimi step: 1.7 (fuzzy) e 1.8 (simboli).
+- **Ultimo step completato:** Step 1.8 — **pagine simboli in stile QWERTY** dietro il tasto `12#`, costruite su una **griglia riusabile** (`KeyGrid` + `GridKeyboardView`) perché la QWERTY vera arriverà come alternativa alla T9.
+- **Prossimo step:** **test reale sullo smartphone** dell'utente (la tastiera è ora utilizzabile per scrivere davvero: predittivo + colonna + apprendimento + simboli). Poi si sceglie fra **Fase 2** (bilingue IT+EN) e **Fase 3** (impostazioni/ergonomia, dove rientra anche la **QWERTY come layout alternativo**, richiesta dall'utente).
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
 
 > ℹ️ **Multi-tap rimosso**: dallo Step 1.2 l'inserimento è predittivo (digiti la
@@ -83,7 +83,8 @@
       → per ora **testo**, non binario: a 50k parole il parse in background è rapido; il formato
         binario indicizzato resta un'ottimizzazione futura (non necessaria a questa dimensione).
 - [x] Test unitari: `T9Keypad.sequenceFor`, `ItalianDictionaryEngine`, `ComposeState`,
-      `LearnedWordsEngine`, `MergingDictionaryEngine`
+      `LearnedWordsEngine`, `MergingDictionaryEngine`, `FuzzyDictionaryEngine`, `SymbolLayout`
+- [x] **Step 1.8 — pagine simboli/numeri in stile QWERTY** dietro `12#`, su griglia riusabile
 - [x] **Step 1.7 — candidati "fuzzy" (tolleranti agli errori)** (idea utente)
       Oltre ai match esatti, proporre parole a **distanza di modifica 1** dalla sequenza
       digitata: togliendo una cifra (tasto premuto in più in mezzo alla parola),
@@ -108,7 +109,9 @@
 - [ ] Dimensione del testo dei candidati regolabile (seam già pronto:
       `SuggestionBarView.textSizeSp`)
 - [ ] Long-press tasto 1 → pannello simboli
-- [ ] Modalità numerica dedicata (123)
+- [x] Modalità numerica/simboli dedicata (`12#`, due pagine QWERTY) — anticipata allo Step 1.8
+- [ ] **QWERTY come layout alternativo alla T9** (idea utente): un nuovo `KeyGrid` +
+      voce in `KeyboardMode`; vista e plumbing già pronti dallo Step 1.8
 - [ ] Vocali accentate via long-press
 - [ ] Schermata gestione dizionario personale (lista + cancella)
 - [ ] Long-press su candidato → rimuovi dal dizionario
@@ -122,6 +125,45 @@
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-28 — Step 1.8: pagine simboli in stile QWERTY (layout riusabile)
+**Fatto:** il tasto `12#` ora funziona davvero. Apre **due pagine di numeri e simboli**
+disposte in stile **QWERTY** (dieci tasti stretti per riga, larghezza piena) invece della
+griglia 3×3: `1/2` ↔ `2/2` scambia le pagine, `abc` torna al T9.
+
+**Decisione (utente):** il layout doveva essere **riusabile**, perché la QWERTY vera
+arriverà come alternativa alla T9. Quindi la struttura non è "una schermata simboli" ma
+una griglia generica:
+- `model/KeyGrid.kt` — `KeyGrid` = righe di `KeySpec`, ciascuna con un peso (riga inferiore
+  più sottile). Nessuna assunzione T9.
+- `ui/GridKeyboardView.kt` — disegna un `KeyGrid` qualsiasi. **Aggiungere la QWERTY
+  significherà aggiungere un `KeyGrid`, non una vista nuova.**
+- `ui/KeyViewFactory.kt` — il disegno del singolo tasto (faccia arrotondata, stato premuto,
+  numerino d'angolo) estratto e **condiviso** fra T9, simboli e futura QWERTY, così non
+  possono divergere visivamente.
+- `model/KeyboardMode.kt` + `KeyAction.Mode(target)` — cambio di superficie tipizzato
+  (prima `ModeSwitch` era un no-op). Aggiungere `QWERTY` all'enum basterà.
+- `ui/KeyboardView.kt` (era `T9KeyboardView`) — radice che ospita barra suggerimenti +
+  corpo della modalità corrente; `ui/T9BodyView.kt` è il solo corpo T9. Rinominata perché
+  ora ospiterà anche superfici non-T9.
+
+**Scelte di comportamento:** cambiando modalità la parola in corso viene **confermata**
+(uscire dal tastierino a metà parola lascerebbe un composing text che nessun tasto può più
+chiudere); ogni nuovo campo riparte da `abc`; nelle pagine simboli la barra suggerimenti
+resta invisibile ma **occupa spazio**, così l'altezza della tastiera non salta.
+
+**Simboli:** pagina 1 = cifre + punteggiatura di tutti i giorni (`@ # € _ & - + ( ) /`,
+`* " ' : ; ! ?`); pagina 2 = segni rari (valute, matematica, parentesi, marchi). Due pagine
+perché su una sola i tasti diventano troppo piccoli per il pollice.
+
+**File:** `model/KeyGrid.kt`, `model/KeyboardMode.kt`, `model/SymbolLayout.kt`,
+`ui/GridKeyboardView.kt`, `ui/KeyViewFactory.kt`, `ui/T9BodyView.kt`, `ui/KeyboardView.kt`
+(nuovi; `ui/T9KeyboardView.kt` rimosso), `model/KeyAction.kt`, `model/T9Keypad.kt`,
+`service/T9ImeService.kt`; test `model/SymbolLayoutTest.kt` (6 casi, fra cui "un tasto
+inserisce esattamente ciò che mostra", che protegge dalle sviste nelle tabelle).
+**Verificato:** test verdi; su emulatore inserito `€` dalla pagina 2 e tornato al T9 con
+predizione funzionante → `docs/screenshots/step-1.8-simboli-pagina1.png`,
+`step-1.8-simboli-pagina2.png`.
 
 ### 2026-07-28 — Step 1.7: candidati "fuzzy" (tolleranti agli errori)
 **Fatto:** oltre ai match esatti la tastiera propone ora parole a **distanza di modifica 1**
