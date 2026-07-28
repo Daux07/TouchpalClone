@@ -36,6 +36,20 @@ class SuggestionBarView(
         )
     }
 
+    /**
+     * Candidate text size in sp. Phase 3 will drive this from the keyboard settings
+     * (together with the keyboard height); until then it stays at [DEFAULT_TEXT_SP].
+     */
+    var textSizeSp: Float = DEFAULT_TEXT_SP
+        set(value) {
+            if (field == value) return
+            field = value
+            for (i in 0 until container.childCount) {
+                (container.getChildAt(i) as TextView)
+                    .setTextSize(TypedValue.COMPLEX_UNIT_SP, value)
+            }
+        }
+
     fun setCandidates(candidates: List<Candidate>) {
         container.removeAllViews()
         scrollX = 0
@@ -49,7 +63,7 @@ class SuggestionBarView(
             gravity = Gravity.CENTER
             setPadding(padH, 0, padH, 0)
             setTextColor(if (first) KeyboardTheme.ACCENT else KeyboardTheme.TEXT)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 17f)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, textSizeSp)
             background = KeyboardTheme.ghostBackground(context)
             isClickable = true
             layoutParams = LinearLayout.LayoutParams(
@@ -62,4 +76,9 @@ class SuggestionBarView(
 
     private fun dp(value: Int): Int =
         (resources.displayMetrics.density * value).toInt()
+
+    companion object {
+        /** Comfortably readable at arm's length; adjustable from settings in Phase 3. */
+        const val DEFAULT_TEXT_SP = 22f
+    }
 }

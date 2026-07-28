@@ -195,7 +195,8 @@ class T9KeyboardView(
         (resources.displayMetrics.density * value).toInt()
 
     companion object {
-        private const val BAR_DP = 46
+        // Tall enough to leave the candidates room to breathe at DEFAULT_TEXT_SP.
+        private const val BAR_DP = 56
         private const val BODY_HEIGHT_FRACTION = 0.34f // less tall; keys wider than tall
         private const val COLUMN_WEIGHT = 0.9f
         private const val LETTERS_WEIGHT = 5.4f

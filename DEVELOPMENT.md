@@ -105,6 +105,8 @@
 - [ ] Posizione colonna sinistra/destra configurabile
 - [ ] Simboli preferiti a stack vuoto (configurabili)
 - [ ] Altezza tastiera regolabile con riproporzionamento uniforme
+- [ ] Dimensione del testo dei candidati regolabile (seam già pronto:
+      `SuggestionBarView.textSizeSp`)
 - [ ] Long-press tasto 1 → pannello simboli
 - [ ] Modalità numerica dedicata (123)
 - [ ] Vocali accentate via long-press
@@ -120,6 +122,15 @@
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-28 — Step 1.5b: candidati più grandi (feedback utente)
+**Fatto:** i candidati nella barra suggerimenti erano troppo piccoli: testo da 17sp →
+**22sp** (`SuggestionBarView.DEFAULT_TEXT_SP`) e barra da 46dp → **56dp** per lasciare
+respiro. La dimensione è esposta come proprietà `textSizeSp` (applicata anche ai chip già
+creati), pronta per essere pilotata dalle **impostazioni della tastiera in Fase 3**
+insieme all'altezza regolabile.
+**File:** `ui/SuggestionBarView.kt`, `ui/T9KeyboardView.kt` (`BAR_DP`).
+**Verificato:** `docs/screenshots/step-1.5b-candidati-piu-grandi.png`.
 
 ### 2026-07-28 — Step 1.5: apprendimento persistente (dizionario personale, Room)
 **Fatto:** la tastiera ora **impara**. Ogni parola effettivamente confermata — con spazio,
