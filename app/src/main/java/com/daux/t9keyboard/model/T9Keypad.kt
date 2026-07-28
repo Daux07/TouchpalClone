@@ -22,6 +22,26 @@ object T9Keypad {
         0 to listOf(' ')
     )
 
+    /**
+     * Italian accented vowels, offered **after** the plain letters of their key.
+     *
+     * They are not part of [letters] on purpose: they must not change the multi-tap
+     * order, the key labels, or [sequenceFor] (which folds them back anyway). They
+     * exist only as extra choices in the disambiguation column — which is exactly
+     * the "which letter, precisely" mechanism, so accents need no separate UI.
+     */
+    val accentedLetters: Map<Int, List<Char>> = mapOf(
+        2 to listOf('à'),
+        3 to listOf('è', 'é'),
+        4 to listOf('ì'),
+        6 to listOf('ò'),
+        8 to listOf('ù')
+    )
+
+    /** Everything the column may offer for a digit: plain letters, then accents. */
+    fun columnLetters(digit: Int): List<Char> =
+        letters[digit].orEmpty() + accentedLetters[digit].orEmpty()
+
     /** Letters shown as the main label on a digit key (e.g. "abc"). */
     fun labelFor(digit: Int): String? = when (digit) {
         in 2..9 -> letters[digit]!!.joinToString("")
@@ -98,7 +118,7 @@ object T9Layout {
         KeySpec("⌫", null, isFunction = true, KeyAction.Backspace),
         KeySpec("⇧", null, isFunction = true, KeyAction.Shift),
         // U+FE0E forces monochrome (outline) rendering instead of a colour emoji.
-        KeySpec("☺︎", null, isFunction = true, KeyAction.Emoji)
+        KeySpec("☺︎", null, isFunction = true, KeyAction.Mode(KeyboardMode.EMOJI))
     )
 
     /**

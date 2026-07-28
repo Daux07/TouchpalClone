@@ -68,8 +68,10 @@ object SymbolLayout {
         )
     )
 
+    /** The grid to draw for any non-T9 mode. */
     fun forMode(mode: KeyboardMode): KeyGrid = when (mode) {
         KeyboardMode.SYMBOLS_2 -> page2
+        KeyboardMode.EMOJI -> EmojiLayout.page
         else -> page1
     }
 }

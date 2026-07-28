@@ -79,6 +79,16 @@ class KeyViewFactory(
         return frame
     }
 
+    /**
+     * Restyle a key built by [key] — used for the shift key, whose glyph and colour
+     * follow the capitalisation state. The label is the frame's first child.
+     */
+    fun updateLabel(keyView: View, text: String, color: Int) {
+        val label = (keyView as? FrameLayout)?.getChildAt(0) as? TextView ?: return
+        label.text = text
+        label.setTextColor(color)
+    }
+
     private fun labelColor(spec: KeySpec): Int = when {
         spec.mainLabel == "space" -> KeyboardTheme.TEXT_DIM
         spec.isFunction -> KeyboardTheme.ACCENT
@@ -86,11 +96,13 @@ class KeyViewFactory(
     }
 
     private fun labelSize(spec: KeySpec): Float = when {
-        spec.action is KeyAction.Mode -> 15f
+        // Worded mode keys ("12#", "abc", "1/2") — but not the glyph ones (☺).
+        spec.action is KeyAction.Mode && spec.mainLabel.first().isLetterOrDigit() -> 15f
         spec.mainLabel == "space" -> 15f
         spec.isFunction -> 20f
-        // Single glyphs (symbol pages) get a bit more presence than "abc" clusters.
-        spec.mainLabel.length == 1 -> 20f
+        // Single glyphs (symbols, emoji) get more presence than "abc" clusters.
+        // Counted in code points, so an emoji made of a surrogate pair still counts as one.
+        spec.mainLabel.codePointCount(0, spec.mainLabel.length) == 1 -> 22f
         else -> 18f
     }
 

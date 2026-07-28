@@ -11,6 +11,7 @@ import com.daux.t9keyboard.engine.LearnedWordsEngine
 import com.daux.t9keyboard.engine.MergingDictionaryEngine
 import com.daux.t9keyboard.R
 import com.daux.t9keyboard.input.ComposeState
+import com.daux.t9keyboard.input.ShiftState
 import com.daux.t9keyboard.learning.RoomLearnedWordsStore
 import com.daux.t9keyboard.model.FavouriteSymbols
 import com.daux.t9keyboard.model.KeyAction
@@ -58,6 +59,8 @@ class T9ImeService : InputMethodService() {
 
     /** Slot waiting for a replacement symbol, while the symbol pages are open. */
     private var pendingFavouriteSlot: Int? = null
+
+    private var shift = ShiftState.OFF
 
     override fun onCreate() {
         super.onCreate()
@@ -122,9 +125,17 @@ class T9ImeService : InputMethodService() {
             KeyAction.Enter -> onEnter()
             is KeyAction.Insert -> onInsert(action.text)
             is KeyAction.Mode -> onModeSwitch(action.target)
-            // Wired for real in Phase 3; no-ops for now (present for layout fidelity).
-            KeyAction.Shift, KeyAction.Emoji, KeyAction.Mic -> Unit
+            KeyAction.Shift -> onShift()
+            // Wired for real in Phase 3; no-op for now (present for layout fidelity).
+            KeyAction.Mic -> Unit
         }
+    }
+
+    /** `⇧` cycles off → next word capitalised → caps lock. */
+    private fun onShift() {
+        shift = shift.next()
+        keyboardView?.setShiftState(shift)
+        render() // the preview follows immediately
     }
 
     /**
@@ -202,6 +213,12 @@ class T9ImeService : InputMethodService() {
         }
     }
 
+    private fun setShift(state: ShiftState) {
+        if (shift == state) return
+        shift = state
+        keyboardView?.setShiftState(state)
+    }
+
     private fun endFavouritePick() {
         pendingFavouriteSlot = null
         keyboardView?.setHint(null)
@@ -228,9 +245,10 @@ class T9ImeService : InputMethodService() {
 
     private fun onPickCandidate(candidate: Candidate) {
         val ic = currentInputConnection ?: return
-        ic.setComposingText(candidate.word, 1)
+        ic.setComposingText(shift.apply(candidate.word), 1)
         ic.finishComposingText()
         learn(candidate.word)
+        setShift(shift.afterCommit())
         resetComposition()
     }
 
@@ -250,7 +268,7 @@ class T9ImeService : InputMethodService() {
         // Composing → letters to force; at rest → the favourite symbols.
         val columnDigit = state.activeColumnDigit()
         if (columnDigit != null) {
-            keyboardView?.setColumnLetters(T9Keypad.letters[columnDigit].orEmpty())
+            keyboardView?.setColumnLetters(T9Keypad.columnLetters(columnDigit))
         } else {
             keyboardView?.setColumnFavourites(favourites)
         }
@@ -273,10 +291,15 @@ class T9ImeService : InputMethodService() {
      * typing a word the dictionary doesn't know would silently turn into a similar
      * one, which is exactly what the column exists to prevent.
      */
-    private fun currentPreview(): String = when {
-        state.isForcing() -> state.forcedText()
-        else -> candidates.firstOrNull { !it.fuzzy }?.word
-            ?: state.defaultLetters() // letters, never raw digits
+    private fun currentPreview(): String {
+        val word = when {
+            state.isForcing() -> state.forcedText()
+            else -> candidates.firstOrNull { !it.fuzzy }?.word
+                ?: state.defaultLetters() // letters, never raw digits
+        }
+        // Capitalisation is applied here, at the last moment: the composition and the
+        // dictionary stay lowercase, so learning and lookups are unaffected by shift.
+        return shift.apply(word)
     }
 
     private fun commitCurrentWord() {
@@ -285,7 +308,8 @@ class T9ImeService : InputMethodService() {
         if (word.isNotEmpty()) {
             ic.setComposingText(word, 1)
             ic.finishComposingText()
-            learn(word)
+            learn(word) // stored lowercase: "Casa" and "casa" are the same word
+            setShift(shift.afterCommit())
         }
         resetComposition()
     }

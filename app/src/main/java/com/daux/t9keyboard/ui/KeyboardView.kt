@@ -7,6 +7,7 @@ import android.view.View
 import android.view.WindowInsets
 import android.widget.LinearLayout
 import com.daux.t9keyboard.engine.Candidate
+import com.daux.t9keyboard.input.ShiftState
 import com.daux.t9keyboard.model.KeyAction
 import com.daux.t9keyboard.model.KeyboardMode
 import com.daux.t9keyboard.model.SymbolLayout
@@ -96,6 +97,8 @@ class KeyboardView(
     fun setColumnLetters(letters: List<Char>) = t9Body.setColumnLetters(letters)
 
     fun setColumnFavourites(symbols: List<String>) = t9Body.setColumnFavourites(symbols)
+
+    fun setShiftState(state: ShiftState) = t9Body.setShiftState(state)
 
     // --- Insets & sizing ------------------------------------------------------
 

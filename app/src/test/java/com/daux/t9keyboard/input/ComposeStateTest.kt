@@ -95,6 +95,29 @@ class ComposeStateTest {
     }
 
     @Test
+    fun accentedVowels_canBeForcedFromTheirOwnKey() {
+        // "perché": the é is offered by key 3, alongside d/e/f.
+        state.pressDigit(7); state.chooseLetter('p')
+        state.pressDigit(3); state.chooseLetter('e')
+        state.pressDigit(7); state.chooseLetter('r')
+        state.pressDigit(2); state.chooseLetter('c')
+        state.pressDigit(4); state.chooseLetter('h')
+        state.pressDigit(3)
+        assertTrue(state.chooseLetter('é'))
+
+        assertEquals("perché", state.forcedText())
+        // The sequence stays plain, so the word is looked up and learned normally.
+        assertEquals("737243", state.sequenceString())
+    }
+
+    @Test
+    fun accentedVowel_isRejectedOnTheWrongKey() {
+        state.pressDigit(2) // a/b/c + à
+        assertFalse(state.chooseLetter('è')) // è belongs to key 3
+        assertTrue(state.chooseLetter('à'))
+    }
+
+    @Test
     fun reset_clearsEverything() {
         state.pressDigit(2); state.chooseLetter('c')
         state.reset()

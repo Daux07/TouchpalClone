@@ -36,7 +36,8 @@ class ComposeState {
         val pos = chosen.length
         if (pos >= digits.size) return false
         val lower = letter.lowercaseChar()
-        if (T9Keypad.letters[digits[pos]]?.contains(lower) != true) return false
+        // Accented vowels count as letters of their key (à belongs to 2, è to 3, …).
+        if (lower !in T9Keypad.columnLetters(digits[pos])) return false
         chosen.append(lower)
         return true
     }

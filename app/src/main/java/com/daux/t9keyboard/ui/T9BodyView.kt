@@ -2,7 +2,10 @@ package com.daux.t9keyboard.ui
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.view.View
 import android.widget.LinearLayout
+import com.daux.t9keyboard.input.ShiftState
+import com.daux.t9keyboard.model.KeyAction
 import com.daux.t9keyboard.model.T9Layout
 
 /**
@@ -34,6 +37,9 @@ class T9BodyView(
     private val column =
         DisambiguationColumnView(context, onPickLetter, onPickSymbol, onEditSymbol)
 
+    /** Kept so the glyph can follow the capitalisation state. */
+    private var shiftKey: View? = null
+
     init {
         orientation = VERTICAL
         val gap = dp(3)
@@ -49,6 +55,14 @@ class T9BodyView(
     fun setColumnLetters(letters: List<Char>) = column.setLetters(letters)
 
     fun setColumnFavourites(symbols: List<String>) = column.setFavourites(symbols)
+
+    /** Engaged shift is bright white; at rest the key stays in the accent colour. */
+    fun setShiftState(state: ShiftState) {
+        val view = shiftKey ?: return
+        val color =
+            if (state == ShiftState.OFF) KeyboardTheme.ACCENT else KeyboardTheme.TEXT
+        keys.updateLabel(view, state.label(), color)
+    }
 
     /** Disambiguation column + central 3×3 letter grid + right-hand function column. */
     private fun buildUpperArea(): LinearLayout {
@@ -71,7 +85,9 @@ class T9BodyView(
             layoutParams = LayoutParams(0, LayoutParams.MATCH_PARENT, FUNC_COLUMN_WEIGHT)
         }
         for (key in T9Layout.rightColumn) {
-            funcColumn.addView(keys.key(key, LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f)))
+            val view = keys.key(key, LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
+            if (key.action is KeyAction.Shift) shiftKey = view
+            funcColumn.addView(view)
         }
         upper.addView(funcColumn)
         return upper

@@ -12,5 +12,6 @@ package com.daux.t9keyboard.model
 enum class KeyboardMode {
     T9,
     SYMBOLS_1,
-    SYMBOLS_2
+    SYMBOLS_2,
+    EMOJI
 }

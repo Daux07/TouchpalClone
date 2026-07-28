@@ -10,8 +10,8 @@
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**. Ultimi step: 1.7 (fuzzy) e 1.8 (simboli).
-- **Ultimo step completato:** Step 1.9 — **simboli preferiti nella colonna a riposo** (7, scorrevoli, sostituibili con long-press; riordino per scambio), persistiti in `SharedPreferences`.
-- **Prossimo step:** da decidere con l'utente in vista del **test reale sullo smartphone**. Candidati emersi: `⇧` shift/maiuscole (ancora stub), vocali accentate, `☺` emoji. Poi **Fase 2** (bilingue IT+EN) o **Fase 3** (impostazioni/ergonomia, dove rientra la **QWERTY come layout alternativo**, richiesta dall'utente).
+- **Ultimo step completato:** Step 1.10 — **maiuscole (`⇧`), vocali accentate (nella colonna) ed emoji**: le tre cose che mancavano per scrivere davvero. Nessun tasto del layout è più uno stub.
+- **Prossimo step:** **test reale sullo smartphone** dell'utente. APK: `./gradlew :app:assembleDebug` → `app/build/outputs/apk/debug/app-debug.apk`. Dopo il test si sceglie fra **Fase 2** (bilingue IT+EN) e **Fase 3** (impostazioni/ergonomia, dove rientra la **QWERTY come layout alternativo**, richiesta dall'utente).
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
 
 > ℹ️ **Multi-tap rimosso**: dallo Step 1.2 l'inserimento è predittivo (digiti la
@@ -110,7 +110,12 @@
 - [ ] Altezza tastiera regolabile con riproporzionamento uniforme
 - [ ] Dimensione del testo dei candidati regolabile (seam già pronto:
       `SuggestionBarView.textSizeSp`)
+- [x] Vocali accentate (nella colonna) — anticipate allo Step 1.10
+- [x] Pannello emoji base — anticipato allo Step 1.10
 - [ ] Long-press tasto 1 → pannello simboli
+- [ ] Popup long-press sul tasto con lettere+accentate (alternativa alla colonna, da
+      valutare dopo il test reale)
+- [ ] Maiuscola automatica a inizio frase (`getCursorCapsMode`)
 - [x] Modalità numerica/simboli dedicata (`12#`, due pagine QWERTY) — anticipata allo Step 1.8
 - [ ] **QWERTY come layout alternativo alla T9** (idea utente): un nuovo `KeyGrid` +
       voce in `KeyboardMode`; vista e plumbing già pronti dallo Step 1.8
@@ -127,6 +132,46 @@
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-28 — Step 1.10: maiuscole, vocali accentate, emoji (pre-test reale)
+Le tre cose che mancavano per scrivere davvero un messaggio. Nessuno dei tre tasti
+del layout è più uno stub (resta solo `🎙`, che non è nel layout attuale).
+
+**1. Maiuscole (`⇧`).** `input/ShiftState.kt`: `OFF → ONCE → LOCK`, il tasto cicla.
+In T9 la maiuscola vale per la **parola**, non per il singolo tasto (le lettere le
+decide il dizionario), quindi `ONCE` capitalizza la parola in corso e si consuma alla
+conferma, `LOCK` scrive tutto maiuscolo finché non lo spegni. Il glifo diventa `⇪` e
+passa dal teal al bianco quando è attivo. **Punto chiave:** la maiuscola si applica
+**all'ultimo momento**, in `currentPreview()`; composizione e dizionario restano
+minuscoli, così "Casa" e "casa" sono la stessa parola per lookup e apprendimento.
+
+**2. Vocali accentate — nella colonna** (scelta fra le due proposte dall'utente).
+`T9Keypad.accentedLetters`: 2→à, 3→è/é, 4→ì, 6→ò, 8→ù, offerte **dopo** le lettere
+normali del tasto (la colonna scorre già). Non entrano in `letters`, per non toccare
+etichette dei tasti né `sequenceFor` (che gli accenti li ripiega comunque): la sequenza
+resta pulita, quindi "perché" si cerca e si impara come qualsiasi altra parola.
+**Perché la colonna e non un popup long-press:** la colonna *è* già il meccanismo
+"quale lettera esattamente", è sempre visibile e non aggiunge UI né conflitti col
+long-press dei preferiti. Il popup sul tasto resta valutabile dopo il test, ma sarebbe
+in gran parte ridondante.
+
+**3. Emoji (`☺`).** `model/EmojiLayout.kt`: un pannello di 32 emoji comuni, otto per
+riga (più spazio dei simboli, per restare riconoscibili). È **un altro `KeyGrid`**:
+nessuna vista nuova, solo una voce in `KeyboardMode` — la riusabilità dello Step 1.8
+che ripaga. `KeyAction.Emoji` sparisce, diventa `Mode(EMOJI)`.
+
+**File:** `input/ShiftState.kt`, `model/EmojiLayout.kt` (nuovi), `model/T9Keypad.kt`
+(accenti + `columnLetters`), `input/ComposeState.kt` (accetta gli accenti del tasto),
+`model/KeyAction.kt`, `model/KeyboardMode.kt`, `model/SymbolLayout.kt`,
+`ui/KeyViewFactory.kt` (`updateLabel`, glifi grandi contati in code point),
+`ui/T9BodyView.kt`, `ui/KeyboardView.kt`, `service/T9ImeService.kt`; test
+`input/ShiftStateTest.kt` (6 casi) e 2 nuovi in `ComposeStateTest`.
+**Verificato su emulatore:** "Casa"/"CASA" col glifo che cambia, colonna con À su 2 e
+È/É su 3 (scorrendo), emoji inserite e ritorno al T9 →
+`docs/screenshots/step-1.10-shift-maiuscola.png`, `step-1.10-accentate-colonna.png`,
+`step-1.10-emoji.png`.
+**Non incluso:** maiuscola automatica a inizio frase (`getCursorCapsMode`) — da valutare
+dopo il test, potrebbe dare fastidio più che aiutare.
 
 ### 2026-07-28 — Step 1.9: simboli preferiti nella colonna (a riposo)
 **Fatto:** la colonna non è più spazio morto quando non stai scrivendo: mostra **7 simboli
