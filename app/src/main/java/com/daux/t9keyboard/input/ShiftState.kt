@@ -29,6 +29,17 @@ enum class ShiftState {
         else -> word.replaceFirstChar { it.uppercaseChar() }
     }
 
+    /**
+     * Whether the next character comes out uppercase, given whether it is the first
+     * of its word. Drives what the keys and the column *show*, so they always read
+     * as what they will actually type.
+     */
+    fun appliesToNext(atWordStart: Boolean): Boolean = when (this) {
+        OFF -> false
+        LOCK -> true
+        ONCE -> atWordStart
+    }
+
     /** What the state becomes once a word has been committed. */
     fun afterCommit(): ShiftState = if (this == ONCE) OFF else this
 

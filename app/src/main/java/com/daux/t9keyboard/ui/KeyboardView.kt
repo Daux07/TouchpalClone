@@ -98,7 +98,8 @@ class KeyboardView(
 
     fun setColumnFavourites(symbols: List<String>) = t9Body.setColumnFavourites(symbols)
 
-    fun setShiftState(state: ShiftState) = t9Body.setShiftState(state)
+    fun setShiftState(state: ShiftState, keysUppercase: Boolean, columnUppercase: Boolean) =
+        t9Body.setShiftState(state, keysUppercase, columnUppercase)
 
     // --- Insets & sizing ------------------------------------------------------
 

@@ -122,6 +122,7 @@ class T9ImeService : InputMethodService() {
             is KeyAction.Digit -> onDigit(action.n)
             KeyAction.Space -> onSpace()
             KeyAction.Backspace -> onBackspace()
+            KeyAction.DeleteWord -> onDeleteWord()
             KeyAction.Enter -> onEnter()
             is KeyAction.Insert -> onInsert(action.text)
             is KeyAction.Mode -> onModeSwitch(action.target)
@@ -134,8 +135,7 @@ class T9ImeService : InputMethodService() {
     /** `⇧` cycles off → next word capitalised → caps lock. */
     private fun onShift() {
         shift = shift.next()
-        keyboardView?.setShiftState(shift)
-        render() // the preview follows immediately
+        render() // preview, keys and column follow immediately
     }
 
     /**
@@ -216,7 +216,20 @@ class T9ImeService : InputMethodService() {
     private fun setShift(state: ShiftState) {
         if (shift == state) return
         shift = state
-        keyboardView?.setShiftState(state)
+        renderShift()
+    }
+
+    /**
+     * Show the capitalisation where it is visible. The keys type the character after
+     * the last digit pressed; the column resolves the first unresolved position — so
+     * with a one-shot shift the two are not always at the start of the word together.
+     */
+    private fun renderShift() {
+        keyboardView?.setShiftState(
+            shift,
+            keysUppercase = shift.appliesToNext(atWordStart = state.isEmpty()),
+            columnUppercase = shift.appliesToNext(atWordStart = !state.isForcing())
+        )
     }
 
     private fun endFavouritePick() {
@@ -236,6 +249,28 @@ class T9ImeService : InputMethodService() {
         } else {
             ic.deleteSurroundingText(1, 0)
         }
+    }
+
+    /**
+     * What holding backspace becomes: drop the word in progress, or the word before
+     * the cursor — trailing spaces included, so a second hold does not just eat the
+     * gap it left behind.
+     */
+    private fun onDeleteWord() {
+        val ic = currentInputConnection ?: return
+        if (!state.isEmpty()) {
+            ic.finishComposingText()
+            resetComposition()
+            render()
+            return
+        }
+        val before = ic.getTextBeforeCursor(WORD_SCAN_CHARS, 0) ?: return
+        if (before.isEmpty()) return
+
+        var end = before.length
+        while (end > 0 && before[end - 1].isWhitespace()) end--
+        while (end > 0 && !before[end - 1].isWhitespace()) end--
+        ic.deleteSurroundingText(before.length - end, 0)
     }
 
     private fun onEnter() {
@@ -273,6 +308,7 @@ class T9ImeService : InputMethodService() {
             keyboardView?.setColumnFavourites(favourites)
         }
         keyboardView?.setSuggestions(candidates)
+        renderShift()
 
         val preview = currentPreview()
         if (preview.isEmpty()) {
@@ -328,5 +364,10 @@ class T9ImeService : InputMethodService() {
         candidates = emptyList()
         keyboardView?.setColumnFavourites(favourites)
         keyboardView?.setSuggestions(emptyList())
+    }
+
+    private companion object {
+        /** How far back to look for the start of a word. Longer than any word. */
+        const val WORD_SCAN_CHARS = 64
     }
 }

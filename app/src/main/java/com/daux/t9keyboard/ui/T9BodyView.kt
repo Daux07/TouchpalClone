@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.LinearLayout
 import com.daux.t9keyboard.input.ShiftState
 import com.daux.t9keyboard.model.KeyAction
+import com.daux.t9keyboard.model.KeySpec
 import com.daux.t9keyboard.model.T9Layout
 
 /**
@@ -40,6 +41,9 @@ class T9BodyView(
     /** Kept so the glyph can follow the capitalisation state. */
     private var shiftKey: View? = null
 
+    /** Letter keys and their specs, so their labels can follow the case. */
+    private val letterKeys = mutableListOf<Pair<View, KeySpec>>()
+
     init {
         orientation = VERTICAL
         val gap = dp(3)
@@ -56,12 +60,27 @@ class T9BodyView(
 
     fun setColumnFavourites(symbols: List<String>) = column.setFavourites(symbols)
 
-    /** Engaged shift is bright white; at rest the key stays in the accent colour. */
-    fun setShiftState(state: ShiftState) {
-        val view = shiftKey ?: return
-        val color =
-            if (state == ShiftState.OFF) KeyboardTheme.ACCENT else KeyboardTheme.TEXT
-        keys.updateLabel(view, state.label(), color)
+    /**
+     * Reflect capitalisation everywhere it is visible: the shift glyph (bright white
+     * when engaged, accent colour at rest), the letter keys and the column.
+     *
+     * The two flags are separate on purpose. With a one-shot shift only the *next*
+     * character is capitalised, and the keypad and the column are at different
+     * positions in the word: the keys type the character after the last digit, the
+     * column resolves the first unresolved one.
+     */
+    fun setShiftState(state: ShiftState, keysUppercase: Boolean, columnUppercase: Boolean) {
+        shiftKey?.let { view ->
+            val color =
+                if (state == ShiftState.OFF) KeyboardTheme.ACCENT else KeyboardTheme.TEXT
+            keys.updateLabel(view, state.label(), color)
+        }
+        for ((view, spec) in letterKeys) {
+            val label =
+                if (keysUppercase) spec.mainLabel.uppercase() else spec.mainLabel.lowercase()
+            keys.updateLabel(view, label, KeyboardTheme.TEXT)
+        }
+        column.setUppercase(columnUppercase)
     }
 
     /** Disambiguation column + central 3×3 letter grid + right-hand function column. */
@@ -76,7 +95,13 @@ class T9BodyView(
             layoutParams = LayoutParams(0, LayoutParams.MATCH_PARENT, LETTERS_WEIGHT)
         }
         for (row in T9Layout.letterRows) {
-            grid.addView(keys.row(row), LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
+            val rowView = LinearLayout(context).apply { orientation = HORIZONTAL }
+            for (spec in row) {
+                val view = keys.key(spec, LayoutParams(0, LayoutParams.MATCH_PARENT, spec.weight))
+                if (spec.action is KeyAction.Digit) letterKeys += view to spec
+                rowView.addView(view)
+            }
+            grid.addView(rowView, LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f))
         }
         upper.addView(grid)
 

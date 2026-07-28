@@ -10,8 +10,8 @@
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**. Ultimi step: 1.7 (fuzzy) e 1.8 (simboli).
-- **Ultimo step completato:** Step 1.10 — **maiuscole (`⇧`), vocali accentate (nella colonna) ed emoji**: le tre cose che mancavano per scrivere davvero. Nessun tasto del layout è più uno stub.
-- **Prossimo step:** **test reale sullo smartphone** dell'utente. APK: `./gradlew :app:assembleDebug` → `app/build/outputs/apk/debug/app-debug.apk`. Dopo il test si sceglie fra **Fase 2** (bilingue IT+EN) e **Fase 3** (impostazioni/ergonomia, dove rientra la **QWERTY come layout alternativo**, richiesta dall'utente).
+- **Ultimo step completato:** Step 1.11 — **cancella con pressione prolungata** (accelera e passa alle parole intere) e **maiuscole visibili** su tasti e colonna. Entrambi da feedback della prima prova reale.
+- **Prossimo step:** **continuare il test reale sullo smartphone**. APK: `./gradlew :app:assembleDebug` → `app/build/outputs/apk/debug/app-debug.apk`. Dopo il test si sceglie fra **Fase 2** (bilingue IT+EN) e **Fase 3** (impostazioni/ergonomia, dove rientra la **QWERTY come layout alternativo**, richiesta dall'utente).
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
 
 > ℹ️ **Multi-tap rimosso**: dallo Step 1.2 l'inserimento è predittivo (digiti la
@@ -132,6 +132,39 @@
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-29 — Step 1.11: cancella tenendo premuto + maiuscole visibili (feedback dalla prima prova reale)
+Due riscontri dell'utente dopo la prima prova sul campo.
+
+**1. Il cancella era poco pratico.** Ora `⌫` **ripete tenendolo premuto e accelera**:
+dopo 400 ms (abbastanza perché un tocco normale non lo inneschi) cancella un carattere
+ogni 55 ms, e dopo 10 caratteri passa a **parole intere** ogni 140 ms — svuotare una
+frase non richiede più venti tocchi. Nuova azione `KeyAction.DeleteWord`, che non sta su
+nessun tasto: è ciò in cui il tenere premuto si trasforma. Cancella la parola in corso di
+composizione se c'è, altrimenti la parola prima del cursore **spazi finali inclusi**, così
+la seconda ripetizione non si limita a mangiare lo spazio lasciato dalla prima.
+Il tasto è gestito **interamente a eventi touch** (niente click listener), così un tocco
+singolo cancella esattamente una volta; lo stato "premuto" è pilotato a mano perché gli
+eventi vengono consumati.
+
+**2. Maiuscole invisibili.** Colonna e tasti restavano sempre nello stesso caso
+indipendentemente da `⇧`. Ora **mostrano ciò che scriveranno davvero**:
+`ShiftState.appliesToNext(atWordStart)` decide, e il servizio lo chiama **due volte**
+con posizioni diverse — i tasti scrivono il carattere dopo l'ultima cifra premuta
+(`state.isEmpty()`), la colonna risolve la prima posizione non ancora risolta
+(`!state.isForcing()`). Con la maiuscola singola le due cose non sono sempre a inizio
+parola insieme, ed è giusto che si comportino diversamente: premuto `⇧` i tasti passano a
+`ABC/DEF/…`, alla prima cifra tornano minuscoli perché il resto della parola lo sarà.
+
+**File:** `model/KeyAction.kt` (`DeleteWord`), `ui/KeyViewFactory.kt` (ripetizione a
+pressione prolungata), `service/T9ImeService.kt` (`onDeleteWord`, `renderShift`),
+`input/ShiftState.kt` (`appliesToNext`), `ui/DisambiguationColumnView.kt` (`setUppercase`),
+`ui/T9BodyView.kt` (etichette dei tasti lettera), `ui/KeyboardView.kt`; test in
+`ShiftStateTest`.
+**Verificato su emulatore:** tasti `ABC/DEF/GHI…` con shift attivo e colonna `A B C À`,
+minuscoli a shift spento; tocco singolo su `⌫` = un carattere; 1,6 s di pressione =
+"tre quattro" spazzati via lasciando intatto il testo dopo il cursore →
+`docs/screenshots/step-1.11-tasti-maiuscoli.png`, `step-1.11-colonna-maiuscola.png`.
 
 ### 2026-07-28 — Step 1.10: maiuscole, vocali accentate, emoji (pre-test reale)
 Le tre cose che mancavano per scrivere davvero un messaggio. Nessuno dei tre tasti

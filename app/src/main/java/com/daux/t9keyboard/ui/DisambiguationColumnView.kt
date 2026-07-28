@@ -31,14 +31,15 @@ class DisambiguationColumnView(
 ) : ScrollView(context) {
 
     private sealed interface Item {
-        val label: String
+        fun label(uppercase: Boolean): String
 
         data class Letter(val char: Char) : Item {
-            override val label get() = char.uppercaseChar().toString()
+            override fun label(uppercase: Boolean) =
+                (if (uppercase) char.uppercaseChar() else char).toString()
         }
 
         data class Favourite(val index: Int, val symbol: String) : Item {
-            override val label get() = symbol
+            override fun label(uppercase: Boolean) = symbol
         }
     }
 
@@ -48,6 +49,9 @@ class DisambiguationColumnView(
 
     private var items: List<Item> = emptyList()
     private var viewportHeight = 0
+
+    /** Letters follow the shift key: they must read as what they will actually type. */
+    private var uppercase = false
 
     init {
         isVerticalScrollBarEnabled = false
@@ -68,6 +72,12 @@ class DisambiguationColumnView(
     private fun setItems(items: List<Item>) {
         if (this.items == items) return
         this.items = items
+        rebuild()
+    }
+
+    fun setUppercase(uppercase: Boolean) {
+        if (this.uppercase == uppercase) return
+        this.uppercase = uppercase
         rebuild()
     }
 
@@ -100,7 +110,7 @@ class DisambiguationColumnView(
     private fun buildCell(item: Item, heightPx: Int): View {
         val gap = dp(2)
         return TextView(context).apply {
-            text = item.label
+            text = item.label(uppercase)
             gravity = Gravity.CENTER
             setTextColor(KeyboardTheme.TEXT)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 17f)

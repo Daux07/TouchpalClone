@@ -12,6 +12,12 @@ sealed interface KeyAction {
     data class Digit(val n: Int) : KeyAction
     data object Space : KeyAction
     data object Backspace : KeyAction
+
+    /**
+     * Delete a whole word. Not on any key: it is what holding [Backspace] turns
+     * into once deleting one character at a time has stopped being useful.
+     */
+    data object DeleteWord : KeyAction
     data object Enter : KeyAction
     /** Insert literal text such as punctuation (commits the word in progress first). */
     data class Insert(val text: String) : KeyAction

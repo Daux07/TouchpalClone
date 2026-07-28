@@ -1,8 +1,12 @@
 package com.daux.t9keyboard.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.LinearLayout
@@ -44,7 +48,11 @@ class KeyViewFactory(
             )
             isClickable = true
             isFocusable = true
-            setOnClickListener { onKey(spec.action) }
+            if (spec.action is KeyAction.Backspace) {
+                attachHoldToDelete(this)
+            } else {
+                setOnClickListener { onKey(spec.action) }
+            }
         }
 
         frame.addView(
@@ -80,6 +88,49 @@ class KeyViewFactory(
     }
 
     /**
+     * Backspace repeats while held, and **speeds up**: single characters at first,
+     * then whole words once deleting letter by letter has stopped being useful
+     * (holding it to clear a sentence was painfully slow otherwise).
+     *
+     * Handled entirely through touch — no click listener — so a plain tap deletes
+     * exactly once; the pressed look is driven by hand since we consume the events.
+     */
+    @SuppressLint("ClickableViewAccessibility")
+    private fun attachHoldToDelete(view: View) {
+        val handler = Handler(Looper.getMainLooper())
+        var repeats = 0
+        lateinit var tick: Runnable
+        tick = Runnable {
+            repeats++
+            onKey(if (repeats > CHARS_BEFORE_WORDS) KeyAction.DeleteWord else KeyAction.Backspace)
+            handler.postDelayed(
+                tick,
+                if (repeats > CHARS_BEFORE_WORDS) WORD_INTERVAL_MS else CHAR_INTERVAL_MS
+            )
+        }
+
+        view.setOnTouchListener { v, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    v.isPressed = true
+                    repeats = 0
+                    onKey(KeyAction.Backspace) // the tap itself
+                    handler.postDelayed(tick, HOLD_DELAY_MS)
+                    true
+                }
+
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    v.isPressed = false
+                    handler.removeCallbacks(tick)
+                    true
+                }
+
+                else -> false
+            }
+        }
+    }
+
+    /**
      * Restyle a key built by [key] — used for the shift key, whose glyph and colour
      * follow the capitalisation state. The label is the frame's first child.
      */
@@ -108,4 +159,16 @@ class KeyViewFactory(
 
     private fun dp(value: Int): Int =
         (context.resources.displayMetrics.density * value).toInt()
+
+    private companion object {
+        /** Long enough that a normal tap never starts the repeat. */
+        const val HOLD_DELAY_MS = 400L
+        const val CHAR_INTERVAL_MS = 55L
+
+        /** After this many characters, holding switches to whole words. */
+        const val CHARS_BEFORE_WORDS = 10
+
+        /** Slower than characters: a word is a much bigger step. */
+        const val WORD_INTERVAL_MS = 140L
+    }
 }

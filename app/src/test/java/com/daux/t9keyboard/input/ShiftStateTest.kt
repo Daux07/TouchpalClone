@@ -38,6 +38,18 @@ class ShiftStateTest {
     }
 
     @Test
+    fun `what the keys show follows what they will type`() {
+        // Off: always lowercase. Lock: always uppercase.
+        for (atStart in listOf(true, false)) {
+            assertEquals(false, ShiftState.OFF.appliesToNext(atStart))
+            assertEquals(true, ShiftState.LOCK.appliesToNext(atStart))
+        }
+        // One-shot: only the first character of the word.
+        assertEquals(true, ShiftState.ONCE.appliesToNext(atWordStart = true))
+        assertEquals(false, ShiftState.ONCE.appliesToNext(atWordStart = false))
+    }
+
+    @Test
     fun `caps lock has its own glyph`() {
         assertEquals("⇧", ShiftState.OFF.label())
         assertEquals("⇧", ShiftState.ONCE.label())
