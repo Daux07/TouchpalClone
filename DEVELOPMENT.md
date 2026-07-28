@@ -84,7 +84,7 @@
         binario indicizzato resta un'ottimizzazione futura (non necessaria a questa dimensione).
 - [x] Test unitari: `T9Keypad.sequenceFor`, `ItalianDictionaryEngine`, `ComposeState`,
       `LearnedWordsEngine`, `MergingDictionaryEngine`
-- [ ] **Step 1.7 — candidati "fuzzy" (tolleranti agli errori)** ← idea utente
+- [x] **Step 1.7 — candidati "fuzzy" (tolleranti agli errori)** (idea utente)
       Oltre ai match esatti, proporre parole a **distanza di modifica 1** dalla sequenza
       digitata: togliendo una cifra (tasto premuto in più in mezzo alla parola),
       aggiungendone una (tasto mancante) o cambiandone una (tasto sbagliato).
@@ -122,6 +122,35 @@
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-28 — Step 1.7: candidati "fuzzy" (tolleranti agli errori)
+**Fatto:** oltre ai match esatti la tastiera propone ora parole a **distanza di modifica 1**
+dalla sequenza digitata: cifra di troppo (tasto premuto in più), cifra mancante (tasto
+saltato), cifra sbagliata (tasto vicino).
+
+**Come:** `FuzzyDictionaryEngine` **decora** un qualsiasi `DictionaryEngine`. Invece di
+scandire il dizionario genera le **varianti della sequenza** (cancellazioni, sostituzioni,
+inserimenti: qualche decina di stringhe) e le cerca nell'indice esistente → una manciata
+di lookup O(1) per pressione, nessun matching fuzzy su 50k parole. Sta **fuori** dal
+`MergingDictionaryEngine`, quindi tollera i refusi anche sulle parole imparate e (Fase 2)
+su entrambe le lingue.
+
+**Perché non disturba la digitazione normale:**
+- i candidati fuzzy sono **marcati** (`Candidate.fuzzy`), pesati / 1000 e messi **dopo**
+  tutti gli esatti, con un tetto di 6;
+- sequenze sotto le 3 cifre non vengono corrette (a 2 cifre tutto è a distanza 1 da tutto);
+- **soprattutto**: `currentPreview()` considera solo i candidati **esatti**. Un fuzzy è
+  un'offerta da toccare, mai qualcosa da confermare di nascosto — altrimenti scrivere una
+  parola che il dizionario non conosce si trasformerebbe in una parola simile, cioè
+  esattamente ciò che la colonna serve a impedire;
+- nella barra sono resi in grigio (`TEXT_DIM`) invece che bianco/teal.
+
+**File:** `engine/FuzzyDictionaryEngine.kt` (nuovo), `engine/Candidate.kt` (campo `fuzzy`),
+`service/T9ImeService.kt` (wrapping + preview solo esatta), `ui/SuggestionBarView.kt`
+(colore smorzato); test `engine/FuzzyDictionaryEngineTest.kt` (9 casi).
+**Verificato:** test verdi; su emulatore, digitando `726333` (nessun match esatto)
+l'anteprima resta `pamddd` e in coda compaiono in grigio "sandé" (cifra di troppo) e
+"schede" (cifra sbagliata) → `docs/screenshots/step-1.7-candidati-fuzzy.png`.
 
 ### 2026-07-28 — Step 1.5b: candidati più grandi (feedback utente)
 **Fatto:** i candidati nella barra suggerimenti erano troppo piccoli: testo da 17sp →

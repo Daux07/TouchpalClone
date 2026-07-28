@@ -62,7 +62,14 @@ class SuggestionBarView(
             text = candidate.word
             gravity = Gravity.CENTER
             setPadding(padH, 0, padH, 0)
-            setTextColor(if (first) KeyboardTheme.ACCENT else KeyboardTheme.TEXT)
+            // Typo-tolerant candidates read as dimmer offers, exact ones as answers.
+            setTextColor(
+                when {
+                    candidate.fuzzy -> KeyboardTheme.TEXT_DIM
+                    first -> KeyboardTheme.ACCENT
+                    else -> KeyboardTheme.TEXT
+                }
+            )
             setTextSize(TypedValue.COMPLEX_UNIT_SP, textSizeSp)
             background = KeyboardTheme.ghostBackground(context)
             isClickable = true

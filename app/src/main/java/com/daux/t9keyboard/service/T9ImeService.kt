@@ -5,6 +5,7 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import com.daux.t9keyboard.engine.Candidate
 import com.daux.t9keyboard.engine.DictionaryEngine
+import com.daux.t9keyboard.engine.FuzzyDictionaryEngine
 import com.daux.t9keyboard.engine.ItalianDictionaryEngine
 import com.daux.t9keyboard.engine.LearnedWordsEngine
 import com.daux.t9keyboard.engine.MergingDictionaryEngine
@@ -50,13 +51,15 @@ class T9ImeService : InputMethodService() {
         super.onCreate()
         val learnedEngine = LearnedWordsEngine(RoomLearnedWordsStore(this))
         learned = learnedEngine
-        engine = learnedEngine
+        engine = FuzzyDictionaryEngine(learnedEngine)
         // ~50k-word Italian dictionary: parse off the main thread so the keyboard
         // shows instantly (predictions appear once loading completes, ~a moment).
         Thread {
             learnedEngine.load()
             val corpus = ItalianDictionaryEngine.fromAssets(this, "dict/it.txt")
-            engine = MergingDictionaryEngine(listOf(learnedEngine, corpus))
+            engine = FuzzyDictionaryEngine(
+                MergingDictionaryEngine(listOf(learnedEngine, corpus))
+            )
         }.apply { name = "dict-loader"; isDaemon = true }.start()
     }
 
@@ -187,11 +190,18 @@ class T9ImeService : InputMethodService() {
         }
     }
 
-    /** What should currently appear (as composing text) in the field. */
+    /**
+     * What should currently appear (as composing text) in the field.
+     *
+     * Only *exact* candidates are previewed: a typo-tolerant one (Phase 1.7) is an
+     * offer to tap, never something to commit behind the user's back — otherwise
+     * typing a word the dictionary doesn't know would silently turn into a similar
+     * one, which is exactly what the column exists to prevent.
+     */
     private fun currentPreview(): String = when {
         state.isForcing() -> state.forcedText()
-        candidates.isNotEmpty() -> candidates.first().word
-        else -> state.defaultLetters() // letters, never raw digits
+        else -> candidates.firstOrNull { !it.fuzzy }?.word
+            ?: state.defaultLetters() // letters, never raw digits
     }
 
     private fun commitCurrentWord() {
