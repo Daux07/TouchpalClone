@@ -6,7 +6,10 @@ import android.view.inputmethod.EditorInfo
 import com.daux.t9keyboard.engine.Candidate
 import com.daux.t9keyboard.engine.DictionaryEngine
 import com.daux.t9keyboard.engine.ItalianDictionaryEngine
+import com.daux.t9keyboard.engine.LearnedWordsEngine
+import com.daux.t9keyboard.engine.MergingDictionaryEngine
 import com.daux.t9keyboard.input.ComposeState
+import com.daux.t9keyboard.learning.RoomLearnedWordsStore
 import com.daux.t9keyboard.model.KeyAction
 import com.daux.t9keyboard.model.T9Keypad
 import com.daux.t9keyboard.ui.T9KeyboardView
@@ -21,12 +24,21 @@ import com.daux.t9keyboard.ui.T9KeyboardView
  * letter by letter, even one the dictionary doesn't know. Space/0 commits, enter
  * runs the editor action, backspace pops the last (digit, letter) pair.
  *
- * Not yet here: learning forced words into a personal dictionary (Phase 1.5) and
- * favourite symbols in the column's rest state (Phase 3).
+ * Phase 1.5 adds learning: every word actually confirmed goes into the personal
+ * dictionary (Room), which is looked up *before* the corpus — so a word forced
+ * through the column only has to be typed the hard way once.
+ *
+ * Not yet here: favourite symbols in the column's rest state (Phase 3).
  */
 class T9ImeService : InputMethodService() {
 
-    /** Loaded off the main thread; null until the dictionary finishes loading. */
+    /**
+     * Personal dictionary; available from the start (the corpus is not) so words
+     * can be learned while the corpus is still loading.
+     */
+    private lateinit var learned: LearnedWordsEngine
+
+    /** Learned + corpus. Reassigned once the corpus has been parsed. */
     @Volatile
     private var engine: DictionaryEngine? = null
     private var keyboardView: T9KeyboardView? = null
@@ -36,10 +48,15 @@ class T9ImeService : InputMethodService() {
 
     override fun onCreate() {
         super.onCreate()
+        val learnedEngine = LearnedWordsEngine(RoomLearnedWordsStore(this))
+        learned = learnedEngine
+        engine = learnedEngine
         // ~50k-word Italian dictionary: parse off the main thread so the keyboard
         // shows instantly (predictions appear once loading completes, ~a moment).
         Thread {
-            engine = ItalianDictionaryEngine.fromAssets(this, "dict/it.txt")
+            learnedEngine.load()
+            val corpus = ItalianDictionaryEngine.fromAssets(this, "dict/it.txt")
+            engine = MergingDictionaryEngine(listOf(learnedEngine, corpus))
         }.apply { name = "dict-loader"; isDaemon = true }.start()
     }
 
@@ -138,6 +155,7 @@ class T9ImeService : InputMethodService() {
         val ic = currentInputConnection ?: return
         ic.setComposingText(candidate.word, 1)
         ic.finishComposingText()
+        learn(candidate.word)
         resetComposition()
     }
 
@@ -182,8 +200,18 @@ class T9ImeService : InputMethodService() {
         if (word.isNotEmpty()) {
             ic.setComposingText(word, 1)
             ic.finishComposingText()
+            learn(word)
         }
         resetComposition()
+    }
+
+    /**
+     * Remember a word the user confirmed, so it is proposed first next time — the
+     * whole point of the column: force a word once, then just type its digits.
+     * Cheap: in-RAM bump plus a queued database write.
+     */
+    private fun learn(word: String) {
+        learned.learn(word, System.currentTimeMillis())
     }
 
     private fun resetComposition() {

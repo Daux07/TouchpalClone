@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -37,6 +38,10 @@ android {
 
 dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
+
+    // Personal dictionary (learned words) — Phase 1.5.
+    implementation("androidx.room:room-runtime:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
 
     testImplementation("junit:junit:4.13.2")
 }

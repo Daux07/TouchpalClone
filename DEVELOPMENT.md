@@ -9,10 +9,9 @@
 
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
-- **Fase in corso:** Fase 1 — MVP. Step 1.6 (corpus reale Leipzig) completato e verificato.
-- **Ultimo step completato:** Step 1.6 — dizionario italiano **reale** da corpus Leipzig (CC BY): 50.000 parole con frequenze in `assets/dict/it.txt`, caricato in background. Verificato su emulatore ("grande" predetto, parola non presente nel vecchio dizionario di test).
-- **Prossimo step:** **Step 1.5** — apprendimento persistente (Room): parola forzata/confermata salvata con peso alto e riproposta per prima; salvataggio automatico su spazio.
-- **Prossimo step:** **Step 1.5** — apprendimento persistente con Room: la parola forzata/confermata viene salvata (peso alto) e riproposta per prima; salvataggio automatico su spazio. Poi Step 1.6 = corpus Leipzig reale.
+- **Fase in corso:** Fase 1 — MVP. Step 1.5 (apprendimento persistente) completato e verificato.
+- **Ultimo step completato:** Step 1.5 — **apprendimento persistente (Room)**: ogni parola confermata (spazio, invio, punteggiatura, tap su un suggerimento) entra nel dizionario personale, che viene consultato **prima** del corpus. Verificato su emulatore, anche dopo `force-stop` del processo IME.
+- **Prossimo step:** **Step 1.7** — candidati "fuzzy" (tolleranti agli errori), vedi task in fondo alla Fase 1.
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
 
 > ℹ️ **Multi-tap rimosso**: dallo Step 1.2 l'inserimento è predittivo (digiti la
@@ -79,11 +78,12 @@
 - [x] **Colonna di disambiguazione manuale posizionale** (stack di coppie cifra/lettera) — `ComposeState` + `DisambiguationColumnView`
 - [x] Backspace = pop della coppia (cifra+lettera insieme)
 - [x] Estendere/correggere parola (push nuova coppia) — stessa operazione, nessuna distinzione di codice
-- [ ] Apprendimento persistente (Room) + salvataggio automatico su spazio ← Step 1.5
+- [x] Apprendimento persistente (Room) + salvataggio automatico su spazio (Step 1.5)
 - [x] Integrazione corpus Leipzig italiano (50k parole, `assets/dict/it.txt`, caricato in background)
       → per ora **testo**, non binario: a 50k parole il parse in background è rapido; il formato
         binario indicizzato resta un'ottimizzazione futura (non necessaria a questa dimensione).
-- [x] Test unitari: `T9Keypad.sequenceFor`, `ItalianDictionaryEngine`, `ComposeState`
+- [x] Test unitari: `T9Keypad.sequenceFor`, `ItalianDictionaryEngine`, `ComposeState`,
+      `LearnedWordsEngine`, `MergingDictionaryEngine`
 - [ ] **Step 1.7 — candidati "fuzzy" (tolleranti agli errori)** ← idea utente
       Oltre ai match esatti, proporre parole a **distanza di modifica 1** dalla sequenza
       digitata: togliendo una cifra (tasto premuto in più in mezzo alla parola),
@@ -120,6 +120,50 @@
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-28 — Step 1.5: apprendimento persistente (dizionario personale, Room)
+**Fatto:** la tastiera ora **impara**. Ogni parola effettivamente confermata — con spazio,
+invio, punteggiatura, o scegliendo un suggerimento — finisce nel dizionario personale,
+che viene consultato **prima** del corpus. Una parola forzata lettera per lettera con la
+colonna va quindi digitata "a mano" **una sola volta**: dalla seconda in poi è la prima
+predizione della sua sequenza.
+
+**Come funziona (architettura):**
+- `LearnedWordsEngine` — il dizionario personale come `DictionaryEngine`. Indice in RAM
+  `sequenza → (parola → n. usi)`: durante la digitazione **non si tocca mai il database**.
+  Peso = `BASE_WEIGHT (1.000.000) + usi × 1.000`, sopra la frequenza massima del corpus
+  (~75k di "di"), così una parola imparata batte sempre le parole di dizionario con la
+  stessa sequenza, e le più usate salgono fra loro. Kotlin puro (nessuna dipendenza
+  Android) grazie al seam `LearnedWordsEngine.Store`.
+- `MergingDictionaryEngine` — unisce più dizionari dietro l'unica interfaccia `lookup`,
+  deduplicando per parola (tiene il peso più alto). Serve ora per personale+corpus e
+  **servirà identico in Fase 2** per IT+EN.
+- Room (`learning/`): entità `LearnedWord` (parola PK, sequenza, usi, ultimo uso), `LearnedWordDao`,
+  `LearnedWordsDatabase`, e `RoomLearnedWordsStore` che **scrive in coda su un thread
+  singolo** (la pressione di un tasto non deve mai attendere il disco); l'ordine è garantito
+  dall'executor a thread singolo. Il DB è locale, non esce mai dal dispositivo.
+- `T9ImeService`: il dizionario personale esiste **da subito** (il corpus no, si carica in
+  background), quindi si può imparare anche mentre il corpus è ancora in caricamento;
+  a caricamento finito `engine` diventa il merge dei due.
+
+**File:** `engine/LearnedWordsEngine.kt`, `engine/MergingDictionaryEngine.kt`,
+`learning/LearnedWord.kt`, `learning/LearnedWordDao.kt`, `learning/LearnedWordsDatabase.kt`,
+`learning/RoomLearnedWordsStore.kt` (nuovi); `service/T9ImeService.kt`;
+`build.gradle.kts` + `app/build.gradle.kts` (plugin KSP + Room 2.6.1);
+test `engine/LearnedWordsEngineTest.kt`, `engine/MergingDictionaryEngineTest.kt`.
+
+**Verificato (emulatore Pixel, Android 17):** test verdi (`:app:testDebugUnitTest`).
+1. "daux" (3‑2‑8‑9, assente dal corpus) forzata dalla colonna + spazio; ridigitando
+   3‑2‑8‑9 è la prima predizione → `docs/screenshots/step-1.5-parola-imparata.png`.
+2. `adb shell am force-stop com.daux.t9keyboard`, riapertura: 3‑2‑8‑9 predice ancora
+   "daux" (letta dal DB) → `step-1.5-persistenza-dopo-riavvio.png`. Il file
+   `databases/learned_words.db` esiste nella sandbox dell'app.
+3. Scegliendo "cara" da 2272 (dove il corpus mette "casa" prima), la digitazione
+   successiva propone `cara, casa, basa, bara` — una sola "cara", senza duplicati →
+   `step-1.5-imparata-batte-corpus.png`.
+
+**Nota:** cancellare una parola imparata (long‑press sul candidato) e la schermata di
+gestione del dizionario personale restano in Fase 3; il DAO ha già `delete(word)`.
 
 ### 2026-07-27 — Step 1.6: corpus reale Leipzig (dizionario italiano da 50k parole)
 **Fatto:** sostituito il dizionario di test (~40 parole) con un dizionario **reale**.
