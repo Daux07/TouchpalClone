@@ -26,10 +26,13 @@ import com.daux.t9keyboard.model.T9Layout
 class T9BodyView(
     context: Context,
     private val keys: KeyViewFactory,
-    onPickLetter: (Char) -> Unit
+    onPickLetter: (Char) -> Unit,
+    onPickSymbol: (String) -> Unit,
+    onEditSymbol: (Int) -> Unit
 ) : LinearLayout(context) {
 
-    private val column = DisambiguationColumnView(context, onPickLetter)
+    private val column =
+        DisambiguationColumnView(context, onPickLetter, onPickSymbol, onEditSymbol)
 
     init {
         orientation = VERTICAL
@@ -44,6 +47,8 @@ class T9BodyView(
     }
 
     fun setColumnLetters(letters: List<Char>) = column.setLetters(letters)
+
+    fun setColumnFavourites(symbols: List<String>) = column.setFavourites(symbols)
 
     /** Disambiguation column + central 3×3 letter grid + right-hand function column. */
     private fun buildUpperArea(): LinearLayout {

@@ -3,4 +3,5 @@
     <string name="app_name">T9 Keyboard</string>
     <string name="ime_label">T9 Keyboard</string>
     <string name="subtype_it">Italiano</string>
+    <string name="pick_favourite_symbol">Scegli il simbolo per la posizione %1$d</string>
 </resources>

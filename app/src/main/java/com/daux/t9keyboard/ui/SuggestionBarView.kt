@@ -56,6 +56,25 @@ class SuggestionBarView(
         candidates.forEachIndexed { i, c -> container.addView(makeChip(c, first = i == 0)) }
     }
 
+    /**
+     * Use the bar to explain what the keyboard is waiting for (e.g. while picking a
+     * favourite symbol) — the space is there and otherwise empty.
+     */
+    fun showHint(text: String) {
+        container.removeAllViews()
+        scrollX = 0
+        container.addView(
+            TextView(context).apply {
+                this.text = text
+                gravity = Gravity.CENTER_VERTICAL
+                val padH = dp(18)
+                setPadding(padH, 0, padH, 0)
+                setTextColor(KeyboardTheme.TEXT_DIM)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
+            }
+        )
+    }
+
     private fun makeChip(candidate: Candidate, first: Boolean): View {
         val padH = dp(18)
         return TextView(context).apply {

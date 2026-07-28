@@ -24,15 +24,20 @@ class KeyboardView(
     context: Context,
     onKey: (KeyAction) -> Unit,
     onPickCandidate: (Candidate) -> Unit,
-    onPickLetter: (Char) -> Unit
+    onPickLetter: (Char) -> Unit,
+    onPickSymbol: (String) -> Unit,
+    onEditSymbol: (Int) -> Unit
 ) : LinearLayout(context) {
 
     private val keys = KeyViewFactory(context, onKey)
     private val suggestionBar = SuggestionBarView(context, onPickCandidate)
-    private val t9Body = T9BodyView(context, keys, onPickLetter)
+    private val t9Body = T9BodyView(context, keys, onPickLetter, onPickSymbol, onEditSymbol)
     private val gridBody = GridKeyboardView(context, keys)
 
     private var mode = KeyboardMode.T9
+
+    /** Non-null while the bar is explaining something instead of suggesting words. */
+    private var hint: String? = null
 
     /** Bottom system-bar inset, so keys clear the navigation bar (edge-to-edge). */
     private var navBottomPx = 0
@@ -64,13 +69,33 @@ class KeyboardView(
         if (!t9) gridBody.setGrid(SymbolLayout.forMode(mode))
         t9Body.visibility = if (t9) View.VISIBLE else View.GONE
         gridBody.visibility = if (t9) View.GONE else View.VISIBLE
-        // Nothing to suggest while typing symbols; the bar stays for stable height.
-        suggestionBar.visibility = if (t9) View.VISIBLE else View.INVISIBLE
+        updateBarVisibility()
     }
 
-    fun setSuggestions(candidates: List<Candidate>) = suggestionBar.setCandidates(candidates)
+    /**
+     * Nothing to suggest while typing symbols, so the bar goes invisible — but keeps
+     * its space, so the keyboard's height never jumps. A hint brings it back.
+     */
+    private fun updateBarVisibility() {
+        val useful = mode == KeyboardMode.T9 || hint != null
+        suggestionBar.visibility = if (useful) View.VISIBLE else View.INVISIBLE
+    }
+
+    /** Show a message in place of the suggestions, or null to go back to them. */
+    fun setHint(text: String?) {
+        hint = text
+        if (text != null) suggestionBar.showHint(text)
+        updateBarVisibility()
+    }
+
+    fun setSuggestions(candidates: List<Candidate>) {
+        if (hint != null) return // a pending question outranks the word list
+        suggestionBar.setCandidates(candidates)
+    }
 
     fun setColumnLetters(letters: List<Char>) = t9Body.setColumnLetters(letters)
+
+    fun setColumnFavourites(symbols: List<String>) = t9Body.setColumnFavourites(symbols)
 
     // --- Insets & sizing ------------------------------------------------------
 

@@ -9,11 +9,14 @@ import com.daux.t9keyboard.engine.FuzzyDictionaryEngine
 import com.daux.t9keyboard.engine.ItalianDictionaryEngine
 import com.daux.t9keyboard.engine.LearnedWordsEngine
 import com.daux.t9keyboard.engine.MergingDictionaryEngine
+import com.daux.t9keyboard.R
 import com.daux.t9keyboard.input.ComposeState
 import com.daux.t9keyboard.learning.RoomLearnedWordsStore
+import com.daux.t9keyboard.model.FavouriteSymbols
 import com.daux.t9keyboard.model.KeyAction
 import com.daux.t9keyboard.model.KeyboardMode
 import com.daux.t9keyboard.model.T9Keypad
+import com.daux.t9keyboard.settings.KeyboardSettings
 import com.daux.t9keyboard.ui.KeyboardView
 
 /**
@@ -48,8 +51,19 @@ class T9ImeService : InputMethodService() {
     private val state = ComposeState()
     private var candidates: List<Candidate> = emptyList()
 
+    private lateinit var settings: KeyboardSettings
+
+    /** The column's rest-state symbols, mirrored in RAM. */
+    private var favourites: List<String> = FavouriteSymbols.DEFAULTS
+
+    /** Slot waiting for a replacement symbol, while the symbol pages are open. */
+    private var pendingFavouriteSlot: Int? = null
+
     override fun onCreate() {
         super.onCreate()
+        settings = KeyboardSettings(this)
+        favourites = settings.favouriteSymbols()
+
         val learnedEngine = LearnedWordsEngine(RoomLearnedWordsStore(this))
         learned = learnedEngine
         engine = FuzzyDictionaryEngine(learnedEngine)
@@ -69,7 +83,9 @@ class T9ImeService : InputMethodService() {
             context = this,
             onKey = ::onKey,
             onPickCandidate = ::onPickCandidate,
-            onPickLetter = ::onPickLetter
+            onPickLetter = ::onPickLetter,
+            onPickSymbol = ::onInsert,
+            onEditSymbol = ::onEditFavourite
         )
         keyboardView = view
         render()
@@ -98,6 +114,7 @@ class T9ImeService : InputMethodService() {
     // --- Key handling ---------------------------------------------------------
 
     private fun onKey(action: KeyAction) {
+        if (consumedByFavouritePick(action)) return
         when (action) {
             is KeyAction.Digit -> onDigit(action.n)
             KeyAction.Space -> onSpace()
@@ -149,6 +166,47 @@ class T9ImeService : InputMethodService() {
         }
     }
 
+    // --- Favourite symbols ----------------------------------------------------
+
+    /** Long-press on a column slot: open the symbol pages to choose its new symbol. */
+    private fun onEditFavourite(slot: Int) {
+        if (!state.isEmpty()) commitCurrentWord()
+        pendingFavouriteSlot = slot
+        keyboardView?.setMode(KeyboardMode.SYMBOLS_1)
+        keyboardView?.setHint(getString(R.string.pick_favourite_symbol, slot + 1))
+    }
+
+    /**
+     * While a slot is waiting, symbol keys assign instead of typing. Page switches
+     * (`1/2`) are let through so the second page stays reachable; anything else —
+     * including `abc` — cancels and behaves normally.
+     *
+     * Returns true when the key was fully consumed here.
+     */
+    private fun consumedByFavouritePick(action: KeyAction): Boolean {
+        val slot = pendingFavouriteSlot ?: return false
+        return when {
+            action is KeyAction.Insert -> {
+                favourites = settings.setFavouriteSymbol(slot, action.text)
+                endFavouritePick()
+                keyboardView?.setMode(KeyboardMode.T9)
+                render()
+                true
+            }
+            // Staying inside the symbol pages keeps the question open.
+            action is KeyAction.Mode && action.target != KeyboardMode.T9 -> false
+            else -> {
+                endFavouritePick()
+                false
+            }
+        }
+    }
+
+    private fun endFavouritePick() {
+        pendingFavouriteSlot = null
+        keyboardView?.setHint(null)
+    }
+
     /** Tap on a letter in the disambiguation column: force it into the word. */
     private fun onPickLetter(letter: Char) {
         if (state.chooseLetter(letter)) render()
@@ -189,10 +247,13 @@ class T9ImeService : InputMethodService() {
         candidates = if (state.isEmpty()) emptyList()
         else engine?.lookup(state.sequenceString()).orEmpty()
 
+        // Composing → letters to force; at rest → the favourite symbols.
         val columnDigit = state.activeColumnDigit()
-        keyboardView?.setColumnLetters(
-            if (columnDigit != null) T9Keypad.letters[columnDigit].orEmpty() else emptyList()
-        )
+        if (columnDigit != null) {
+            keyboardView?.setColumnLetters(T9Keypad.letters[columnDigit].orEmpty())
+        } else {
+            keyboardView?.setColumnFavourites(favourites)
+        }
         keyboardView?.setSuggestions(candidates)
 
         val preview = currentPreview()
@@ -241,7 +302,7 @@ class T9ImeService : InputMethodService() {
     private fun resetComposition() {
         state.reset()
         candidates = emptyList()
-        keyboardView?.setColumnLetters(emptyList())
+        keyboardView?.setColumnFavourites(favourites)
         keyboardView?.setSuggestions(emptyList())
     }
 }

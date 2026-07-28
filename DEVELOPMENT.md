@@ -10,8 +10,8 @@
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**. Ultimi step: 1.7 (fuzzy) e 1.8 (simboli).
-- **Ultimo step completato:** Step 1.8 — **pagine simboli in stile QWERTY** dietro il tasto `12#`, costruite su una **griglia riusabile** (`KeyGrid` + `GridKeyboardView`) perché la QWERTY vera arriverà come alternativa alla T9.
-- **Prossimo step:** **test reale sullo smartphone** dell'utente (la tastiera è ora utilizzabile per scrivere davvero: predittivo + colonna + apprendimento + simboli). Poi si sceglie fra **Fase 2** (bilingue IT+EN) e **Fase 3** (impostazioni/ergonomia, dove rientra anche la **QWERTY come layout alternativo**, richiesta dall'utente).
+- **Ultimo step completato:** Step 1.9 — **simboli preferiti nella colonna a riposo** (7, scorrevoli, sostituibili con long-press; riordino per scambio), persistiti in `SharedPreferences`.
+- **Prossimo step:** da decidere con l'utente in vista del **test reale sullo smartphone**. Candidati emersi: `⇧` shift/maiuscole (ancora stub), vocali accentate, `☺` emoji. Poi **Fase 2** (bilingue IT+EN) o **Fase 3** (impostazioni/ergonomia, dove rientra la **QWERTY come layout alternativo**, richiesta dall'utente).
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
 
 > ℹ️ **Multi-tap rimosso**: dallo Step 1.2 l'inserimento è predittivo (digiti la
@@ -104,7 +104,9 @@
 ## Fase 3 — Impostazioni, ergonomia, rifiniture
 
 - [ ] Posizione colonna sinistra/destra configurabile
-- [ ] Simboli preferiti a stack vuoto (configurabili)
+- [x] Simboli preferiti a stack vuoto (configurabili) — anticipati allo Step 1.9
+- [ ] Riordino dei preferiti per trascinamento (oggi si riordina scambiandoli, vedi 1.9)
+- [ ] Numero di preferiti configurabile (oggi fisso a `FavouriteSymbols.COUNT` = 7)
 - [ ] Altezza tastiera regolabile con riproporzionamento uniforme
 - [ ] Dimensione del testo dei candidati regolabile (seam già pronto:
       `SuggestionBarView.textSizeSp`)
@@ -125,6 +127,41 @@
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-28 — Step 1.9: simboli preferiti nella colonna (a riposo)
+**Fatto:** la colonna non è più spazio morto quando non stai scrivendo: mostra **7 simboli
+preferiti** (`@ ? ! / - ' "` di default), quindi scorre (le celle mantengono la misura da 4).
+Tap = inserisce. **Long-press** = apre le pagine simboli per sostituire *quella* posizione,
+con la barra dei suggerimenti che spiega cosa sta aspettando ("Scegli il simbolo per la
+posizione 2"); mentre la scelta è in sospeso i tasti simbolo **assegnano invece di scrivere**,
+`1/2` resta navigabile e qualsiasi altro tasto (incluso `abc`) annulla.
+
+**Riordino — la domanda posta:** non serve un drag&drop. Se il simbolo scelto è **già** fra i
+preferiti, i due slot si **scambiano** (`FavouriteSymbols.replace`): un long-press + un tap
+spostano un preferito dove vuoi, senza duplicati e senza perdere nulla. Il drag resta
+un'eventuale rifinitura di Fase 3, non un prerequisito.
+
+**Persistenza:** `SharedPreferences` (`settings/KeyboardSettings.kt`), non Room —
+sette valori letti una volta e scritti a un tocco, dove un database sarebbe solo costo.
+La logica di lista è pura e testata (`model/FavouriteSymbols.kt`): normalizzazione
+(preferenza corrotta o vecchia → default per slot), sostituzione, scambio.
+
+**Bug risolto strada facendo:** la colonna restava vuota alla prima comparsa. Le celle si
+dimensionano sull'altezza della colonna, che è ignota mentre la input view viene costruita,
+e i simboli possono arrivare **prima o dopo** quel momento; `onSizeChanged` non basta perché
+non scatta quando la dimensione non cambia (vista riusata). Ora la ricostruzione avviene in
+`onLayout`, che copre entrambi gli ordini.
+
+**File:** `model/FavouriteSymbols.kt`, `settings/KeyboardSettings.kt` (nuovi),
+`ui/DisambiguationColumnView.kt` (due tipi di contenuto: lettere o preferiti; long-press),
+`ui/SuggestionBarView.kt` (+`showHint`), `ui/KeyboardView.kt`, `ui/T9BodyView.kt`,
+`service/T9ImeService.kt`, `res/values/strings.xml`; test `model/FavouriteSymbolsTest.kt`
+(6 casi, fra cui "ogni simbolo di default è raggiungibile dalle pagine simboli", che
+impedisce uno slot cambiabile ma non più ripristinabile).
+**Verificato su emulatore:** preferiti a riposo, sostituzione (`?`→`€`), **scambio**
+(`/` in posizione 1, `@` finito in 4), inserimento al tap, e tutto **persistito** dopo
+`force-stop` → `docs/screenshots/step-1.9-preferiti-colonna.png`,
+`step-1.9-scelta-simbolo.png`, `step-1.9-preferiti-persistiti.png`.
 
 ### 2026-07-28 — Step 1.8: pagine simboli in stile QWERTY (layout riusabile)
 **Fatto:** il tasto `12#` ora funziona davvero. Apre **due pagine di numeri e simboli**
