@@ -28,7 +28,7 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** Step 1.16 — **nomi propri misurati sul corpus** (442, dalla quota di occorrenze maiuscole) invece che elencati a mano. Prima: 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **Ultimo step completato:** Step 1.17 — **dizionario da messaggi**: sottotitoli (70%) fusi con la prosa giornalistica (30%), che resta la fonte delle maiuscole per i nomi propri. Prima: 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
 - **Prossimo step:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
 - **Dopo:** **Fase 3** (impostazioni/ergonomia, dove rientrano la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente). Il test reale sullo smartphone continua in parallelo: `bash tools/dev.sh apk` → `app/build/outputs/apk/debug/app-debug.apk`.
@@ -382,6 +382,43 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-29 — Step 1.17: un dizionario da messaggi, non da giornale
+**Domanda dell'utente:** "non esiste un dizionario da messaggio?" Sì, e il corpus
+giornalistico era il limite vero — non il taglio a 50k, la cui coda è già fatta di parole
+viste **una volta sola**.
+
+**Quanto era sbagliato il registro, in numeri:** `ciao` compare **27** volte nel corpus
+giornalistico e **225.358** nei sottotitoli di film e serie; `beh` 47 contro 415.077; `ok`
+27 contro 513.655. Parole che in chat si scrivono ogni giorno stavano in fondo alla classifica.
+
+**Fatto:** `tools/BuildDictionary.java` (sostituisce `ConvertLeipzig.java`) fonde **due
+corpora**, perché nessuno dei due da solo basta:
+- **OpenSubtitles** (hermitdave/FrequencyWords, CC BY-SA 4.0), peso **70%** — il parlato;
+- **Leipzig news** (CC BY-4.0), peso **30%** — il vocabolario che ai dialoghi manca
+  (istituzioni, geografia, registro formale) e, unico dei due, **le maiuscole**: resta la
+  fonte delle prove per i 442 nomi propri, che i sottotitoli non potrebbero dare essendo
+  tutti minuscoli.
+
+Le due scale non sono confrontabili (milioni di token contro migliaia), quindi ciascuna è
+convertita in **occorrenze per milione** prima della fusione.
+
+**Effetto:** `ciao` 27→660, `beh` 47→1215, `ok` 27→1498, `cavolo` 5→134. Le parole da
+giornale scendono ma **restano** (`presidente` 1381→339, `comunale` 284→50): non sparisce
+nulla, cambia chi vince.
+
+**Verificata la taratura delle soglie**, che erano calibrate sulle frequenze grezze: con i
+nuovi pesi le lettere che sono parole restano sopra i 1000 di `SingleLetterEngine`
+(`e` 29308, `o` 1906) e il rumore sotto (`d` 25, `q` 9); il peso massimo (29.311) resta
+lontanissimo dal milione con cui `LearnedWordsEngine` marca le parole imparate.
+
+**File:** `tools/BuildDictionary.java` (nuovo), `tools/ConvertLeipzig.java` (rimosso),
+`assets/dict/it.txt` (ricostruito, 545 KB).
+**Verificato su emulatore:** `2426` ora predice **"ciao"** come prima scelta →
+`docs/screenshots/step-1.17-dizionario-da-chat.png`.
+**Margine ulteriore:** Leipzig ha edizioni più grandi (`ita-it_web-public_2019_1M`,
+`ita_wikipedia_2021_1M`, ~240 MB l'una) che migliorerebbero copertura **e** statistica dei
+nomi propri. Da valutare dopo la prova sul campo, sapendo quali parole mancano davvero.
 
 ### 2026-07-29 — Step 1.16: i nomi propri escono dai dati, non da una lista
 **Fatto:** riscaricato il corpus Leipzig (26 MB) e **rigenerato il dizionario** conservando

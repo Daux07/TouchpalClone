@@ -10,7 +10,7 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.16 (Fase 1 completa).
+**Allineato a:** Step 1.17 (Fase 1 completa).
 
 ## Indice
 - [Panoramica architettura](#panoramica-architettura)
@@ -232,28 +232,42 @@ SingleLetterEngine                  (ultima parola su cosa offre un tasto solo)
   └── FuzzyDictionaryEngine
         └── MergingDictionaryEngine
               ├── LearnedWordsEngine        (dizionario personale, pesi ≥ 1.000.000)
-              └── ItalianDictionaryEngine   (corpus Leipzig, 50k parole)
+              └── ItalianDictionaryEngine   (corpora fusi, 50k parole)
 ```
 
 ### `ItalianDictionaryEngine` — il corpus
 
 Indice in RAM `Map<sequenza, [Candidate ordinati]>`: il lookup durante la digitazione non fa
-I/O. Sorgente: `assets/dict/it.txt`, **50.000 parole reali** dal corpus **Leipzig
-`ita_news_2022_100K` (CC BY-4.0)**, generato da `tools/ConvertLeipzig.java` (filtra parole
-italiane, unisce le varianti maiuscole/minuscole sommando le frequenze, tiene le top 50k).
+I/O. Sorgente: `assets/dict/it.txt`, **50.000 parole** costruite da `tools/BuildDictionary.java`
+fondendo **due corpora**, perché nessuno dei due da solo descrive la lingua che si scrive al
+telefono:
+
+| Corpus | Peso | Cosa porta |
+|--------|------|------------|
+| **OpenSubtitles** (hermitdave/FrequencyWords, CC BY-SA 4.0) | 70% | Dialoghi di film e serie: il registro più vicino alla conversazione |
+| **Leipzig `ita_news_2022_100K`** (CC BY-4.0) | 30% | Il vocabolario che ai dialoghi manca (istituzioni, geografia, registro formale) e — unico dei due — **le maiuscole**, cioè le prove per i nomi propri |
+
+La differenza di registro è enorme e si misura: `ciao` compare **27** volte nel corpus
+giornalistico e **225.358** nei sottotitoli; `beh` 47 contro 415.077. Le due scale di frequenza
+non sono confrontabili (milioni di token contro migliaia), quindi ciascuna è convertita in
+**occorrenze per milione** prima di essere fusa.
+
 Caricato in background; i lookup prima del completamento ritornano vuoto. A questa dimensione
 il formato testo è adeguato: il binario indicizzato resta un'ottimizzazione futura.
 
-Formato: `parola frequenza [P]`, dove `P` marca i **nomi propri** — misurati in conversione
-prima di unire le varianti (§11), non elencati a mano.
+Formato: `parola peso [P]`, dove il peso è in occorrenze per milione e `P` marca i **nomi
+propri** — misurati sul corpus che conserva le maiuscole (§11), non elencati a mano.
 
-Rigenerazione (serve riscaricare il corpus, ~26 MB, non è nel repo):
+Rigenerazione (nessuna delle due fonti è nel repo):
 ```
 JAVA="/c/Program Files/Android/Android Studio/jbr/bin/java.exe"
+curl -sL -o subs_it.txt \
+  "https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/it/it_full.txt"
 curl -sL -o corpus.tar.gz \
   "https://downloads.wortschatz-leipzig.de/corpora/ita_news_2022_100K.tar.gz"
 tar -xzf corpus.tar.gz
-"$JAVA" tools/ConvertLeipzig.java <path/...-words.txt> app/src/main/assets/dict/it.txt 50000
+"$JAVA" tools/BuildDictionary.java subs_it.txt <path/...-words.txt> \
+  app/src/main/assets/dict/it.txt 50000
 ```
 
 ### `MergingDictionaryEngine` — l'unione
@@ -577,11 +591,12 @@ della **parola**, non della posizione del cursore, quindi si applica nell'antepr
 barra dei candidati — una proposta che legge "roma" e atterra come "Roma" farebbe sembrare che
 la tastiera abbia cambiato idea.
 
-**L'elenco non è scritto a mano: è misurato.** In conversione, `tools/ConvertLeipzig.java`
-conta per ogni parola la **quota di occorrenze maiuscole** nel corpus, prima di unire le
-varianti; sopra il **90%** (con almeno 30 occorrenze, altrimenti è rumore) la parola prende il
-flag `P` nel dizionario. Sono **442 nomi propri ricavati dalle prove**, e la differenza rispetto
-a una lista compilata a mano si vede esattamente dove una lista sbaglierebbe:
+**L'elenco non è scritto a mano: è misurato.** In costruzione, `tools/BuildDictionary.java`
+conta per ogni parola la **quota di occorrenze maiuscole** nel corpus che le conserva (quello
+giornalistico), prima di unire le varianti; sopra il **90%** (con almeno 30 occorrenze,
+altrimenti è rumore) la parola prende il flag `P` nel dizionario. Sono **442 nomi propri
+ricavati dalle prove**, e la differenza rispetto a una lista compilata a mano si vede
+esattamente dove una lista sbaglierebbe:
 
 | Parola | Maiuscole nel corpus | Esito |
 |---|---|---|
