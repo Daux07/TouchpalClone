@@ -169,6 +169,33 @@ sequenza ne conterrebbe un'altra). Quindi **due semantiche, scelte dal tipo di t
 |-------|--------------|---------------------|
 | `2`–`9` | Le lettere del tasto, accenti inclusi (`a b c à`) | **Forzare quella lettera** in questa posizione: `pressDigit(n)` + `chooseLetter(c)` — esattamente ciò che fa un tap sulla colonna |
 | `1`/`@`, `,`, `.`, tasti simbolo | Segni alternativi | `KeyAction.Insert(text)`: conferma la parola in corso e scrive il segno |
+| **ultima cella di ogni tasto numerico** | La **cifra** del tasto | `KeyAction.Insert("8")` — vedi sotto |
+
+### Le cifre nei popup (decisione dell'utente)
+
+**Il buco che chiude:** oggi i numeri sono **intypabili senza passare da `12#`**. Sul
+tastierino non esiste nessun tasto `0`–`9`: i tasti numerici scrivono lettere e il numerino
+d'angolo è solo un'etichetta. Scrivere "alle 8" costa tre gesti in più.
+
+Ogni tasto numerico mette quindi **la propria cifra come ultima cella** del suo popup, con tre
+regole:
+
+- **Semantica `Insert`, non `ForceLetter`:** una cifra non è una lettera della parola, quindi
+  conferma la composizione in corso e si scrive, come fa già la virgola.
+- **Sempre in ultima posizione**, così la posizione non cambia da tasto a tasto.
+- **Resa in teal** (`KeyboardTheme.ACCENT`), lo stesso colore del numerino d'angolo che il
+  tasto già mostra: si distingue a colpo d'occhio dalle lettere e il legame visivo con
+  l'etichetta è immediato.
+
+**Lo `0` sta sul popup della barra spazio.** Non è una scelta estetica: in ITU-T E.161 **`0`
+*è* il tasto spazio** — `T9Keypad.letters[0] = [' ']`, già così nel codice. Così la regola
+resta una sola e senza eccezioni: *ogni cifra sta sul popup del tasto che è quella cifra*.
+Metterla sul `.` sarebbe un'eccezione da ricordare.
+
+> ⚠️ **Conflitto futuro da tenere presente:** se un domani si volesse lo **scorrimento del
+> cursore trascinando sulla barra spazio** (fra le cose più comode di Gboard), quel gesto
+> occuperebbe il long-press dello spazio e lo `0` andrebbe spostato sul `.`. Da decidere
+> allora, non ora.
 
 ### I due popup di simboli (decisione dell'utente)
 
@@ -204,12 +231,17 @@ inserito, quindi nessun calcolo di posizione assoluta né `setSelection`. Collas
 coppie libera lo spazio per valute e matematica. Una parentesi singola resta comunque
 disponibile su `12#`: non si perde nulla.
 
-**Contenuto — campo normale** (2 righe da 7; il popup va a capo oltre le 7 celle):
+**Contenuto — campo normale** (una riga sola, dopo lo sfoltimento deciso dall'utente):
 
-| Riga | Celle |
-|------|-------|
-| 1 | `()` `[]` `{}` `%` `+` `-` `=` |
-| 2 | `€` `$` `£` `×` `÷` `<` `>` |
+`@` · `()` · `%` · `+` · `=` · `€` · `$` · **`1`**
+
+- **`@` resta**, benché sia anche il tap del tasto: è il simbolo predefinito del `1`, e vederlo
+  nel popup dice che è lì (decisione dell'utente).
+- **Fuori quadre, graffe e `£`:** poco usate in una conversazione, e restano su `12#`.
+- **Fuori anche `-`:** è **già fra i preferiti di default**, quindi si raggiunge dalla colonna
+  e dal popup di `.`. Tenerlo qui violerebbe la regola "i due popup non si sovrappongono".
+- **Fuori `×` `÷` `<` `>`:** in chat si scrivono "x" e "/"; restano in pagina 2 di `12#`.
+  Rimetterli significa tornare a due righe — scelta reversibile in una riga di dati.
 
 **Contenuto — campo email/URL:** `@ .com .it .net .org gmail.com`. Contestuale, come fanno
 Gboard e iOS: il `.com` compare **solo dove serve** e non ingombra mentre scrivi un messaggio.
@@ -282,10 +314,12 @@ esistente.
 
 ### Contenuto iniziale delle alternative
 
-- `2`→`a b c à` · `3`→`d e f è é` · `4`→`g h i ì` · `5`→`j k l` · `6`→`m n o ò` ·
-  `7`→`p q r s` · `8`→`t u v ù` · `9`→`w x y z`
-- `1`/`@` → **parentesi (a coppie), matematica, valute**; nei campi email/URL diventa
+- `2`→`a b c à` **2** · `3`→`d e f è é` **3** · `4`→`g h i ì` **4** · `5`→`j k l` **5** ·
+  `6`→`m n o ò` **6** · `7`→`p q r s` **7** · `8`→`t u v ù` **8** · `9`→`w x y z` **9**
+  (in grassetto la cella cifra, sempre ultima e in teal)
+- `1`/`@` → `@ () % + = € $` **1**; nei campi email/URL diventa
   `@ .com .it .net .org gmail.com`
+- `space` → **`0`** (unica cella: la cifra sta sul tasto che in E.161 *è* lo zero)
 - `.` → **i 7 simboli preferiti**, gli stessi della colonna
 - `,` → `, ; : "` (fisso)
 - Pagine simboli (opzionale, se non allunga troppo lo step): `-`→`– — _`, `(`→`[ {`, ecc.
@@ -296,12 +330,16 @@ esistente.
   che mostra" (come `SymbolLayoutTest`, esteso alle coppie: la cella `()` inserisce `(` e `)`
   e nient'altro), "ogni accento di `T9Keypad.accentedLetters` è raggiungibile da un popup",
   "nessun tasto con alternative è anche un tasto a gesto riservato (`⌫`)", e la variante
-  email/URL scelta in base all'`inputType`.
+  email/URL scelta in base all'`inputType`. Sulle cifre: **"ogni cifra 0–9 è raggiungibile da
+  esattamente un popup"** (`0` dallo spazio, `1`–`9` dal proprio tasto) — il test che
+  garantisce che i numeri non tornino intypabili, e che nessuna cifra finisca in due posti; e
+  "la cella cifra è l'ultima del suo popup".
 - **Emulatore:** long-press su `3` → `d e f è é`, scorri e rilascia su `è` → composizione
   coerente (la parola prosegue, la sequenza è giusta); long-press su `.` → i preferiti,
-  **anche a metà parola**; long-press su `1` → parentesi/matematica/valute, e la cella `()`
-  lascia il **cursore in mezzo**; in un campo email lo stesso tasto mostra `.com`; rilascio
-  fuori = niente; con `⇧` attivo le celle sono maiuscole. Screenshot in
+  **anche a metà parola**; long-press su `1` → `@ () % + = € $ 1`, e la cella `()` lascia il
+  **cursore in mezzo**; in un campo email lo stesso tasto mostra `.com`; **"alle 8" scritto
+  senza mai passare da `12#`**, e `0` dal long-press dello spazio; rilascio fuori = niente;
+  con `⇧` attivo le celle lettera sono maiuscole (quella cifra no, resta teal). Screenshot in
   `docs/screenshots/step-1.12-*.png`.
 - **Documentazione:** nuova sezione in `FUNCTIONAL.md` (popup: le due semantiche e il perché),
   aggiornamento di §4 (la colonna guadagna una scorciatoia) e §7 (accenti raggiungibili in due
@@ -320,8 +358,14 @@ esistente.
   (punteggiatura di tutti i giorni, scelta da te), `1` contiene ciò che costa più di un gesto
   (parentesi, matematica, valute). Se durante l'uso qualcosa dovesse migrare fra i due, si
   sposta un preferito — nessuna modifica di codice.
-- **Il popup di `1` a due righe** è il primo a superare la riga singola: il posizionamento e
-  il rientro ai bordi vanno verificati proprio lì (tasto di prima colonna, popup largo).
+- **Popup larghi su tasti di bordo:** `1` (8 celle) e `.` (7 preferiti) sono molto più larghi
+  del tasto d'origine, e `1` sta in prima colonna: il **rientro ai bordi dello schermo** va
+  verificato proprio lì. Se 8 celle risultassero troppo strette per il pollice, si passa a due
+  righe — il popup deve quindi saper andare a capo fin dall'inizio.
+- **Semantiche miste in uno stesso popup** (lettere `ForceLetter` + cifra `Insert`): è
+  intenzionale e resa visibile dal colore, ma è il punto in cui un bug si nasconderebbe bene.
+  Il test "una cella inserisce esattamente ciò che mostra" va scritto in modo da coprire
+  entrambe le semantiche, non solo l'inserimento.
 
 ---
 
