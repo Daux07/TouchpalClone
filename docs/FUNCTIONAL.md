@@ -10,7 +10,7 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.12d (Fase 1 completa).
+**Allineato a:** Step 1.13 (Fase 1 completa).
 
 ## Indice
 - [Panoramica architettura](#panoramica-architettura)
@@ -24,8 +24,9 @@
 - [8. Cancellazione](#8-cancellazione-tap-tenuto-premuto-parole)
 - [9. Simboli preferiti](#9-simboli-preferiti-nella-colonna)
 - [10. Popup a pressione prolungata](#10-popup-a-pressione-prolungata)
-- [11. Impostazioni e persistenza](#11-impostazioni-e-persistenza)
-- [12. Copertura dei test](#12-copertura-dei-test)
+- [11. Maiuscole automatiche e spazio automatico](#11-maiuscole-automatiche-e-spazio-automatico)
+- [12. Impostazioni e persistenza](#12-impostazioni-e-persistenza)
+- [13. Copertura dei test](#13-copertura-dei-test)
 - [Cosa non c'è ancora](#cosa-non-cè-ancora)
 
 ---
@@ -494,7 +495,58 @@ dizionario restano indifferenti allo shift.
 
 ---
 
-## 11. Impostazioni e persistenza
+## 11. Maiuscole automatiche e spazio automatico
+
+Due aiuti alla scrittura che si sostengono a vicenda: la maiuscola serve a inizio frase, e lo
+spazio automatico è ciò che crea quel confine di frase. Entrambi hanno già la loro preferenza
+in `KeyboardSettings` (`autoCapitalise`, `autoSpace`, accese di default), pronte per la
+schermata impostazioni di Fase 3 — un aiuto automatico è esattamente il genere di cosa che
+qualcuno vuole poter spegnere.
+
+### Maiuscola automatica
+
+La domanda "qui ci va la maiuscola?" la risponde **Android**, non noi:
+`InputConnection.getCursorCapsMode(inputType)`. Così si coprono senza casi speciali l'inizio
+del campo, l'inizio riga, la parola dopo `.`, `!` o `?` — e **gratis** i campi che chiedono
+ogni parola maiuscola (il nome in una rubrica) o tutto maiuscolo, che diventano
+rispettivamente `ONCE` e `LOCK`.
+
+Viene ricalcolata dove il contesto può essere cambiato: apertura di un campo, conferma di una
+parola, cancellazione (tornare indietro oltre un punto rimette la maiuscola) e spostamento del
+cursore (`onUpdateSelection`).
+
+**La parte delicata non è quando mettere la maiuscola, ma quando *non* toccarla.** Spegnere
+`⇧` a inizio frase è un gesto deliberato, e una tastiera che la riaccende subito dopo sta
+litigando con chi scrive. La regola è la **proprietà** (`AutoShift.resolve`): la tastiera può
+cambiare solo ciò che ha impostato lei; uno stato scelto dall'utente resta finché quella parola
+non è confermata, dopodiché la parola successiva è una decisione nuova.
+
+### Spazio automatico
+
+Scegliere un candidato dalla barra inserisce anche **lo spazio dopo**, così la parola seguente
+si comincia subito. Solo lì: premere spazio o invio significa che il separatore lo sta già
+mettendo l'utente, e aggiungerne un altro lo raddoppierebbe.
+
+**Lo spazio è provvisorio,** ed è questo a decidere se la funzione piace o si disattiva subito:
+senza una regola, scegliere "casa" e digitare un punto lascerebbe `casa .` e costringerebbe a
+cancellare uno spazio mai chiesto. Quindi la punteggiatura che sta attaccata alla parola
+precedente (`. , ; : ! ? …` e le chiusure `) ] } » "`) **si riprende lo spazio**; se poi è un
+segno che chiude una frase, uno spazio nuovo va **dopo** — che è dove comincia la frase
+successiva e dove la maiuscola automatica poi cade.
+
+Un punto porta lo spazio **solo dopo una lettera** (`AutoSpace.deservesFollowingSpace`): è ciò
+che tiene interi `3.14` e `www.sito.it`, dove uno spazio sarebbe attivamente sbagliato.
+
+**Ci si fida del campo, non del flag.** Prima di togliere lo spazio si verifica che davanti al
+cursore ci sia davvero uno spazio: il flag può sopravvivere al suo spazio (cursore spostato,
+testo riscritto dall'app) e cancellare un carattere per una convinzione stantia significherebbe
+mangiare qualcosa che l'utente ha scritto. Per lo stesso motivo `onUpdateSelection` **non**
+azzera il flag: lì arrivano anche le nostre modifiche, e azzerarlo disferebbe la funzione un
+istante dopo che ha agito.
+
+---
+
+## 12. Impostazioni e persistenza
 
 Due meccanismi, scelti in base a ciò che devono reggere:
 
@@ -502,12 +554,13 @@ Due meccanismi, scelti in base a ciò che devono reggere:
 |------|------|--------|
 | Parole imparate | **Room** (`learned_words.db`) | Migliaia di righe, query per sequenza, conteggi da aggiornare |
 | Simboli preferiti | **SharedPreferences** (`KeyboardSettings`) | Sette valori letti una volta e scritti a un tocco: un database sarebbe solo costo |
+| Maiuscola e spazio automatici | **SharedPreferences** (`autoCapitalise`, `autoSpace`) | Due interruttori, accesi di default; la schermata di Fase 3 li esporrà |
 
 Entrambi restano nella sandbox dell'app.
 
 ---
 
-## 12. Copertura dei test
+## 13. Copertura dei test
 
 Unit test JVM (nessun emulatore necessario): `./gradlew :app:testDebugUnitTest`.
 
@@ -523,6 +576,8 @@ Unit test JVM (nessun emulatore necessario): `./gradlew :app:testDebugUnitTest`.
 | `FavouriteSymbolsTest` | Normalizzazione, sostituzione, scambio, "ogni default è raggiungibile" |
 | `SymbolLayoutTest` | Fra cui "un tasto inserisce esattamente ciò che mostra" |
 | `LongPressKeysTest` | Contenuto dei popup, entrambe le semantiche, variante email; e **"ogni cifra 0–9 è raggiungibile da esattamente un popup"**, che impedisce sia il ritorno dei numeri intypabili sia una cifra offerta da due posti |
+| `AutoSpaceTest` | Quale punteggiatura si riprende lo spazio e quale porta il proprio; e che dopo una cifra il punto non lo porti (`3.14`) |
+| `AutoShiftTest` | La regola di proprietà: fra i casi, **"una maiuscola spenta dall'utente non viene riaccesa"** |
 
 Le verifiche su emulatore sono documentate step per step in `DEVELOPMENT.md`, con gli
 screenshot in `docs/screenshots/`.
@@ -538,8 +593,8 @@ Riferimento completo e ordinato: `DEVELOPMENT.md` (Fasi 2 e 3). In sintesi:
 - **Scorrimento del cursore trascinando sulla barra spazio**: il long-press dello spazio è
   tenuto libero apposta (vedi §10).
 - **QWERTY come layout alternativo**: `KeyGrid` e vista sono già pronti, manca la griglia.
-- Impostazioni: posizione colonna, altezza tastiera, dimensione candidati, numero di preferiti.
-- Maiuscola automatica a inizio frase (`getCursorCapsMode`).
+- Impostazioni: posizione colonna, altezza tastiera, dimensione candidati, numero di preferiti,
+  e gli interruttori per maiuscola e spazio automatici (le preferenze esistono già).
 - Schermata di gestione del dizionario personale e rimozione di una parola imparata
   (il DAO ha già `delete(word)`).
 - Microfono (`KeyAction.Mic`, oggi no-op e fuori dal layout attuale).

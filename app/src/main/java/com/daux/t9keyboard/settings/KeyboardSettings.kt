@@ -34,9 +34,25 @@ class KeyboardSettings(context: Context) {
         return updated
     }
 
+    /**
+     * Capitalise the first word of a sentence by itself. On by default — but stored as
+     * a preference from the start, because automatic typing help is exactly the kind of
+     * thing people want to switch off, and the Phase 3 settings screen will offer it.
+     */
+    var autoCapitalise: Boolean
+        get() = prefs.getBoolean(KEY_AUTO_CAPS, true)
+        set(value) = prefs.edit().putBoolean(KEY_AUTO_CAPS, value).apply()
+
+    /** Add the space between words automatically (see the auto-space rules). */
+    var autoSpace: Boolean
+        get() = prefs.getBoolean(KEY_AUTO_SPACE, true)
+        set(value) = prefs.edit().putBoolean(KEY_AUTO_SPACE, value).apply()
+
     private companion object {
         const val FILE = "keyboard_settings"
         const val KEY_FAVOURITES = "favourite_symbols"
+        const val KEY_AUTO_CAPS = "auto_capitalise"
+        const val KEY_AUTO_SPACE = "auto_space"
 
         /** A character no symbol can contain, so the list survives a round trip. */
         const val SEPARATOR = "\n"

@@ -28,7 +28,7 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** Step 1.12d — **popup long-press** sui tasti (accentate, simboli, e **le cifre**, che prima erano digitabili solo da `12#`): pannelli lunghi su due righe, cella selezionata evidenziata in teal, e selezione **sfalsata** in stile Gboard così il dito non copre mai il pannello.
+- **Ultimo step completato:** Step 1.13 — **maiuscola automatica** a inizio frase e **spazio automatico** dopo la scelta di un candidato, con la punteggiatura che si riprende lo spazio. Prima: Step 1.12a–d, i **popup long-press** sui tasti.
 - **Prossimo step:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
 - **Dopo:** **Fase 3** (impostazioni/ergonomia, dove rientrano la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente). Il test reale sullo smartphone continua in parallelo: `bash tools/dev.sh apk` → `app/build/outputs/apk/debug/app-debug.apk`.
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
@@ -141,7 +141,10 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 - [ ] **Scorrimento del cursore trascinando sulla barra spazio** (idea utente): con la
       scrittura predittiva riposizionare il cursore è utile. Occupa il long-press dello
       spazio, oggi libero proprio per questo (lo `0` è già sulla virgola)
-- [ ] Maiuscola automatica a inizio frase (`getCursorCapsMode`)
+- [x] Maiuscola automatica a inizio frase (`getCursorCapsMode`) — fatta nello Step 1.13
+- [x] Spazio automatico dopo la scelta di un candidato — fatto nello Step 1.13
+- [ ] Interruttori per maiuscola/spazio automatici nella schermata impostazioni
+      (le preferenze `autoCapitalise`/`autoSpace` esistono già, manca solo la UI)
 - [x] Modalità numerica/simboli dedicata (`12#`, due pagine QWERTY) — anticipata allo Step 1.8
 - [ ] **QWERTY come layout alternativo alla T9** (idea utente): un nuovo `KeyGrid` +
       voce in `KeyboardMode`; vista e plumbing già pronti dallo Step 1.8
@@ -378,6 +381,48 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-29 — Step 1.13: maiuscola automatica e spazio automatico
+**Fatto:** (richiesta dell'utente) i due aiuti alla scrittura che mancavano, che poi si
+sostengono a vicenda — la maiuscola serve a inizio frase, e lo spazio automatico è ciò che
+crea quel confine di frase. Entrambi hanno già la preferenza (`autoCapitalise`, `autoSpace`,
+accese di default) pronta per la schermata di Fase 3.
+
+**Maiuscola.** La domanda "qui ci va?" la risponde **Android**, non noi:
+`getCursorCapsMode(inputType)`. Copre senza casi speciali inizio campo, inizio riga e la
+parola dopo `.`/`!`/`?`, e **gratis** i campi che chiedono ogni parola maiuscola (il nome in
+rubrica) o tutto maiuscolo. Ricalcolata all'apertura del campo, alla conferma di una parola,
+in cancellazione (tornare oltre un punto rimette la maiuscola) e allo spostamento del cursore.
+
+**La parte delicata è quando *non* toccarla.** Spegnere `⇧` a inizio frase è deliberato, e
+riaccenderla subito dopo significa litigare con chi scrive. Regola di **proprietà**
+(`AutoShift.resolve`, puro e testato): la tastiera cambia solo ciò che ha impostato lei; uno
+stato scelto dall'utente vale fino alla conferma di quella parola, poi si ridecide.
+
+**Spazio.** Scegliere un candidato inserisce anche lo spazio dopo (solo lì: spazio e invio
+sono già un separatore, raddoppiarlo sarebbe un peggioramento). Lo spazio è **provvisorio**,
+ed è questo a decidere se la funzione piace: senza regola, scegliere "casa" e digitare un
+punto lascerebbe `casa .`. Quindi la punteggiatura che sta attaccata alla parola precedente si
+**riprende** lo spazio, e se chiude una frase ne mette uno **dopo** — dove poi cade la
+maiuscola. Un punto porta lo spazio **solo dopo una lettera**, il che tiene interi `3.14` e
+`www.sito.it`.
+
+**Bug trovato provando (e la sua morale).** Il primo tentativo dava `Cara .`: azzeravo il
+flag dello spazio in `onUpdateSelection`, dove però arrivano **anche le nostre modifiche** —
+`commitText(" ")` disfaceva la funzione un istante dopo che aveva agito. La correzione non è
+inseguire il cursore ma **fidarsi del campo invece che del flag**: prima di cancellare si
+verifica che davanti al cursore ci sia davvero uno spazio. Così un flag stantio (cursore
+spostato, testo riscritto dall'app) non può mangiare un carattere scritto dall'utente.
+
+**File:** `input/AutoShift.kt`, `input/AutoSpace.kt` (nuovi, puri),
+`settings/KeyboardSettings.kt` (due preferenze), `service/T9ImeService.kt`;
+test `input/AutoShiftTest.kt` (6 casi) e `input/AutoSpaceTest.kt` (6 casi).
+**Verificato su emulatore:** a campo vuoto `2272` predice **"Casa"** con la colonna `A B C À`;
+scegliendo un candidato compare lo spazio; premendo `.` subito dopo si ottiene **`Basa. `** —
+spazio ripreso, punto attaccato, spazio nuovo dopo — e i tasti passano a `ABC/DEF` per la
+frase successiva → `docs/screenshots/step-1.13-maiuscola-automatica.png`,
+`step-1.13-spazio-e-punto.png`.
+**Non incluso:** spazio automatico dopo le emoji (Gboard non lo fa) e dopo i simboli.
 
 ### 2026-07-29 — Step 1.12d: il dito non copre più il popup (feedback utente)
 **Il problema:** per scegliere bisognava portare il dito **sul** pannello, che è
