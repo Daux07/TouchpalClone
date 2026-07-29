@@ -182,29 +182,56 @@ popup su `.` li rende raggiungibili **anche a metà parola**, che è esattamente
 (apostrofo, trattino). Stessa lista, stessa `FavouriteSymbols`, nessun dato nuovo: cambiare un
 preferito dalla colonna cambia anche il popup, per costruzione.
 
-**`1` (tastierino) → i simboli più usati, per frequenza.**
+**`1` (tastierino) → i simboli che le altre superfici rendono costosi.**
 
-- **Conteggio:** `settings/SymbolUsage.kt` (logica pura, testabile) + persistenza in
-  `KeyboardSettings` su `SharedPreferences`. **Non Room:** sono qualche decina di contatori
-  interi, esattamente il caso in cui un database è solo costo — la stessa scelta già fatta per
-  i preferiti (§10 di `FUNCTIONAL.md`). L'incremento avviene su ogni `KeyAction.Insert`
-  (pagine simboli, popup, preferiti), in un punto solo.
-- **⚠️ Vincolo fondamentale: la frequenza decide *quali* simboli entrano, non *dove* stanno.**
-  Un popup che si riordina da solo sposta i simboli sotto il pollice e impedisce alla memoria
-  muscolare di formarsi — è il difetto classico dei menu adattivi, e renderebbe il popup più
-  lento del percorso `12#`. Quindi: **ordine canonico fisso** (quello in cui compaiono nelle
-  pagine simboli) e insieme **ricalcolato solo all'apertura di un campo**
-  (`onStartInputView`), **mai** mentre stai digitando.
-- **Seed:** con zero dati d'uso il popup deve essere già utile → parte dai caratteri storici
-  del tasto `1` (`. , ? ! '`) più `@`. Chiude anche il buco esistente: quei caratteri oggi
-  sono **irraggiungibili**.
-- **Dimensione:** 6 celle, quanto sta comodo su una riga sopra un tasto di prima colonna.
+**La regola** (decisa dall'utente, dopo aver scartato sia la punteggiatura storica sia la
+frequenza): il popup di `1` non è un elenco arbitrario né un terzo accesso generico ai simboli
+— contiene ciò che oggi **costa più di un gesto**:
+
+- **parentesi** → due tasti da premere, e su `12#` sono divise fra pagina 1 (`( )`) e pagina 2
+  (`[ ] { }`);
+- **valute e matematica** → stanno in **pagina 2**, cioè tre gesti: `12#` → `1/2` → tasto.
+
+Punteggiatura e simboli comuni restano **fuori**, perché sono già a un gesto: `,` e `.` sono
+tasti dedicati e `? ! / - ' "` stanno nei preferiti (quindi nella colonna e nel popup di `.`).
+Mettere le parentesi fra i preferiti sarebbe costato **due slot su sette** per un solo segno.
+
+**Coppie in una cella.** `()` inserisce **entrambe le parentesi con il cursore in mezzo**: è il
+gesto reale (apri, scrivi, chiudi) e riduce quattro azioni a una. Nuova
+`KeyAction.InsertPair(open, close)`, implementata con `commitText(open, 1)` +
+`commitText(close, 0)` — con `newCursorPosition = 0` il cursore resta **prima** del testo
+inserito, quindi nessun calcolo di posizione assoluta né `setSelection`. Collassare le tre
+coppie libera lo spazio per valute e matematica. Una parentesi singola resta comunque
+disponibile su `12#`: non si perde nulla.
+
+**Contenuto — campo normale** (2 righe da 7; il popup va a capo oltre le 7 celle):
+
+| Riga | Celle |
+|------|-------|
+| 1 | `()` `[]` `{}` `%` `+` `-` `=` |
+| 2 | `€` `$` `£` `×` `÷` `<` `>` |
+
+**Contenuto — campo email/URL:** `@ .com .it .net .org gmail.com`. Contestuale, come fanno
+Gboard e iOS: il `.com` compare **solo dove serve** e non ingombra mentre scrivi un messaggio.
+Il meccanismo è già disponibile senza costo — `onStartInputView` riceve l'`EditorInfo`, basta
+guardare la variazione di `inputType` (`TYPE_TEXT_VARIATION_EMAIL_ADDRESS`, `…_URI`).
+
+**Niente conteggio di frequenza** (idea valutata e scartata dall'utente): `12#` dà già tutti i
+simboli in un tap e il popup di `.` copre quelli scelti a mano, quindi un terzo accesso
+*adattivo* aggiungerebbe persistenza, test e un parametro da tarare in cambio di poco — oltre
+al rischio, se mal fatto, di spostare i simboli sotto il pollice. Resta un'eventuale rifinitura
+di Fase 3, da decidere con dati d'uso veri anziché per ipotesi.
 
 **Decisione collegata — il tap su `1`.** Oggi il tasto mostra `@` ma toccandolo non scrive
 nulla: si limita a confermare la parola. Con il popup sopra, il tap deve **inserire `@`**,
 cioè ciò che il tasto mostra: è l'invariante che `SymbolLayoutTest` già protegge sulle pagine
 simboli ("un tasto inserisce esattamente ciò che mostra") e violarla proprio qui sarebbe
 incoerente. Il tap su `.` resta invariato.
+
+> Nota: `@` è il solo carattere del tasto `1` che il popup non contiene — è sul tasto stesso.
+> I caratteri storici del `1` (`. , ? ! '` di `T9Keypad.letters[1]`) restano irraggiungibili
+> da qui **per scelta**, perché lo sono già in un gesto altrove; `T9Keypad.letters[1]` resta
+> quindi un dato usato solo dal fold delle sequenze, non dalla UI.
 
 Il popup sui tasti lettera diventa così una **scorciatoia posizionale della colonna**, non un
 secondo meccanismo: stessa operazione, stesso stato, stesso apprendimento, nessun nuovo
@@ -257,24 +284,24 @@ esistente.
 
 - `2`→`a b c à` · `3`→`d e f è é` · `4`→`g h i ì` · `5`→`j k l` · `6`→`m n o ò` ·
   `7`→`p q r s` · `8`→`t u v ù` · `9`→`w x y z`
-- `1`/`@` → **i 6 simboli più usati** (seed: `. , ? ! ' @`), ordine canonico fisso
+- `1`/`@` → **parentesi (a coppie), matematica, valute**; nei campi email/URL diventa
+  `@ .com .it .net .org gmail.com`
 - `.` → **i 7 simboli preferiti**, gli stessi della colonna
 - `,` → `, ; : "` (fisso)
 - Pagine simboli (opzionale, se non allunga troppo lo step): `-`→`– — _`, `(`→`[ {`, ecc.
 
 ### Verifica
 
-- **Unit test** (`LongPressKeysTest`, `SymbolUsageTest`), sulla parte pura: "una cella
-  inserisce esattamente ciò che mostra" (come `SymbolLayoutTest`), "ogni accento di
-  `T9Keypad.accentedLetters` è raggiungibile da un popup", "nessun tasto con alternative è
-  anche un tasto a gesto riservato (`⌫`)"; sulla frequenza: conteggio e top-N, **ordine
-  canonico indipendente dai conteggi** (il test che protegge la memoria muscolare), seed
-  usato quando non ci sono dati, preferenza corrotta che non svuota il popup.
+- **Unit test** (`LongPressKeysTest`), sulla parte pura: "una cella inserisce esattamente ciò
+  che mostra" (come `SymbolLayoutTest`, esteso alle coppie: la cella `()` inserisce `(` e `)`
+  e nient'altro), "ogni accento di `T9Keypad.accentedLetters` è raggiungibile da un popup",
+  "nessun tasto con alternative è anche un tasto a gesto riservato (`⌫`)", e la variante
+  email/URL scelta in base all'`inputType`.
 - **Emulatore:** long-press su `3` → `d e f è é`, scorri e rilascia su `è` → composizione
   coerente (la parola prosegue, la sequenza è giusta); long-press su `.` → i preferiti,
-  **anche a metà parola**; long-press su `1` → i più usati, e dopo aver usato molto un simbolo
-  esso compare al **riavvio successivo** senza che l'ordine degli altri sia cambiato;
-  rilascio fuori = niente; con `⇧` attivo le celle sono maiuscole. Screenshot in
+  **anche a metà parola**; long-press su `1` → parentesi/matematica/valute, e la cella `()`
+  lascia il **cursore in mezzo**; in un campo email lo stesso tasto mostra `.com`; rilascio
+  fuori = niente; con `⇧` attivo le celle sono maiuscole. Screenshot in
   `docs/screenshots/step-1.12-*.png`.
 - **Documentazione:** nuova sezione in `FUNCTIONAL.md` (popup: le due semantiche e il perché),
   aggiornamento di §4 (la colonna guadagna una scorciatoia) e §7 (accenti raggiungibili in due
@@ -289,10 +316,12 @@ esistente.
 - **Dita grandi / celle piccole:** con 5 alternative su un tasto stretto le celle vanno più
   larghe del tasto d'origine e il popup va **rientrato** ai bordi dello schermo (i tasti di
   colonna 1 e 3). Riguarda in pieno i popup a 6–7 celle di `1` e `.`.
-- **Due popup di simboli sono troppi?** `.` (curato) e `1` (adattivo) hanno ruoli diversi, ma
-  se all'uso reale si sovrapponessero — perché i preferiti *sono* i più usati — il ripiego è
-  tenere solo `.` e restituire al popup di `1` la punteggiatura fissa. Da valutare sul campo
-  dopo qualche giorno d'uso, quando i conteggi saranno significativi.
+- **I due popup di simboli non si sovrappongono, per costruzione:** `.` contiene i preferiti
+  (punteggiatura di tutti i giorni, scelta da te), `1` contiene ciò che costa più di un gesto
+  (parentesi, matematica, valute). Se durante l'uso qualcosa dovesse migrare fra i due, si
+  sposta un preferito — nessuna modifica di codice.
+- **Il popup di `1` a due righe** è il primo a superare la riga singola: il posizionamento e
+  il rientro ai bordi vanno verificati proprio lì (tasto di prima colonna, popup largo).
 
 ---
 

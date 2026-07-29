@@ -424,9 +424,10 @@ screenshot in `docs/screenshots/`.
 Riferimento completo e ordinato: `DEVELOPMENT.md` (Fasi 2 e 3). In sintesi:
 
 - **Popup long-press sul tasto** per accentate e caratteri speciali, stile Gboard — **prossimo
-  step (1.12)**, prima della Fase 2. Include due popup di simboli: `.` mostra i preferiti
-  (raggiungibili così anche a metà parola, cosa che la colonna non permette) e `1` i simboli
-  più usati, con conteggio di frequenza.
+  step (1.12)**, prima della Fase 2. Include due popup di simboli con ruoli distinti: `.`
+  mostra i preferiti (raggiungibili così anche a metà parola, cosa che la colonna non
+  permette) e `1` ciò che oggi costa più di un gesto — parentesi a coppie, matematica,
+  valute — con variante `.com/.it` nei campi email/URL.
 - **Bilingue IT+EN** (Fase 2): manca solo `EnglishDictionaryEngine` + corpus, il merge esiste.
 - **QWERTY come layout alternativo**: `KeyGrid` e vista sono già pronti, manca la griglia.
 - Impostazioni: posizione colonna, altezza tastiera, dimensione candidati, numero di preferiti.
