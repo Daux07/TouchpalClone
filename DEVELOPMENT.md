@@ -170,6 +170,42 @@ sequenza ne conterrebbe un'altra). Quindi **due semantiche, scelte dal tipo di t
 | `2`–`9` | Le lettere del tasto, accenti inclusi (`a b c à`) | **Forzare quella lettera** in questa posizione: `pressDigit(n)` + `chooseLetter(c)` — esattamente ciò che fa un tap sulla colonna |
 | `1`/`@`, `,`, `.`, tasti simbolo | Segni alternativi | `KeyAction.Insert(text)`: conferma la parola in corso e scrive il segno |
 
+### I due popup di simboli (decisione dell'utente)
+
+Due popup di simboli con ruoli **complementari e non sovrapposti** — uno curato da te, uno
+che si adatta all'uso:
+
+**`.` (riga inferiore, accanto allo spazio) → i 7 simboli preferiti.**
+Sembra un doppione della colonna, e invece copre il buco che la colonna lascia: i preferiti
+si vedono **solo a riposo**, perché appena componi una parola la colonna diventa lettere. Il
+popup su `.` li rende raggiungibili **anche a metà parola**, che è esattamente quando servono
+(apostrofo, trattino). Stessa lista, stessa `FavouriteSymbols`, nessun dato nuovo: cambiare un
+preferito dalla colonna cambia anche il popup, per costruzione.
+
+**`1` (tastierino) → i simboli più usati, per frequenza.**
+
+- **Conteggio:** `settings/SymbolUsage.kt` (logica pura, testabile) + persistenza in
+  `KeyboardSettings` su `SharedPreferences`. **Non Room:** sono qualche decina di contatori
+  interi, esattamente il caso in cui un database è solo costo — la stessa scelta già fatta per
+  i preferiti (§10 di `FUNCTIONAL.md`). L'incremento avviene su ogni `KeyAction.Insert`
+  (pagine simboli, popup, preferiti), in un punto solo.
+- **⚠️ Vincolo fondamentale: la frequenza decide *quali* simboli entrano, non *dove* stanno.**
+  Un popup che si riordina da solo sposta i simboli sotto il pollice e impedisce alla memoria
+  muscolare di formarsi — è il difetto classico dei menu adattivi, e renderebbe il popup più
+  lento del percorso `12#`. Quindi: **ordine canonico fisso** (quello in cui compaiono nelle
+  pagine simboli) e insieme **ricalcolato solo all'apertura di un campo**
+  (`onStartInputView`), **mai** mentre stai digitando.
+- **Seed:** con zero dati d'uso il popup deve essere già utile → parte dai caratteri storici
+  del tasto `1` (`. , ? ! '`) più `@`. Chiude anche il buco esistente: quei caratteri oggi
+  sono **irraggiungibili**.
+- **Dimensione:** 6 celle, quanto sta comodo su una riga sopra un tasto di prima colonna.
+
+**Decisione collegata — il tap su `1`.** Oggi il tasto mostra `@` ma toccandolo non scrive
+nulla: si limita a confermare la parola. Con il popup sopra, il tap deve **inserire `@`**,
+cioè ciò che il tasto mostra: è l'invariante che `SymbolLayoutTest` già protegge sulle pagine
+simboli ("un tasto inserisce esattamente ciò che mostra") e violarla proprio qui sarebbe
+incoerente. Il tap su `.` resta invariato.
+
 Il popup sui tasti lettera diventa così una **scorciatoia posizionale della colonna**, non un
 secondo meccanismo: stessa operazione, stesso stato, stesso apprendimento, nessun nuovo
 modello mentale da imparare. Ed è il motivo per cui vale la pena farlo anche sui tasti senza
@@ -221,17 +257,23 @@ esistente.
 
 - `2`→`a b c à` · `3`→`d e f è é` · `4`→`g h i ì` · `5`→`j k l` · `6`→`m n o ò` ·
   `7`→`p q r s` · `8`→`t u v ù` · `9`→`w x y z`
-- `1`/`@` → `. , ? ! ' @`  ·  `,` → `, ; : "`  ·  `.` → `. … ! ? -`
+- `1`/`@` → **i 6 simboli più usati** (seed: `. , ? ! ' @`), ordine canonico fisso
+- `.` → **i 7 simboli preferiti**, gli stessi della colonna
+- `,` → `, ; : "` (fisso)
 - Pagine simboli (opzionale, se non allunga troppo lo step): `-`→`– — _`, `(`→`[ {`, ecc.
 
 ### Verifica
 
-- **Unit test** (`LongPressKeysTest`), sulla parte pura: "una cella inserisce esattamente ciò
-  che mostra" (come `SymbolLayoutTest`), "ogni accento di `T9Keypad.accentedLetters` è
-  raggiungibile da un popup", "nessun tasto con alternative è anche un tasto a gesto
-  riservato (`⌫`)".
+- **Unit test** (`LongPressKeysTest`, `SymbolUsageTest`), sulla parte pura: "una cella
+  inserisce esattamente ciò che mostra" (come `SymbolLayoutTest`), "ogni accento di
+  `T9Keypad.accentedLetters` è raggiungibile da un popup", "nessun tasto con alternative è
+  anche un tasto a gesto riservato (`⌫`)"; sulla frequenza: conteggio e top-N, **ordine
+  canonico indipendente dai conteggi** (il test che protegge la memoria muscolare), seed
+  usato quando non ci sono dati, preferenza corrotta che non svuota il popup.
 - **Emulatore:** long-press su `3` → `d e f è é`, scorri e rilascia su `è` → composizione
-  coerente (la parola prosegue, la sequenza è giusta); long-press su `1` → `?` inserito;
+  coerente (la parola prosegue, la sequenza è giusta); long-press su `.` → i preferiti,
+  **anche a metà parola**; long-press su `1` → i più usati, e dopo aver usato molto un simbolo
+  esso compare al **riavvio successivo** senza che l'ordine degli altri sia cambiato;
   rilascio fuori = niente; con `⇧` attivo le celle sono maiuscole. Screenshot in
   `docs/screenshots/step-1.12-*.png`.
 - **Documentazione:** nuova sezione in `FUNCTIONAL.md` (popup: le due semantiche e il perché),
@@ -246,7 +288,11 @@ esistente.
   non a priori.
 - **Dita grandi / celle piccole:** con 5 alternative su un tasto stretto le celle vanno più
   larghe del tasto d'origine e il popup va **rientrato** ai bordi dello schermo (i tasti di
-  colonna 1 e 3). Da gestire nel posizionamento.
+  colonna 1 e 3). Riguarda in pieno i popup a 6–7 celle di `1` e `.`.
+- **Due popup di simboli sono troppi?** `.` (curato) e `1` (adattivo) hanno ruoli diversi, ma
+  se all'uso reale si sovrapponessero — perché i preferiti *sono* i più usati — il ripiego è
+  tenere solo `.` e restituire al popup di `1` la punteggiatura fissa. Da valutare sul campo
+  dopo qualche giorno d'uso, quando i conteggi saranno significativi.
 
 ---
 
