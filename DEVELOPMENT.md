@@ -28,7 +28,7 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** Step 1.12b — **popup long-press** sui tasti (accentate, simboli, e **le cifre**, che prima erano digitabili solo da `12#`), con i pannelli lunghi mandati a capo su due righe.
+- **Ultimo step completato:** Step 1.12c — **popup long-press** sui tasti (accentate, simboli, e **le cifre**, che prima erano digitabili solo da `12#`), con i pannelli lunghi mandati a capo su due righe e la cella selezionata evidenziata in teal.
 - **Prossimo step:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
 - **Dopo:** **Fase 3** (impostazioni/ergonomia, dove rientrano la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente). Il test reale sullo smartphone continua in parallelo: `bash tools/dev.sh apk` → `app/build/outputs/apk/debug/app-debug.apk`.
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
@@ -378,6 +378,22 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-29 — Step 1.12c: la cella selezionata si vede (feedback utente)
+**Bug, non scelta di design.** La cella sotto il dito cambiava colore in modo
+impercettibile: costruendola avevo passato solo il colore normale, lasciando quello
+"premuto" di default — tarato sui tasti scuri (`KEY_PRESSED #4A515C`) e quindi quasi
+identico allo sfondo più chiaro del pannello (`POPUP_BG #454B57`).
+
+**Fatto:** la cella selezionata ora si **riempie di teal** (`ACCENT`) con il glifo
+invertito allo scuro del tema, come fa Gboard. Non un pallino, che coprirebbe o farebbe
+concorrenza al carattere proprio nel momento in cui lo devi leggere. L'inversione del
+glifo non è un vezzo: la cella cifra è **già** teal, e senza inversione sparirebbe dentro
+il proprio evidenziatore.
+
+**File:** `ui/KeyPopupView.kt`.
+**Verificato su emulatore:** `è` e la cifra `3` evidenziate e leggibili →
+`docs/screenshots/step-1.12c-selezione-evidente.png`, `step-1.12c-selezione-cifra.png`.
 
 ### 2026-07-29 — Step 1.12b: popup su due righe (feedback dagli screenshot)
 **Fatto:** (segnalazione dell'utente sugli screenshot dello Step 1.12) i popup lunghi

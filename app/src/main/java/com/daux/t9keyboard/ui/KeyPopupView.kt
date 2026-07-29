@@ -61,16 +61,28 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
     private fun buildCell(spec: KeySpec): View = TextView(context).apply {
         text = spec.mainLabel
         gravity = Gravity.CENTER
-        // Function cells are the key's own digit: accent-coloured, like the little
-        // number in the key's corner it stands for, so it reads apart from the letters.
-        setTextColor(if (spec.isFunction) KeyboardTheme.ACCENT else KeyboardTheme.TEXT)
+        setTextColor(restingColor(spec))
         setTextSize(TypedValue.COMPLEX_UNIT_SP, 19f)
         minWidth = dp(CELL_MIN_WIDTH_DP)
         setPadding(dp(6), 0, dp(6), 0)
-        background = KeyboardTheme.keyBackground(context, normal = KeyboardTheme.POPUP_BG)
+        // The cell under the finger fills with the accent colour, the way Gboard marks a
+        // choice. An earlier, subtler shade was invisible here: the panel already sits on
+        // a light grey, so "slightly lighter grey" said nothing. Filling does.
+        background = KeyboardTheme.keyBackground(
+            context,
+            normal = KeyboardTheme.POPUP_BG,
+            pressed = KeyboardTheme.ACCENT
+        )
         layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, dp(CELL_HEIGHT_DP))
             .apply { setMargins(dp(2), dp(2), dp(2), dp(2)) }
     }
+
+    /**
+     * Function cells are the key's own digit: accent-coloured, like the little number in
+     * the key's corner they stand for, so they read apart from the letters.
+     */
+    private fun restingColor(spec: KeySpec): Int =
+        if (spec.isFunction) KeyboardTheme.ACCENT else KeyboardTheme.TEXT
 
     /** Follow the finger: light up the cell under it, if any. */
     fun highlightAt(rawX: Float, rawY: Float) = setHighlighted(indexAt(rawX, rawY))
@@ -79,10 +91,21 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
     fun selectionAt(rawX: Float, rawY: Float): KeySpec? =
         indexAt(rawX, rawY).takeIf { it >= 0 }?.let { cells[it].second }
 
+    /**
+     * The glyph flips to the panel's own dark colour on the accent fill: the digit cell
+     * is already accent-coloured, so leaving it as it is would make it vanish into its
+     * own highlight.
+     */
     private fun setHighlighted(index: Int) {
         if (index == highlighted) return
-        cells.getOrNull(highlighted)?.first?.isPressed = false
-        cells.getOrNull(index)?.first?.isPressed = true
+        cells.getOrNull(highlighted)?.let { (view, spec) ->
+            view.isPressed = false
+            (view as TextView).setTextColor(restingColor(spec))
+        }
+        cells.getOrNull(index)?.let { (view, _) ->
+            view.isPressed = true
+            (view as TextView).setTextColor(KeyboardTheme.BG)
+        }
         highlighted = index
     }
 

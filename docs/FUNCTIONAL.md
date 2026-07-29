@@ -10,7 +10,7 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.12b (Fase 1 completa).
+**Allineato a:** Step 1.12c (Fase 1 completa).
 
 ## Indice
 - [Panoramica architettura](#panoramica-architettura)
@@ -458,6 +458,10 @@ posizione assoluta.
   **Oltre 5 celle va a capo** (`LongPressKeys.MAX_PER_ROW`), su righe bilanciate e centrate:
   otto celle in fila coprivano quasi tutto lo schermo. Cinque è la soglia perché i popup più
   frequenti (`a b c à 2`, `p q r s 7`) restano su una riga, dove il gesto è una sola spazzata.
+
+  La cella sotto il dito si **riempie di teal** con il glifo invertito allo scuro del tema,
+  come su Gboard — non un pallino, che coprirebbe il carattere proprio mentre lo si legge.
+  L'inversione serve: la cella cifra è già teal e sparirebbe dentro il proprio evidenziatore.
 
   La cella scelta è la **più vicina** al dito, non la prima che lo contiene: con due righe
   qualsiasi tolleranza attorno a una cella invaderebbe la riga accanto, e un test di
