@@ -30,7 +30,7 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 - **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
 - **Ultimo step completato:** Step 1.12 — **popup long-press** sui tasti (accentate, simboli, e **le cifre**, che prima erano digitabili solo da `12#`).
 - **Prossimo step:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
-- **Dopo:** **Fase 3** (impostazioni/ergonomia, dove rientrano la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente). Il test reale sullo smartphone continua in parallelo. APK: `./gradlew :app:assembleDebug` → `app/build/outputs/apk/debug/app-debug.apk`.
+- **Dopo:** **Fase 3** (impostazioni/ergonomia, dove rientrano la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente). Il test reale sullo smartphone continua in parallelo: `bash tools/dev.sh apk` → `app/build/outputs/apk/debug/app-debug.apk`.
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
 
 > ℹ️ **Multi-tap rimosso**: dallo Step 1.2 l'inserimento è predittivo (digiti la
@@ -44,18 +44,21 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 > `adb shell settings put secure show_ime_with_hard_keyboard 1`. Il codice ora forza
 > comunque la visualizzazione via `onEvaluateInputViewShown()` (no-op sui telefoni reali).
 
-> 🛠️ **Build & test da riga di comando (senza Android Studio aperto).** Il wrapper
-> `gradlew` non è nel repo, ma si può usare il Gradle+JDK già scaricati da Android Studio.
-> Da Git Bash, dalla root del progetto:
+> 🛠️ **Build & test da riga di comando: `tools/dev.sh`.** Il wrapper `gradlew` non è nel
+> repo, quindi ogni comando dovrebbe ripetere la stessa preparazione d'ambiente (JDK di
+> Android Studio, SDK, ricerca del Gradle scaricato). Sta tutta nello script, da Git Bash:
 > ```bash
-> export JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"
-> export ANDROID_HOME="/c/Users/Antonio/AppData/Local/Android/Sdk"
-> GRADLE=$(ls /c/Users/Antonio/.gradle/wrapper/dists/gradle-8.13-bin/*/gradle-8.13/bin/gradle | head -1)
-> "$GRADLE" :app:testDebugUnitTest --console=plain   # unit test
-> "$GRADLE" :app:installDebug --console=plain         # build+install su emulatore/S25
+> bash tools/dev.sh test              # unit test JVM (nessun emulatore)
+> bash tools/dev.sh install           # build + installa su emulatore/telefono
+> bash tools/dev.sh apk               # genera l'APK debug e stampa il percorso
+> bash tools/dev.sh boot              # avvia l'emulatore e aspetta il boot
+> bash tools/dev.sh ime               # abilita e seleziona la tastiera T9
+> bash tools/dev.sh shot out.png      # screenshot dell'emulatore
+> bash tools/dev.sh adb <args...>     # adb con l'ambiente già impostato
+> bash tools/dev.sh gradle <task...>  # qualsiasi altro task
 > ```
-> adb sta in `$ANDROID_HOME/platform-tools/adb.exe`. Screenshot emulatore:
-> `adb exec-out screencap -p > out.png`.
+> Comandi corti e **identici ogni volta**, il che permette anche di autorizzarli una volta
+> sola in `.claude/settings.local.json` invece di approvare ogni riga di script.
 
 > ⚠️ **Il Gradle wrapper JAR e gli script `gradlew` non sono nel repo** (non generabili in
 > questo ambiente senza SDK). Alla prima apertura in Android Studio, lascia che sincronizzi
