@@ -7,11 +7,30 @@
 
 ---
 
+## 📌 DIRETTIVA PERMANENTE — documentazione sempre allineata
+
+**Nessuno step è finito finché la documentazione non è allineata.** Ogni modifica al
+codice aggiorna, **nello stesso commit**:
+
+1. **`DEVELOPMENT.md`** — la sezione *STATO CORRENTE* (ultimo step, prossimo passo), i
+   task spuntati `[x]` nella fase relativa, e una voce nel *Log di sviluppo*.
+2. **`docs/FUNCTIONAL.md`** — la sezione della feature toccata (comportamento e
+   architettura di ciò che **esiste e funziona**), più la riga "Allineato a:" in cima.
+3. **`prompt-tastiera-t9-touchpal.md`** — solo se cambia la *specifica* (cosa costruire),
+   non per come è stata realizzata.
+
+Vale anche per le modifiche piccole e per i cambi di rotta: se una decisione viene
+ribaltata, la documentazione va **corretta**, non lasciata a raccontare il vecchio piano.
+Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
+
+---
+
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**. Ultimi step: 1.7 (fuzzy) e 1.8 (simboli).
 - **Ultimo step completato:** Step 1.11 — **cancella con pressione prolungata** (accelera e passa alle parole intere) e **maiuscole visibili** su tasti e colonna. Entrambi da feedback della prima prova reale.
-- **Prossimo step:** **continuare il test reale sullo smartphone**. APK: `./gradlew :app:assembleDebug` → `app/build/outputs/apk/debug/app-debug.apk`. Dopo il test si sceglie fra **Fase 2** (bilingue IT+EN) e **Fase 3** (impostazioni/ergonomia, dove rientra la **QWERTY come layout alternativo**, richiesta dall'utente).
+- **Prossimo step:** **Step 1.12 — popup long-press sul tasto** (stile tastiera Google) per accentate e caratteri speciali. Deciso dall'utente come **prerequisito alla Fase 2**: si fa prima del bilingue. Piano dettagliato nella sezione "Step 1.12 — piano" qui sotto.
+- **Dopo:** **Fase 2** (bilingue IT+EN), poi **Fase 3** (impostazioni/ergonomia, dove rientra la **QWERTY come layout alternativo**, richiesta dall'utente). Il test reale sullo smartphone continua in parallelo. APK: `./gradlew :app:assembleDebug` → `app/build/outputs/apk/debug/app-debug.apk`.
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
 
 > ℹ️ **Multi-tap rimosso**: dallo Step 1.2 l'inserimento è predittivo (digiti la
@@ -84,6 +103,8 @@
         binario indicizzato resta un'ottimizzazione futura (non necessaria a questa dimensione).
 - [x] Test unitari: `T9Keypad.sequenceFor`, `ItalianDictionaryEngine`, `ComposeState`,
       `LearnedWordsEngine`, `MergingDictionaryEngine`, `FuzzyDictionaryEngine`, `SymbolLayout`
+- [ ] **Step 1.12 — popup long-press sul tasto** (accentate e caratteri speciali, stile
+      Gboard) — piano dettagliato nella sezione "Step 1.12 — piano" più sopra
 - [x] **Step 1.8 — pagine simboli/numeri in stile QWERTY** dietro `12#`, su griglia riusabile
 - [x] **Step 1.7 — candidati "fuzzy" (tolleranti agli errori)** (idea utente)
       Oltre ai match esatti, proporre parole a **distanza di modifica 1** dalla sequenza
@@ -112,19 +133,120 @@
       `SuggestionBarView.textSizeSp`)
 - [x] Vocali accentate (nella colonna) — anticipate allo Step 1.10
 - [x] Pannello emoji base — anticipato allo Step 1.10
-- [ ] Long-press tasto 1 → pannello simboli
-- [ ] Popup long-press sul tasto con lettere+accentate (alternativa alla colonna, da
-      valutare dopo il test reale)
+- [→] Long-press tasto 1 → caratteri di punteggiatura — **spostato allo Step 1.12**
+- [→] Popup long-press sul tasto con lettere+accentate — **spostato allo Step 1.12**
+      (deciso dall'utente dopo il test reale: si fa prima della Fase 2)
 - [ ] Maiuscola automatica a inizio frase (`getCursorCapsMode`)
 - [x] Modalità numerica/simboli dedicata (`12#`, due pagine QWERTY) — anticipata allo Step 1.8
 - [ ] **QWERTY come layout alternativo alla T9** (idea utente): un nuovo `KeyGrid` +
       voce in `KeyboardMode`; vista e plumbing già pronti dallo Step 1.8
-- [ ] Vocali accentate via long-press
+- [→] Vocali accentate via long-press — **spostato allo Step 1.12**
 - [ ] Schermata gestione dizionario personale (lista + cancella)
 - [ ] Long-press su candidato → rimuovi dal dizionario
 - [ ] Opzione "salvataggio sicuro"
 - [ ] Pannello emoji base
 - [ ] Verifica layout responsive su S25 e S25 Ultra
+
+---
+
+## 🧭 Step 1.12 — piano: popup long-press sul tasto (stile Gboard)
+
+> **Stato:** pianificato, non ancora implementato. Da fare **prima della Fase 2**
+> (decisione dell'utente). Voce di Fase 1: `- [ ] Step 1.12`.
+
+**Obiettivo.** Tenendo premuto un tasto compare un popup con i caratteri alternativi
+(accentate e simboli), come sulla tastiera Google: si scorre il dito e si rilascia sulla
+scelta, oppure si rilascia subito e si tocca la voce.
+
+### La decisione centrale: cosa *significa* scegliere dal popup
+
+In una tastiera normale il popup inserisce un carattere. **Qui non può essere sempre così:**
+sui tasti 2–9 le lettere le decide il dizionario, e infilare una `à` grezza a metà
+composizione romperebbe l'invariante di `ComposeState` (il campo mostrerebbe una cosa e la
+sequenza ne conterrebbe un'altra). Quindi **due semantiche, scelte dal tipo di tasto**:
+
+| Tasto | Popup mostra | Scegliere significa |
+|-------|--------------|---------------------|
+| `2`–`9` | Le lettere del tasto, accenti inclusi (`a b c à`) | **Forzare quella lettera** in questa posizione: `pressDigit(n)` + `chooseLetter(c)` — esattamente ciò che fa un tap sulla colonna |
+| `1`/`@`, `,`, `.`, tasti simbolo | Segni alternativi | `KeyAction.Insert(text)`: conferma la parola in corso e scrive il segno |
+
+Il popup sui tasti lettera diventa così una **scorciatoia posizionale della colonna**, non un
+secondo meccanismo: stessa operazione, stesso stato, stesso apprendimento, nessun nuovo
+modello mentale da imparare. Ed è il motivo per cui vale la pena farlo anche sui tasti senza
+accenti (`5 jkl`, `7 pqrs`, `9 wxyz`): forzare una parola sconosciuta diventa "tieni premuto e
+scorri", senza spostare il pollice sulla colonna.
+
+**Ricaduta gratuita:** il tasto `1` oggi si limita a confermare la parola — i suoi caratteri
+(`. , ? ! '`) sono **irraggiungibili**. Il popup li rende disponibili, chiudendo un buco
+esistente.
+
+### Architettura proposta
+
+1. **Dati (puri, testabili)** — `model/LongPressKeys.kt`: mappa `KeySpec → List<KeySpec>`
+   delle alternative, o meglio un campo `alternates: List<KeySpec> = emptyList()` su `KeySpec`
+   stesso, così un layout dichiara le sue alternative accanto al tasto. Per i tasti 2–9 le
+   alternative si generano da `T9Keypad.columnLetters(n)`, che è già la fonte di verità: il
+   popup e la colonna **non possono divergere**.
+2. **Azione** — `model/KeyAction.kt`: nuova `data class ForceLetter(val c: Char)`. Oggi la
+   colonna passa da una callback dedicata (`onPickLetter`); con `ForceLetter` il popup emette
+   `KeyAction` normali attraverso l'`onKey` esistente, senza nuovo plumbing nella view.
+3. **Vista** — `ui/KeyPopupView.kt`: una riga di celle disegnate con `KeyViewFactory` (stesso
+   aspetto dei tasti, come da principio dello Step 1.8), montata su un **overlay dentro
+   `KeyboardView`** e posizionata sopra il tasto d'origine.
+   **Perché un overlay e non un `PopupWindow`:** niente token di finestra, niente rischio di
+   leak da dimenticata `dismiss()`, e resta tutto dentro una vista che controlliamo. Lo spazio
+   c'è: la barra suggerimenti (56dp) fa da tetto per la riga superiore, e sovrapporsi ad essa
+   è ciò che fa anche Gboard. Se un giorno servisse uscire dai confini della tastiera, si
+   passa a `PopupWindow` senza toccare né i dati né le semantiche.
+4. **Gesto** — in `KeyViewFactory`, un handler touch generico accanto a quello del backspace:
+   - `ACTION_DOWN` → stato premuto, timer a **400 ms** (la stessa soglia di `HOLD_DELAY_MS`,
+     perché due attese diverse per lo stesso gesto si sentono);
+   - allo scadere → popup aperto, la cella sotto il dito si evidenzia mentre si scorre;
+   - `ACTION_UP` con popup aperto → sceglie la cella sotto il dito (fuori dal popup: annulla);
+     senza popup → `performClick()`, cioè il comportamento di oggi, invariato.
+   Il click listener attuale resta, così i tasti senza alternative non cambiano di una riga e
+   l'accessibilità continua a funzionare.
+5. **Servizio** — `T9ImeService`: gestione di `ForceLetter` (`pressDigit` + `chooseLetter` +
+   `render`), e chiusura del popup su cambio modalità e `onFinishInput`.
+
+### Dettagli che vanno decisi ora, non a metà implementazione
+
+- **Maiuscole:** le celle del popup devono seguire `ShiftState` come già fanno tasti e colonna
+  (§7 di `FUNCTIONAL.md`: ciò che si vede è ciò che si scriverà).
+- **Conflitti di gesto:** `⌫` ha già il touch handler (ripetizione) → **escluso** dai popup.
+  Il long-press dei preferiti vive nella colonna, che è un'altra vista → nessun conflitto.
+- **Annullamento:** rilascio fuori dal popup = nessun inserimento *e* nessun click.
+
+### Contenuto iniziale delle alternative
+
+- `2`→`a b c à` · `3`→`d e f è é` · `4`→`g h i ì` · `5`→`j k l` · `6`→`m n o ò` ·
+  `7`→`p q r s` · `8`→`t u v ù` · `9`→`w x y z`
+- `1`/`@` → `. , ? ! ' @`  ·  `,` → `, ; : "`  ·  `.` → `. … ! ? -`
+- Pagine simboli (opzionale, se non allunga troppo lo step): `-`→`– — _`, `(`→`[ {`, ecc.
+
+### Verifica
+
+- **Unit test** (`LongPressKeysTest`), sulla parte pura: "una cella inserisce esattamente ciò
+  che mostra" (come `SymbolLayoutTest`), "ogni accento di `T9Keypad.accentedLetters` è
+  raggiungibile da un popup", "nessun tasto con alternative è anche un tasto a gesto
+  riservato (`⌫`)".
+- **Emulatore:** long-press su `3` → `d e f è é`, scorri e rilascia su `è` → composizione
+  coerente (la parola prosegue, la sequenza è giusta); long-press su `1` → `?` inserito;
+  rilascio fuori = niente; con `⇧` attivo le celle sono maiuscole. Screenshot in
+  `docs/screenshots/step-1.12-*.png`.
+- **Documentazione:** nuova sezione in `FUNCTIONAL.md` (popup: le due semantiche e il perché),
+  aggiornamento di §4 (la colonna guadagna una scorciatoia) e §7 (accenti raggiungibili in due
+  modi), voce di log qui, direttiva permanente rispettata.
+
+### Rischi / punti aperti
+
+- **Il popup non deve rallentare la digitazione normale:** 400 ms sono tanti per un tap, ma se
+  durante la prova reale risultasse fastidioso sui tasti lettera, l'alternativa è limitare i
+  popup ai tasti non-lettera e lasciare gli accenti alla colonna. Da valutare **sul campo**,
+  non a priori.
+- **Dita grandi / celle piccole:** con 5 alternative su un tasto stretto le celle vanno più
+  larghe del tasto d'origine e il popup va **rientrato** ai bordi dello schermo (i tasti di
+  colonna 1 e 3). Da gestire nel posizionamento.
 
 ---
 
