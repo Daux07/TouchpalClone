@@ -10,7 +10,7 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.12c (Fase 1 completa).
+**Allineato a:** Step 1.12d (Fase 1 completa).
 
 ## Indice
 - [Panoramica architettura](#panoramica-architettura)
@@ -392,8 +392,20 @@ colonna.
 ## 10. Popup a pressione prolungata
 
 Tenendo premuto un tasto per **400 ms** si apre un pannello di alternative; si scorre il dito
-e si rilascia sulla scelta (rilasciando fuori non succede nulla). Un tocco normale resta
-esattamente quello che era.
+e si rilascia sulla scelta. Un tocco normale resta esattamente quello che era.
+
+**Il dito non copre mai il pannello.** Non si scorre *sopra* le alternative — la mano
+nasconderebbe proprio i caratteri fra cui si sta scegliendo. Il dito resta sulla tastiera e la
+selezione lo segue **più in alto**, come su Gboard: il punto usato per la scelta è la
+traduzione del dito dentro il pannello, alla stessa distanza di lato ma sollevata quel tanto
+che basta perché il dito fermo sul tasto punti alla **riga in basso**, e salire di una cella
+raggiunga la riga sopra. Lo scarto si ricava dalla geometria reale (centro del tasto meno
+centro dell'ultima riga), quindi resta corretto anche quando il pannello viene rientrato in
+alto perché non ci starebbe.
+
+Finché il dito non si è mosso davvero (10dp) **non è selezionato nulla**: aprire il pannello e
+rilasciare senza spostarsi è un modo per cambiare idea, non per scrivere il carattere che
+capita sopra al dito.
 
 ### Cosa offre ciascun tasto
 
@@ -463,12 +475,12 @@ posizione assoluta.
   come su Gboard — non un pallino, che coprirebbe il carattere proprio mentre lo si legge.
   L'inversione serve: la cella cifra è già teal e sparirebbe dentro il proprio evidenziatore.
 
-  La cella scelta è la **più vicina** al dito, non la prima che lo contiene: con due righe
-  qualsiasi tolleranza attorno a una cella invaderebbe la riga accanto, e un test di
-  contenimento risponderebbe sempre con la riga visitata per prima. La tolleranza è
-  asimmetrica — larga di lato (scorrere oltre il fondo di una riga ne prende comunque
-  l'ultima cella), stretta in basso, perché il dito che ha aperto il pannello poggia sul
-  tasto sottostante e un rilascio senza spostarsi deve significare "lascia perdere".
+  La cella scelta è la **più vicina** al puntatore tradotto, non la prima che lo contiene:
+  con due righe qualsiasi tolleranza attorno a una cella invaderebbe la riga accanto, e un
+  test di contenimento risponderebbe sempre con la riga visitata per prima. La tolleranza è
+  generosa di lato (scorrere oltre il fondo di una riga ne prende comunque l'ultima cella) e
+  più stretta in verticale, così allontanarsi molto restituisce "nessuna scelta" invece di
+  restare aggrappati al bordo più vicino.
 - **`KeyViewFactory.PopupHost`** — il gesto. Un tasto senza alternative è lasciato del tutto
   in pace: il listener declina al `DOWN` e il click normale funziona come prima. Quando invece
   prende il controllo, un rilascio senza pannello aperto chiama comunque `performClick()`.

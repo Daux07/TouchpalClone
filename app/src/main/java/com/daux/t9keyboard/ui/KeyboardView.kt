@@ -2,6 +2,7 @@ package com.daux.t9keyboard.ui
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.PointF
 import android.graphics.Rect
 import android.os.Build
 import android.view.View
@@ -50,6 +51,9 @@ class KeyboardView(
 
     /** The key the popup belongs to; non-null exactly while the popup is showing. */
     private var popupAnchor: View? = null
+
+    /** Where the finger was when it opened — the zero the slide is measured from. */
+    private var popupOrigin = PointF()
 
     private var mode = KeyboardMode.T9
 
@@ -127,9 +131,10 @@ class KeyboardView(
 
     override fun alternatesFor(spec: KeySpec): List<KeySpec> = keyAlternates(spec)
 
-    override fun showPopup(anchor: View, cells: List<KeySpec>) {
+    override fun showPopup(anchor: View, cells: List<KeySpec>, originX: Float, originY: Float) {
         popup.setCells(cells)
         popupAnchor = anchor
+        popupOrigin = PointF(originX, originY)
         // Invisible, not gone: it must be measured before it can be placed, and it is
         // placed in onLayout — showing it here would flash it at the top-left corner.
         popup.visibility = View.INVISIBLE
@@ -179,6 +184,16 @@ class KeyboardView(
         popup.translationX = (x - popup.left).toFloat()
         popup.translationY = (y - popup.top).toFloat()
         popup.visibility = View.VISIBLE
+
+        // The panel tracks the finger from above, so it needs the key's centre on screen
+        // to know how far up the selection sits.
+        val anchorOnScreen = IntArray(2)
+        anchor.getLocationOnScreen(anchorOnScreen)
+        popup.setTracking(
+            popupOrigin.x,
+            popupOrigin.y,
+            anchorOnScreen[1] + anchor.height / 2f
+        )
     }
 
     // --- Insets & sizing ------------------------------------------------------

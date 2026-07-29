@@ -37,7 +37,9 @@ class KeyViewFactory(
      */
     interface PopupHost {
         fun alternatesFor(spec: KeySpec): List<KeySpec>
-        fun showPopup(anchor: View, cells: List<KeySpec>)
+
+        /** [originX]/[originY]: where the finger is now, the zero of the slide. */
+        fun showPopup(anchor: View, cells: List<KeySpec>, originX: Float, originY: Float)
         fun movePopup(rawX: Float, rawY: Float)
 
         /** Closes the panel; returns the cell under the finger when [select]. */
@@ -167,10 +169,14 @@ class KeyViewFactory(
         var handling = false
         var open = false
         var cells: List<KeySpec> = emptyList()
+        // The panel opens 400 ms after the press, so the finger's position has to be
+        // remembered as it moves: it is the origin the slide is measured from.
+        var lastX = 0f
+        var lastY = 0f
 
         val openPopup = Runnable {
             open = true
-            host.showPopup(view, cells)
+            host.showPopup(view, cells, lastX, lastY)
         }
 
         view.setOnTouchListener { v, event ->
@@ -181,12 +187,16 @@ class KeyViewFactory(
                     if (handling) {
                         v.isPressed = true
                         open = false
+                        lastX = event.rawX
+                        lastY = event.rawY
                         handler.postDelayed(openPopup, HOLD_DELAY_MS)
                     }
                     handling
                 }
 
                 MotionEvent.ACTION_MOVE -> {
+                    lastX = event.rawX
+                    lastY = event.rawY
                     if (handling && open) host.movePopup(event.rawX, event.rawY)
                     handling
                 }

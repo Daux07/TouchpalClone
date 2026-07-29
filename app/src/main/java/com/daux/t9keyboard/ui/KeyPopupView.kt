@@ -1,6 +1,7 @@
 package com.daux.t9keyboard.ui
 
 import android.content.Context
+import android.graphics.PointF
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
@@ -23,6 +24,11 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
 
     private val cells = mutableListOf<Pair<View, KeySpec>>()
     private var highlighted = -1
+
+    /** Where the finger was when the panel opened, and the key it belongs to (screen px). */
+    private var originX = 0f
+    private var originY = 0f
+    private var anchorCenterY = 0f
 
     init {
         orientation = VERTICAL
@@ -84,12 +90,45 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
     private fun restingColor(spec: KeySpec): Int =
         if (spec.isFunction) KeyboardTheme.ACCENT else KeyboardTheme.TEXT
 
-    /** Follow the finger: light up the cell under it, if any. */
+    /**
+     * Where the finger was when the panel opened, and how far above it the selection
+     * runs. The finger stays down on the keypad and the highlight tracks **above** it,
+     * so the hand never covers the very characters you are choosing between — the trick
+     * Gboard uses. Set together with the position, in screen coordinates.
+     */
+    fun setTracking(originX: Float, originY: Float, anchorCenterY: Float) {
+        this.originX = originX
+        this.originY = originY
+        this.anchorCenterY = anchorCenterY
+    }
+
+    /** Follow the finger: light up the cell it points at, if any. */
     fun highlightAt(rawX: Float, rawY: Float) = setHighlighted(indexAt(rawX, rawY))
 
-    /** The cell under the finger when it lifted, or null if it was outside. */
+    /** The cell the finger pointed at when it lifted, or null if it pointed at none. */
     fun selectionAt(rawX: Float, rawY: Float): KeySpec? =
         indexAt(rawX, rawY).takeIf { it >= 0 }?.let { cells[it].second }
+
+    /**
+     * The finger's position translated into the panel: the same distance left or right,
+     * but lifted so that resting on the key points at the **bottom row**, and moving up
+     * by a cell reaches the row above.
+     *
+     * Returns null while the finger has not really moved, which keeps a long press that
+     * ends where it began from choosing anything: opening the panel and letting go must
+     * stay a way to change your mind.
+     */
+    private fun pointerInPanel(rawX: Float, rawY: Float): PointF? {
+        if (hypot(rawX - originX, rawY - originY) < dp(MOVE_THRESHOLD_DP)) return null
+
+        val bottomRowCentre = cells.lastOrNull()?.first?.let { cell ->
+            val location = IntArray(2)
+            cell.getLocationOnScreen(location)
+            location[1] + cell.height / 2f
+        } ?: return null
+
+        return PointF(rawX, rawY - (anchorCenterY - bottomRowCentre))
+    }
 
     /**
      * The glyph flips to the panel's own dark colour on the accent fill: the digit cell
@@ -118,12 +157,15 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
      * would always answer with whichever row it happened to visit first. Distance has no
      * such ambiguity — a point between two rows belongs to the closer one.
      *
-     * The tolerance is deliberately asymmetric. Sideways it is generous, so sliding past
-     * the end of a row still lands on its last cell. Downwards it is tight: the finger
-     * that opened the panel is resting on the key just below it, and a release without
-     * moving must mean "never mind", not a character chosen at random.
+     * The point tested is not the finger itself but [pointerInPanel]'s translation of it,
+     * so everything here works in panel coordinates while the hand stays out of the way.
+     *
+     * The tolerance is generous sideways — sliding past the end of a row still lands on
+     * its last cell — and tighter vertically, so drifting a long way off the panel gives
+     * back "nothing selected" instead of clinging to the nearest edge.
      */
     private fun indexAt(rawX: Float, rawY: Float): Int {
+        val pointer = pointerInPanel(rawX, rawY) ?: return -1
         val location = IntArray(2)
         var nearest = -1
         var nearestDistance = Float.MAX_VALUE
@@ -131,8 +173,8 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
         for ((index, entry) in cells.withIndex()) {
             val cell = entry.first
             cell.getLocationOnScreen(location)
-            val dx = gap(rawX, location[0].toFloat(), (location[0] + cell.width).toFloat())
-            val dy = gap(rawY, location[1].toFloat(), (location[1] + cell.height).toFloat())
+            val dx = gap(pointer.x, location[0].toFloat(), (location[0] + cell.width).toFloat())
+            val dy = gap(pointer.y, location[1].toFloat(), (location[1] + cell.height).toFloat())
             if (dx > dp(REACH_X_DP) || dy > dp(REACH_Y_DP)) continue
 
             val distance = hypot(dx, dy)
@@ -163,7 +205,10 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
         /** Sideways tolerance: sliding past the end of a row still picks its last cell. */
         const val REACH_X_DP = 32
 
-        /** Vertical tolerance, kept under the distance to the key below (see indexAt). */
-        const val REACH_Y_DP = 18
+        /** Vertical tolerance around a row, once the finger has been translated up. */
+        const val REACH_Y_DP = 30
+
+        /** Below this the finger counts as still, and nothing is selected yet. */
+        const val MOVE_THRESHOLD_DP = 10
     }
 }

@@ -28,7 +28,7 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** Step 1.12c — **popup long-press** sui tasti (accentate, simboli, e **le cifre**, che prima erano digitabili solo da `12#`), con i pannelli lunghi mandati a capo su due righe e la cella selezionata evidenziata in teal.
+- **Ultimo step completato:** Step 1.12d — **popup long-press** sui tasti (accentate, simboli, e **le cifre**, che prima erano digitabili solo da `12#`): pannelli lunghi su due righe, cella selezionata evidenziata in teal, e selezione **sfalsata** in stile Gboard così il dito non copre mai il pannello.
 - **Prossimo step:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
 - **Dopo:** **Fase 3** (impostazioni/ergonomia, dove rientrano la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente). Il test reale sullo smartphone continua in parallelo: `bash tools/dev.sh apk` → `app/build/outputs/apk/debug/app-debug.apk`.
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
@@ -378,6 +378,32 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-29 — Step 1.12d: il dito non copre più il popup (feedback utente)
+**Il problema:** per scegliere bisognava portare il dito **sul** pannello, che è
+esattamente ciò che si sta cercando di leggere. Gboard non lo fa: il dito resta sulla
+tastiera e la selezione lo segue più in alto.
+
+**Fatto:** il punto usato per la scelta non è più il dito ma la sua **traduzione dentro
+il pannello** (`KeyPopupView.pointerInPanel`): stessa distanza a destra o a sinistra, ma
+sollevata quel tanto che basta perché il dito **fermo sul tasto punti alla riga in
+basso**, e salire di una cella raggiunga la riga sopra. Lo scarto si calcola dalla
+geometria reale (centro del tasto meno centro dell'ultima riga), quindi resta giusto
+anche quando il pannello viene rientrato in alto perché non ci sta.
+
+**Serviva anche l'origine del gesto.** Il pannello si apre 400 ms **dopo** la pressione,
+quindi il gesto ricorda l'ultima posizione nota del dito e la passa a `showPopup`: è lo
+zero da cui si misura lo spostamento. Finché il dito non si è mosso davvero (10dp) non è
+selezionato nulla, così aprire il pannello e rilasciare senza spostarsi resta un modo per
+cambiare idea invece di scrivere il carattere che capita sopra al dito.
+
+**File:** `ui/KeyPopupView.kt`, `ui/KeyViewFactory.kt` (`PopupHost.showPopup` ora riceve
+l'origine), `ui/KeyboardView.kt` (passa il centro del tasto sullo schermo).
+**Verificato su emulatore:** dito fermo sul tasto `def`, spostato solo di lato → si
+illuminano `3` e poi `è` **sopra** al dito, che non entra mai nel pannello; rilasciando
+scrive `è`. A dito immobile nessuna cella è selezionata →
+`docs/screenshots/step-1.12d-tracking-sfalsato.png`,
+`step-1.12d-nessuna-scelta-a-riposo.png`.
 
 ### 2026-07-29 — Step 1.12c: la cella selezionata si vede (feedback utente)
 **Bug, non scelta di design.** La cella sotto il dito cambiava colore in modo
