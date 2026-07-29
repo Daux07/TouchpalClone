@@ -105,6 +105,7 @@ class T9ImeService : InputMethodService() {
         Thread {
             learnedEngine.load()
             val corpus = ItalianDictionaryEngine.fromAssets(this, "dict/it.txt")
+            ProperNouns.setKnown(corpus.properNouns)
             engine = SingleLetterEngine(
                 FuzzyDictionaryEngine(MergingDictionaryEngine(listOf(learnedEngine, corpus)))
             )

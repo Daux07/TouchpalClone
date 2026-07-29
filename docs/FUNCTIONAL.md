@@ -10,7 +10,7 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.15 (Fase 1 completa).
+**Allineato a:** Step 1.16 (Fase 1 completa).
 
 ## Indice
 - [Panoramica architettura](#panoramica-architettura)
@@ -244,9 +244,15 @@ italiane, unisce le varianti maiuscole/minuscole sommando le frequenze, tiene le
 Caricato in background; i lookup prima del completamento ritornano vuoto. A questa dimensione
 il formato testo è adeguato: il binario indicizzato resta un'ottimizzazione futura.
 
-Rigenerazione (se serve un taglio diverso):
+Formato: `parola frequenza [P]`, dove `P` marca i **nomi propri** — misurati in conversione
+prima di unire le varianti (§11), non elencati a mano.
+
+Rigenerazione (serve riscaricare il corpus, ~26 MB, non è nel repo):
 ```
 JAVA="/c/Program Files/Android/Android Studio/jbr/bin/java.exe"
+curl -sL -o corpus.tar.gz \
+  "https://downloads.wortschatz-leipzig.de/corpora/ita_news_2022_100K.tar.gz"
+tar -xzf corpus.tar.gz
 "$JAVA" tools/ConvertLeipzig.java <path/...-words.txt> app/src/main/assets/dict/it.txt 50000
 ```
 
@@ -571,15 +577,28 @@ della **parola**, non della posizione del cursore, quindi si applica nell'antepr
 barra dei candidati — una proposta che legge "roma" e atterra come "Roma" farebbe sembrare che
 la tastiera abbia cambiato idea.
 
-**La lista è volutamente stretta.** Il corpus non può aiutare: `tools/ConvertLeipzig.java`
-minuscola ogni parola e somma le varianti, quindi il dizionario non sa più che "roma" era
-"Roma". La strada giusta è rigenerarlo conservando, per ogni parola, la **quota di occorrenze
-maiuscole** — prove invece di una lista scritta a mano — ed è quella pianificata. Intanto la
-lista contiene solo nomi che **non sono anche parole comuni**: i nomi di persona ne restano
-fuori del tutto, perché Rosa, Viola, Bianca, Vera e Marco metterebbero la maiuscola a un fiore,
-un colore e una moneta. Una maiuscola sbagliata dà più fastidio di una mancante.
+**L'elenco non è scritto a mano: è misurato.** In conversione, `tools/ConvertLeipzig.java`
+conta per ogni parola la **quota di occorrenze maiuscole** nel corpus, prima di unire le
+varianti; sopra il **90%** (con almeno 30 occorrenze, altrimenti è rumore) la parola prende il
+flag `P` nel dizionario. Sono **442 nomi propri ricavati dalle prove**, e la differenza rispetto
+a una lista compilata a mano si vede esattamente dove una lista sbaglierebbe:
 
-Mesi e giorni della settimana in italiano sono minuscoli, e semplicemente non ci sono.
+| Parola | Maiuscole nel corpus | Esito |
+|---|---|---|
+| `roma` | 99% (831 occorrenze) | **Roma** |
+| `milano`, `italia`, `pasqua` | 100% | maiuscole |
+| `rosa` | 17% | resta il fiore |
+| `viola` | 27% · `bianca` 44% | restano colore e aggettivo |
+| `prato` 72% · `camera` 65% | sotto soglia | restano nomi comuni |
+| `marzo` 5% · `domenica`, `lunedì` | bassissime | mesi e giorni **minuscoli**, senza bisogno di eccezioni |
+
+Le maiuscole di inizio frase, che gonfiano la statistica di ogni parola, arrivano al massimo
+intorno al 20% (`il` 18%, `quando` 19%): abbondantemente sotto la linea.
+
+L'insieme arriva **con il corpus**, sul thread di caricamento, un istante dopo la comparsa
+della tastiera; fino a quel momento nessuna parola viene capitalizzata da sola — il modo
+innocuo di sbagliare. E nei campi della blacklist i nomi propri restano minuscoli come tutto
+il resto: `casa.milano` in un campo email non diventa `casa.Milano`.
 
 ### Spazio automatico
 
@@ -665,7 +684,7 @@ Unit test JVM (nessun emulatore necessario): `./gradlew :app:testDebugUnitTest`.
 | `AutoShiftTest` | La regola di proprietà: fra i casi, **"una maiuscola spenta dall'utente non viene riaccesa"** |
 | `SentenceRulesTest` | Abbreviazioni (compreso `p.v.` col punto interno), virgolette di apertura, puntini di sospensione |
 | `FieldRulesTest` | Dove gli aiuti tacciono: indirizzi, password, numeri, campi senza suggerimenti |
-| `ProperNounsTest` | Fra i casi, **"mesi e giorni restano minuscoli"** e **"le parole che sono anche nomi comuni non si capitalizzano"** |
+| `ProperNounsTest` | Che il flag del dizionario decida, e che le parole che sono **anche** nomi comuni (`rosa`, `viola`, `bianca`, `vera`) restino minuscole |
 | `SingleLetterEngineTest` | L'ordine di un tasto solo: fra i casi, **"ogni lettera del tasto è offerta"** (era sparita la `q`) e **"un accento imparato non scavalca la lettera semplice"** |
 
 Le verifiche su emulatore sono documentate step per step in `DEVELOPMENT.md`, con gli

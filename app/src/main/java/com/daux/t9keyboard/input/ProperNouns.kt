@@ -3,55 +3,29 @@ package com.daux.t9keyboard.input
 /**
  * Words that are written with a capital wherever they appear.
  *
- * **Deliberately narrow.** The corpus cannot help here: `tools/ConvertLeipzig.java`
- * lowercases every word and sums the case variants, so the dictionary no longer knows
- * that "roma" was "Roma". The proper fix is to regenerate it keeping, per word, the share
- * of occurrences that were capitalised — evidence instead of a hand-written list — and
- * that is the planned route.
+ * The list is not written by hand: it comes from the corpus, which for every word records
+ * the share of occurrences that were capitalised (the `P` flag produced by
+ * `tools/ConvertLeipzig.java`). Measured evidence rather than judgement, and the
+ * difference shows exactly where a hand-written list would have failed — "roma" is a name
+ * at 99%, while "rosa" (17%), "viola" (27%) and "bianca" (44%) are the flower, the colour
+ * and the adjective, even though each is also a first name. Months and weekdays sit near
+ * 5% and are simply never flagged.
  *
- * Until then this list holds only names that are **not also ordinary Italian words**.
- * First names are left out entirely for that reason: Rosa, Viola, Bianca, Vera and Marco
- * would capitalise a flower, a colour and a currency. A wrong capital is more annoying
- * than a missing one, so the list errs towards missing.
- *
- * Months and weekdays are lowercase in Italian and simply are not here.
+ * The set arrives with the corpus, on the loader thread, a moment after the keyboard
+ * appears; until then nothing is capitalised automatically, which is the harmless way to
+ * be wrong.
  */
 object ProperNouns {
 
-    private val CITIES = setOf(
-        "roma", "milano", "napoli", "torino", "palermo", "genova", "bologna", "firenze",
-        "bari", "catania", "venezia", "verona", "messina", "padova", "trieste", "brescia",
-        "parma", "modena", "perugia", "livorno", "cagliari", "foggia", "salerno", "rimini",
-        "siracusa", "pescara", "bergamo", "vicenza", "bolzano", "novara", "ancona",
-        "udine", "lecce", "pisa", "siena", "arezzo", "ravenna", "ferrara", "sassari",
-        "trento", "aosta", "campobasso", "catanzaro", "cosenza", "taranto", "brindisi",
-        "pordenone", "treviso", "varese", "cremona", "mantova", "piacenza", "reggio",
-        "londra", "parigi", "berlino", "madrid", "barcellona", "vienna", "amsterdam",
-        "bruxelles", "lisbona", "atene", "praga", "budapest", "varsavia", "mosca",
-        "istanbul", "lussemburgo", "monaco", "zurigo", "ginevra"
-    )
+    @Volatile
+    private var known: Set<String> = emptySet()
 
-    private val PLACES = setOf(
-        "italia", "francia", "germania", "spagna", "portogallo", "grecia", "svizzera",
-        "austria", "belgio", "olanda", "danimarca", "svezia", "norvegia", "finlandia",
-        "polonia", "russia", "ucraina", "turchia", "egitto", "marocco", "tunisia",
-        "algeria", "brasile", "argentina", "messico", "canada", "giappone", "cina",
-        "india", "australia", "irlanda", "islanda", "croazia", "slovenia", "romania",
-        "bulgaria", "serbia", "albania", "europa", "africa", "asia", "america", "oceania",
-        "lombardia", "toscana", "sicilia", "sardegna", "puglia", "calabria", "campania",
-        "piemonte", "liguria", "lazio", "umbria", "abruzzo", "molise", "basilicata",
-        "friuli", "trentino", "sardo", "mediterraneo", "adriatico", "tirreno", "alpi",
-        "appennini", "tevere", "arno", "sicilia"
-    )
+    /** Called once the corpus has been parsed. */
+    fun setKnown(words: Set<String>) {
+        known = words
+    }
 
-    private val HOLIDAYS = setOf(
-        "natale", "pasqua", "pasquetta", "capodanno", "ferragosto", "epifania",
-        "befana", "quaresima", "avvento", "halloween"
-    )
-
-    private val ALL = CITIES + PLACES + HOLIDAYS
-
-    fun isProperNoun(word: String): Boolean = word.lowercase() in ALL
+    fun isProperNoun(word: String): Boolean = word.lowercase() in known
 
     /** [word] as it should appear in the text: capitalised when it is a proper noun. */
     fun display(word: String): String =

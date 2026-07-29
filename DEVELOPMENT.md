@@ -28,8 +28,8 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** Step 1.15 — **le regole italiane di maiuscole e spaziatura** (abbreviazioni, virgolette, apostrofo, puntini, blacklist dei campi, nomi propri, annullamento col backspace). Prima: 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
-- **Da fare quando si riprende:** rigenerare il dizionario conservando la **quota di occorrenze maiuscole** per parola, così i nomi propri escono dai dati invece che da una lista scritta a mano (vedi Step 1.15). Serve riscaricare il corpus Leipzig.
+- **Ultimo step completato:** Step 1.16 — **nomi propri misurati sul corpus** (442, dalla quota di occorrenze maiuscole) invece che elencati a mano. Prima: 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
 - **Prossimo step:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
 - **Dopo:** **Fase 3** (impostazioni/ergonomia, dove rientrano la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente). Il test reale sullo smartphone continua in parallelo: `bash tools/dev.sh apk` → `app/build/outputs/apk/debug/app-debug.apk`.
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
@@ -382,6 +382,40 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-29 — Step 1.16: i nomi propri escono dai dati, non da una lista
+**Fatto:** riscaricato il corpus Leipzig (26 MB) e **rigenerato il dizionario** conservando
+l'informazione che la conversione buttava via.
+
+**Come.** `ConvertLeipzig` ora conta, per ogni parola, la **quota di occorrenze maiuscole**
+*prima* di unire le varianti. Sopra il **90%** (e almeno 30 occorrenze, sotto le quali la
+percentuale è rumore) la parola prende il flag `P` in `it.txt`. Sono **442 nomi propri**, e
+`ProperNouns` non contiene più nulla di scritto a mano: riceve l'insieme dal corpus quando il
+caricamento finisce.
+
+**La misura fa meglio della lista, e si vede dove:**
+
+| Parola | Maiuscole | Esito |
+|---|---|---|
+| `roma` | 99% (831 occ.) | **Roma** |
+| `milano`, `italia`, `pasqua` | 100% | maiuscole |
+| `rosa` 17% · `viola` 27% · `bianca` 44% | sotto soglia | fiore, colore, aggettivo — **salvi** |
+| `prato` 72% · `camera` 65% · `nord` 68% | sotto soglia | nomi comuni |
+| `marzo` 5% · `domenica`, `lunedì` | bassissime | mesi e giorni minuscoli **senza eccezioni** |
+
+Le maiuscole di inizio frase gonfiano ogni parola ma arrivano al massimo al ~20% (`il` 18%,
+`quando` 19%): la soglia al 90% le ignora senza fatica. E `marco` e `luca`, al 100%, entrano —
+nell'italiano di oggi la moneta e l'evangelista non competono più con i nomi.
+
+**File:** `tools/ConvertLeipzig.java` (conteggio maiuscole + flag `P`),
+`assets/dict/it.txt` (rigenerato, 564 KB), `engine/ItalianDictionaryEngine.kt`
+(espone `properNouns`), `input/ProperNouns.kt` (lista scritta a mano **rimossa**),
+`service/T9ImeService.kt`; test `ProperNounsTest` riscritto sul formato del dizionario.
+**Verificato su emulatore:** nelle note `6-4-5-2-6-6` dà **"Milano"** maiuscolo nel campo e
+nella barra, mentre nel campo Email lo stesso testo resta `casa.milano` — nomi propri e
+blacklist convivono → `docs/screenshots/step-1.16-nome-proprio-dal-corpus.png`.
+**Nota:** l'insieme arriva con il corpus, quindi nel primo istante dopo l'avvio nessuna parola
+è capitalizzata da sola. È il modo innocuo di sbagliare.
 
 ### 2026-07-29 — Step 1.15: le regole italiane di maiuscole e spaziatura
 **Fatto:** implementata la specifica dell'utente (4 sezioni: maiuscole, spazi, blacklist dei

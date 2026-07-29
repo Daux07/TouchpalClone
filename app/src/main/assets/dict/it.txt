@@ -1,6 +1,8 @@
 # Dizionario italiano — Leipzig Corpora Collection (CC BY-4.0)
 # Fonte: ita_news_2022_100K, Wortschatz Universität Leipzig.
-# Convertito da tools/ConvertLeipzig.java. Formato: parola frequenza.
+# Convertito da tools/ConvertLeipzig.java.
+# Formato: parola frequenza [P], dove P = nome proprio (scritto
+# maiuscolo in almeno il 90% delle occorrenze del corpus).
 di 75163
 e 48146
 il 42563
@@ -133,7 +135,7 @@ volta 1349
 rispetto 1338
 modo 1338
 detto 1290
-italia 1285
+italia 1285 P
 fine 1283
 sui 1274
 tre 1262
@@ -191,7 +193,7 @@ nuovi 871
 paese 862
 governo 860
 importante 837
-roma 831
+roma 831 P
 state 815
 inoltre 813
 guerra 813
@@ -252,7 +254,7 @@ comune 675
 diversi 674
 scorso 672
 ucraina 672
-russia 667
+russia 667 P
 giornata 663
 covid 662
 gruppo 661
@@ -264,7 +266,7 @@ cose 659
 vista 650
 particolare 645
 dati 645
-san 644
+san 644 P
 volte 640
 territorio 638
 stanno 637
@@ -350,7 +352,7 @@ vedere 492
 porta 491
 club 489
 forza 488
-milano 487
+milano 487 P
 seguito 486
 propria 486
 forze 484
@@ -378,7 +380,7 @@ grado 463
 scuola 463
 salute 462
 generale 460
-napoli 458
+napoli 458 P
 prime 457
 dovrebbe 456
 continua 454
@@ -545,7 +547,7 @@ entro 339
 motivo 338
 produzione 338
 locale 337
-putin 336
+putin 336 P
 lega 335
 luogo 335
 pomeriggio 335
@@ -578,7 +580,7 @@ potrebbero 323
 genere 323
 confronti 323
 scena 321
-milan 321
+milan 321 P
 annunciato 321
 prendere 320
 trova 320
@@ -586,11 +588,11 @@ the 320
 vicino 319
 arrivato 319
 campagna 318
-genova 318
+genova 318 P
 sviluppo 318
-maria 318
+maria 318 P
 fatti 317
-pd 316
+pd 316 P
 sa 315
 russi 315
 infine 314
@@ -600,7 +602,7 @@ lì 313
 maggior 313
 nota 313
 genitori 313
-europa 312
+europa 312 P
 tuo 312
 iniziato 311
 lavorare 311
@@ -608,11 +610,11 @@ guida 311
 informazioni 311
 forma 310
 scritto 309
-fiorentina 309
+fiorentina 309 P
 pronto 308
 moglie 307
 europea 307
-francesco 307
+francesco 307 P
 giro 307
 bella 307
 attesa 306
@@ -651,7 +653,7 @@ russa 294
 buon 293
 richiesta 293
 dietro 292
-draghi 291
+draghi 291 P
 giocare 290
 evitare 290
 passo 289
@@ -668,7 +670,7 @@ qualsiasi 283
 pazienti 283
 entrambi 282
 giocatori 282
-kiev 282
+kiev 282 P
 tecnico 282
 gran 282
 tramite 282
@@ -704,7 +706,7 @@ online 274
 mila 274
 commissione 273
 basta 273
-palermo 273
+palermo 273 P
 te 272
 metà 272
 propri 272
@@ -722,7 +724,7 @@ immagini 269
 figlia 269
 vip 269
 breve 268
-mosca 267
+mosca 267 P
 sud 267
 marito 266
 cura 266
@@ -730,7 +732,7 @@ interventi 266
 pensare 266
 inizio 265
 affermato 265
-instagram 265
+instagram 265 P
 creare 265
 soli 265
 giovedì 264
@@ -751,13 +753,13 @@ ragazzo 261
 utenti 261
 lasciato 260
 noto 260
-repubblica 260
-paolo 259
+repubblica 260 P
+paolo 259 P
 credo 259
 sfida 259
 occhi 259
 vittime 259
-rai 258
+rai 258 P
 affrontare 257
 finalmente 257
 sostegno 256
@@ -773,7 +775,7 @@ studenti 254
 segno 253
 poche 253
 terza 252
-bologna 251
+bologna 251 P
 quota 251
 facile 251
 avrà 251
@@ -787,7 +789,7 @@ giocatore 249
 violenza 249
 novità 249
 storico 249
-marco 249
+marco 249 P
 dieci 248
 conferma 248
 relazione 247
@@ -796,7 +798,7 @@ sole 245
 numeri 244
 incontro 244
 festa 244
-torino 244
+torino 244 P
 voto 244
 continuare 243
 carriera 243
@@ -859,7 +861,7 @@ soccorso 230
 tua 230
 elezioni 230
 penso 230
-lazio 230
+lazio 230 P
 magari 229
 indagini 228
 precedenti 228
@@ -868,7 +870,7 @@ messaggio 228
 cambiare 228
 lasciare 227
 piccoli 227
-meloni 227
+meloni 227 P
 dentro 227
 aggiunge 227
 voce 227
@@ -879,7 +881,7 @@ scorsa 226
 fin 226
 popolazione 225
 amore 225
-luca 225
+luca 225 P
 gente 225
 responsabilità 225
 diritti 225
@@ -898,7 +900,7 @@ pure 222
 scuole 222
 martedì 221
 libertà 221
-francia 221
+francia 221 P
 sopra 221
 avvenuto 221
 conti 221
@@ -920,15 +922,15 @@ cinema 216
 elettorale 216
 ovvero 216
 reale 216
-juventus 215
+juventus 215 P
 commenta 215
 termini 215
 dollari 215
 sinistra 214
 verità 214
 struttura 214
-germania 214
-carlo 214
+germania 214 P
+carlo 214 P
 costo 214
 anzi 214
 sé 213
@@ -945,15 +947,15 @@ so 211
 medici 211
 passare 211
 confronto 211
-sicilia 211
+sicilia 211 P
 personaggi 211
 necessità 211
 avete 210
 chiesa 210
-natale 210
+natale 210 P
 mezzi 210
 farà 209
-andrea 209
+andrea 209 P
 tenere 208
 speranza 208
 capitale 208
@@ -976,23 +978,23 @@ procura 205
 nessuna 205
 rende 204
 obiettivo 204
-matteo 204
+matteo 204 P
 strade 204
 messa 204
 civile 203
 carta 203
 fondi 203
-giovanni 203
+giovanni 203 P
 protezione 202
 direttamente 202
 punta 202
 evento 202
-twitter 202
+twitter 202 P
 principale 202
 andato 202
 pelle 202
 po 201
-amazon 201
+amazon 201 P
 rendere 201
 forti 201
 acqua 201
@@ -1002,7 +1004,7 @@ maggioranza 200
 quei 200
 italiane 200
 ucraini 200
-liguria 199
+liguria 199 P
 regioni 199
 intensiva 199
 diventa 198
@@ -1014,7 +1016,7 @@ virus 197
 gravi 197
 zone 197
 destra 197
-lombardia 197
+lombardia 197 P
 chiedere 197
 sala 196
 avrebbero 196
@@ -1041,7 +1043,7 @@ chiara 192
 tecnologia 192
 malattia 192
 reso 192
-apple 192
+apple 192 P
 conclude 192
 atto 192
 match 192
@@ -1084,7 +1086,7 @@ centrodestra 186
 garantire 186
 assolutamente 186
 permette 185
-stefano 185
+stefano 185 P
 conduttrice 185
 colpito 185
 nero 185
@@ -1107,7 +1109,7 @@ obiettivi 183
 ricorda 183
 semplicemente 183
 conferenza 183
-parma 182
+parma 182 P
 soluzioni 182
 manifestazione 182
 cioè 182
@@ -1117,8 +1119,8 @@ miei 181
 arrivo 181
 lista 181
 spalle 181
-cina 180
-messina 180
+cina 180 P
+messina 180 P
 dovrebbero 180
 vive 180
 rimasto 180
@@ -1139,10 +1141,10 @@ andata 178
 fratelli 177
 scorsi 177
 francese 177
-giuseppe 177
+giuseppe 177 P
 green 177
 tifosi 177
-conte 177
+conte 177 P
 comunicato 177
 area 177
 autorità 176
@@ -1165,13 +1167,13 @@ otto 173
 aiuto 173
 sogno 173
 record 173
-league 173
+league 173 P
 vale 173
 coppa 173
 esiste 173
 cittadino 173
 colori 172
-santa 172
+santa 172 P
 opportunità 172
 lato 172
 investimenti 172
@@ -1192,17 +1194,17 @@ palco 170
 avevo 170
 livelli 170
 chiede 170
-sanremo 170
-firenze 170
+sanremo 170 P
+firenze 170 P
 operazioni 170
 verde 170
 usare 170
 regole 170
 dovranno 170
-alessandro 170
+alessandro 170 P
 attacco 169
 andrà 169
-roberto 169
+roberto 169 P
 uscita 169
 pubblici 169
 offre 168
@@ -1234,7 +1236,7 @@ matrimonio 165
 popolo 165
 piena 165
 attacchi 164
-antonio 164
+antonio 164 P
 possibili 164
 vissuto 164
 svolta 164
@@ -1244,7 +1246,7 @@ prende 163
 diversa 163
 campione 163
 conseguenze 163
-venezia 163
+venezia 163 P
 possano 163
 ragione 163
 nuovamente 162
@@ -1309,7 +1311,7 @@ strutture 155
 ricoverati 155
 concerto 155
 cercato 155
-google 155
+google 155 P
 rispondere 154
 poiché 154
 chiamato 154
@@ -1324,7 +1326,7 @@ vaccino 153
 presenta 153
 neanche 153
 nata 153
-facebook 153
+facebook 153 P
 nomi 153
 specie 153
 dubbio 153
@@ -1355,7 +1357,7 @@ stadio 150
 sullo 150
 anticipazioni 150
 unito 149
-emilia 149
+emilia 149 P
 regista 149
 appunto 149
 decessi 149
@@ -1364,7 +1366,7 @@ globale 149
 familiari 149
 schermo 149
 civili 148
-ue 148
+ue 148 P
 elementi 148
 operatori 148
 gestire 148
@@ -1392,7 +1394,7 @@ capelli 146
 interesse 146
 design 146
 candidato 146
-salvini 146
+salvini 146 P
 sto 146
 manca 146
 cambiato 146
@@ -1418,9 +1420,9 @@ eppure 144
 funzione 144
 gesto 144
 bonus 144
-zelensky 144
-new 144
-mario 144
+zelensky 144 P
+new 144 P
+mario 144 P
 effetto 143
 membri 143
 pagamento 143
@@ -1429,7 +1431,7 @@ nazionali 143
 bello 143
 carico 143
 carica 143
-juve 143
+juve 143 P
 denuncia 142
 durata 142
 quotidiano 142
@@ -1441,8 +1443,8 @@ mancanza 141
 sorpresa 141
 iniziative 141
 sorta 141
-varese 141
-reggio 141
+varese 141 P
+reggio 141 P
 doppio 141
 sistemi 140
 rifiuti 140
@@ -1452,7 +1454,7 @@ dichiarazioni 140
 comunicazione 140
 tutela 140
 femminile 140
-gf 139
+gf 139 P
 iniziare 139
 villa 139
 realizzazione 139
@@ -1469,7 +1471,7 @@ emergenza 138
 sentito 138
 spazi 138
 ulteriore 138
-elisabetta 138
+elisabetta 138 P
 passi 137
 strategia 137
 legale 137
@@ -1488,7 +1490,7 @@ riporta 136
 chiave 135
 reddito 135
 batteria 135
-pnrr 135
+pnrr 135 P
 gioia 135
 superare 135
 colpi 135
@@ -1519,14 +1521,14 @@ sezione 132
 materiale 132
 reparto 132
 pericolo 132
-berlusconi 131
+berlusconi 131 P
 visione 131
 porte 131
 restare 131
 dose 131
 strumenti 131
 partecipare 131
-toscana 131
+toscana 131 P
 massima 131
 racconto 131
 solidarietà 131
@@ -1535,12 +1537,12 @@ pensiero 131
 ciclo 130
 risposte 130
 musicale 130
-luigi 130
+luigi 130 P
 trasporto 130
 dosi 130
 share 130
 re 129
-brescia 129
+brescia 129 P
 legati 129
 definito 129
 tour 129
@@ -1558,7 +1560,7 @@ offrire 128
 accedere 128
 colpa 128
 finita 128
-letta 128
+letta 128 P
 mostrato 128
 condizione 127
 segue 127
@@ -1579,7 +1581,7 @@ sangue 126
 ridurre 126
 veramente 126
 interessante 126
-londra 126
+londra 126 P
 silenzio 126
 tenuto 126
 sorella 125
@@ -1599,12 +1601,12 @@ presentare 124
 vecchio 124
 acquistare 124
 popolare 124
-puglia 124
+puglia 124 P
 taglio 124
 tentativo 124
-spagna 124
+spagna 124 P
 primavera 124
-giorgia 123
+giorgia 123 P
 pass 123
 ospedali 123
 sanitari 123
@@ -1644,12 +1646,12 @@ bollette 121
 conclusione 121
 impossibile 121
 dubbi 121
-enrico 120
+enrico 120 P
 sociali 120
 piccole 120
 sanno 120
 ponte 120
-lorenzo 120
+lorenzo 120 P
 devi 120
 missione 120
 crescere 120
@@ -1669,7 +1671,7 @@ utili 119
 messi 119
 professionisti 119
 netto 119
-netflix 119
+netflix 119 P
 scadenza 118
 stradale 118
 impianti 118
@@ -1707,23 +1709,23 @@ apre 116
 riferito 116
 addio 116
 ultima 116
-bergamo 115
+bergamo 115 P
 tetto 115
 fermato 115
 regionali 115
 recupero 115
 terreno 115
-york 115
+york 115 P
 riuscire 115
 certa 115
-pietro 115
+pietro 115 P
 storica 115
 turismo 115
 coinvolti 115
 bar 115
 mercati 115
 prove 115
-champions 115
+champions 115 P
 palla 114
 segni 114
 iniziata 114
@@ -1751,7 +1753,7 @@ portavoce 113
 portiere 113
 altrimenti 113
 reparti 113
-michele 113
+michele 113 P
 appello 113
 originale 112
 accesso 112
@@ -1782,7 +1784,7 @@ bambina 110
 km 110
 vince 110
 essendo 110
-alberto 110
+alberto 110 P
 prevenzione 110
 quantità 110
 episodio 110
@@ -1793,7 +1795,7 @@ sembrava 110
 convinto 110
 partecipanti 110
 errore 110
-campania 110
+campania 110 P
 tornata 109
 pc 109
 canzone 109
@@ -1815,7 +1817,7 @@ rigore 108
 appare 108
 espresso 108
 concorso 108
-sardegna 108
+sardegna 108 P
 corriere 108
 svolto 108
 documento 108
@@ -1877,11 +1879,11 @@ museo 105
 trimestre 105
 vaccini 105
 assieme 105
-harry 105
+harry 105 P
 stabile 105
 tal 105
 interno 105
-bari 104
+bari 104 P
 morta 104
 nazioni 104
 cielo 104
@@ -1921,7 +1923,7 @@ luna 103
 funziona 103
 coraggio 103
 secondi 103
-savona 103
+savona 103 P
 segnato 103
 alimentare 103
 tiene 103
@@ -1932,7 +1934,7 @@ canali 102
 politici 102
 avviato 102
 peggio 102
-omicron 102
+omicron 102 P
 intenzione 102
 riconoscimento 102
 percentuale 102
@@ -1964,7 +1966,7 @@ critica 101
 previsti 101
 posizioni 101
 settimanale 101
-calabria 101
+calabria 101 P
 sconfitta 101
 sguardo 100
 europee 100
@@ -1997,7 +1999,7 @@ famosi 99
 finisce 99
 bassi 99
 gioca 99
-senato 99
+senato 99 P
 uscito 99
 incontrato 99
 diffuso 99
@@ -2010,22 +2012,22 @@ provinciale 99
 scenario 99
 ordine 99
 industriale 99
-anna 99
+anna 99 P
 denunciato 99
 decisioni 99
 siti 99
 costruzione 99
-ii 98
+ii 98 P
 riunione 98
 stretto 98
 singolo 98
 probabile 98
 infrastrutture 98
-samsung 98
+samsung 98 P
 potenza 98
 qual 98
 provvedimento 98
-catania 98
+catania 98 P
 complessivamente 98
 interessato 98
 lettera 98
@@ -2033,11 +2035,11 @@ blu 98
 attori 98
 variante 98
 stasera 98
-italpress 98
+italpress 98 P
 radio 97
 terapie 97
 terrà 97
-verona 97
+verona 97 P
 pena 97
 intervenuti 97
 percorsi 97
@@ -2056,8 +2058,8 @@ mie 97
 spiaggia 97
 ipotesi 97
 canzoni 96
-biden 96
-riccardo 96
+biden 96 P
+riccardo 96 P
 rapidamente 96
 parenti 96
 simili 96
@@ -2066,7 +2068,7 @@ regime 96
 valutazione 96
 superato 96
 mattinata 96
-giulia 96
+giulia 96 P
 condividere 96
 aggiungere 96
 reato 96
@@ -2091,9 +2093,9 @@ mobilità 95
 minacce 95
 passando 95
 vaccinati 94
-ilary 94
+ilary 94 P
 articolo 94
-federico 94
+federico 94 P
 limiti 94
 ammesso 94
 continuerà 94
@@ -2132,14 +2134,14 @@ errori 93
 completo 93
 completa 93
 nonché 92
-franco 92
-giorgio 92
+franco 92 P
+giorgio 92 P
 minaccia 92
 tornerà 92
 cena 92
 origine 92
 iphone 92
-daniele 92
+daniele 92 P
 discutere 92
 carte 92
 veloce 92
@@ -2149,7 +2151,7 @@ malattie 92
 aspetta 92
 ama 92
 località 92
-sky 92
+sky 92 P
 internet 92
 sente 91
 lingua 91
@@ -2170,7 +2172,7 @@ vite 91
 manager 91
 previsioni 91
 risponde 91
-real 91
+real 91 P
 esistono 91
 sportiva 91
 telecamere 91
@@ -2184,7 +2186,7 @@ scambio 90
 televisione 90
 straordinaria 90
 transizione 90
-mattarella 90
+mattarella 90 P
 venne 90
 comportamento 90
 avendo 90
@@ -2193,7 +2195,7 @@ ricarica 90
 turisti 90
 veicolo 90
 gamma 90
-mariupol 90
+mariupol 90 P
 recentemente 90
 centrocampista 90
 perde 90
@@ -2224,16 +2226,16 @@ treno 88
 sostenuto 88
 portando 88
 ampio 88
-francesca 88
+francesca 88 P
 rappresentano 88
-veneto 88
+veneto 88 P
 consentire 88
 richiede 88
 sembrerebbe 88
 ritiro 88
 continuità 88
 registra 88
-madrid 88
+madrid 88 P
 potente 88
 frutto 88
 proteggere 88
@@ -2245,7 +2247,7 @@ sentenza 88
 acque 88
 ufficiali 88
 ricostruzione 88
-allegri 88
+allegri 88 P
 stia 87
 centrali 87
 motore 87
@@ -2292,23 +2294,23 @@ mancato 86
 parlano 86
 pianeta 86
 ambiente 86
-ferrari 85
+ferrari 85 P
 coronavirus 85
 peccato 85
 blocco 85
-davide 85
+davide 85 P
 verdi 85
 usato 85
 chiusa 85
-vladimir 85
+vladimir 85 P
 governatore 85
 sostanza 85
 effettivamente 85
-david 85
+david 85 P
 sessuale 85
 concorrente 85
 album 85
-modena 85
+modena 85 P
 disposto 85
 laboratorio 85
 pressi 84
@@ -2324,7 +2326,7 @@ speriamo 84
 marcia 84
 talento 84
 dinamica 84
-fabio 84
+fabio 84 P
 utilizzando 84
 ligure 84
 destino 84
@@ -2348,8 +2350,8 @@ componenti 83
 belle 83
 ricordiamo 83
 promuovere 83
-marche 83
-totti 83
+marche 83 P
+totti 83 P
 carne 83
 province 83
 ristorante 83
@@ -2370,7 +2372,7 @@ questioni 83
 ucraine 83
 x 82
 é 82
-qatar 82
+qatar 82 P
 furono 82
 norma 82
 superiori 82
@@ -2398,7 +2400,7 @@ doppia 82
 semplici 82
 mascherina 82
 mostrare 82
-b 81
+b 81 P
 tornano 81
 saputo 81
 trattativa 81
@@ -2416,7 +2418,7 @@ visite 81
 professionista 81
 aspettative 81
 valutare 81
-molise 81
+molise 81 P
 dovesse 81
 economiche 81
 delegato 81
@@ -2427,7 +2429,7 @@ tiro 80
 tensione 80
 porterà 80
 particolari 80
-cremlino 80
+cremlino 80 P
 droga 80
 campi 80
 cominciato 80
@@ -2441,7 +2443,7 @@ necessaria 80
 vivono 79
 inutile 79
 residente 79
-turchia 79
+turchia 79 P
 scritta 79
 avventura 79
 mangiare 79
@@ -2455,11 +2457,11 @@ missili 79
 date 79
 conosce 79
 duro 79
-mediaset 79
+mediaset 79 P
 eravamo 79
 coi 79
 vincitore 79
-maurizio 79
+maurizio 79 P
 curiosità 79
 petrolio 79
 materie 79
@@ -2480,29 +2482,29 @@ signora 78
 complessivo 78
 sostanze 78
 investire 78
-filippi 78
+filippi 78 P
 spiegare 78
-polonia 78
+polonia 78 P
 tradizionale 78
-musk 78
+musk 78 P
 milione 78
 occhio 78
 nave 78
 maggiormente 78
 presidenza 78
 credere 78
-nicola 78
+nicola 78 P
 iscritti 78
 dirigente 78
 continuo 78
-cagliari 78
+cagliari 78 P
 biglietti 77
 pensione 77
 faremo 77
 acquisti 77
 acquisto 77
 commerciali 77
-gianni 77
+gianni 77 P
 esterno 77
 atteso 77
 condotta 77
@@ -2517,7 +2519,7 @@ assistenza 77
 compresa 77
 emerso 77
 propone 77
-laura 77
+laura 77 P
 buono 77
 fidanzato 77
 diventando 77
@@ -2546,7 +2548,7 @@ scolastico 76
 migranti 76
 concorrenza 76
 copertura 76
-america 76
+america 76 P
 celebre 76
 montagna 76
 assistito 76
@@ -2554,11 +2556,11 @@ pubblicità 76
 cessione 76
 banche 76
 rientro 75
-martino 75
+martino 75 P
 fermare 75
 corrente 75
-barcellona 75
-giappone 75
+barcellona 75 P
+giappone 75 P
 passata 75
 utilizzo 75
 medicina 75
@@ -2568,22 +2570,22 @@ girone 75
 scudetto 75
 decesso 75
 ritrovato 75
-silvio 75
+silvio 75 P
 relativi 75
-chelsea 75
+chelsea 75 P
 occidentale 75
 anticipo 75
-sergio 75
+sergio 75 P
 inquirenti 75
-inter 75
+inter 75 P
 and 75
-blasi 75
+blasi 75 P
 sfruttare 75
 vuoto 75
 contratti 75
 largo 75
 salvare 75
-claudio 75
+claudio 75 P
 sufficiente 74
 vicinanza 74
 americana 74
@@ -2602,7 +2604,7 @@ quinto 74
 sospeso 74
 occupa 74
 associazione 74
-monaco 74
+monaco 74 P
 democratico 74
 rispettare 74
 rivela 74
@@ -2610,7 +2612,7 @@ benzina 74
 proseguire 74
 buoni 74
 alimentari 74
-paola 73
+paola 73 P
 viale 73
 composto 73
 tweet 73
@@ -2632,11 +2634,11 @@ accettare 73
 azzurro 73
 compresi 73
 vedremo 73
-antonella 73
-piemonte 73
+antonella 73 P
+piemonte 73 P
 aggiungendo 73
 compleanno 73
-spezia 73
+spezia 73 P
 vertice 73
 risoluzione 73
 fiscale 73
@@ -2646,7 +2648,7 @@ rassegna 73
 potenziale 72
 utilizzati 72
 averlo 72
-ballando 72
+ballando 72 P
 preparare 72
 consigli 72
 salire 72
@@ -2678,7 +2680,7 @@ riguardano 72
 calore 72
 file 72
 spettacoli 72
-monza 71
+monza 71 P
 marina 71
 ossia 71
 ascoltare 71
@@ -2719,25 +2721,25 @@ sesso 70
 carburante 70
 stavano 70
 visti 70
-calenda 70
+calenda 70 P
 lanciare 70
 preferito 70
 giudiziaria 70
 collezione 70
 leggermente 70
-federica 70
+federica 70 P
 milanese 70
 report 70
 debito 70
 adulti 70
 confini 70
-simone 70
+simone 70 P
 felici 70
 procedere 70
 parlamentare 70
 comprare 70
 mettersi 70
-genoa 70
+genoa 70 P
 relative 70
 democrazia 70
 altrettanto 70
@@ -2778,13 +2780,13 @@ destinato 69
 nera 69
 giù 69
 naturali 69
-barbara 69
+barbara 69 P
 specifiche 69
 pranzo 69
 puntare 69
 gravidanza 69
 rispettivamente 69
-parigi 69
+parigi 69 P
 intende 69
 definitiva 69
 margine 68
@@ -2837,7 +2839,7 @@ prevenire 67
 partendo 67
 piatto 67
 andranno 67
-cgil 67
+cgil 67 P
 debba 67
 finanza 67
 rilasciato 67
@@ -2846,7 +2848,7 @@ disagi 67
 immagine 67
 riflessione 67
 università 67
-vincenzo 67
+vincenzo 67 P
 valorizzare 67
 intensive 67
 aggiornamenti 67
@@ -2859,14 +2861,14 @@ ribadito 67
 audio 67
 computer 67
 noti 67
-alex 67
+alex 67 P
 energie 67
 aria 67
 interna 67
 soddisfazione 67
 ambienti 67
 atleti 67
-rimini 67
+rimini 67 P
 mettono 67
 trono 66
 registrare 66
@@ -2877,7 +2879,7 @@ rifugiati 66
 parziale 66
 invitato 66
 fretta 66
-sassuolo 66
+sassuolo 66 P
 vostre 66
 estiva 66
 completare 66
@@ -2901,7 +2903,7 @@ utilizzata 65
 giovanile 65
 ampia 65
 venuto 65
-trump 65
+trump 65 P
 procedure 65
 brani 65
 articoli 65
@@ -2909,12 +2911,12 @@ singoli 65
 aumentato 65
 capi 65
 porti 65
-city 65
+city 65 P
 ricordi 65
-microsoft 65
+microsoft 65 P
 questura 65
 mistero 65
-filippo 65
+filippo 65 P
 alimenti 65
 rapidi 65
 peraltro 65
@@ -2925,7 +2927,7 @@ sportivi 65
 discesa 65
 territoriale 65
 laurea 65
-vittorio 65
+vittorio 65 P
 isole 65
 rabbia 65
 soccorsi 65
@@ -2966,12 +2968,12 @@ chiedendo 64
 anticipato 64
 cresce 64
 addetti 64
-alessandra 64
+alessandra 64 P
 orari 64
 guidare 64
 picco 64
 punteggio 64
-massimiliano 64
+massimiliano 64 P
 dimissioni 64
 led 64
 modella 64
@@ -2987,7 +2989,7 @@ mezzogiorno 63
 perdite 63
 corretto 63
 indipendente 63
-leonardo 63
+leonardo 63 P
 candidatura 63
 pareggio 63
 uccisi 63
@@ -3017,11 +3019,11 @@ vecchi 63
 nati 63
 contatti 63
 sessione 63
-pechino 63
+pechino 63 P
 vittorie 63
 chiediamo 63
 offerto 63
-max 63
+max 63 P
 ricca 63
 nemico 63
 larga 63
@@ -3054,7 +3056,7 @@ sanitarie 62
 differenze 62
 principio 62
 avremo 62
-maio 62
+maio 62 P
 bianchi 62
 lunghi 62
 rapida 62
@@ -3068,7 +3070,7 @@ pistola 62
 stabilito 62
 intero 62
 manovra 62
-los 62
+los 62 P
 inverno 62
 elevato 62
 passaggi 62
@@ -3079,8 +3081,8 @@ trattato 62
 potevano 62
 definitivo 62
 plastica 62
-c 61
-renzi 61
+c 61 P
+renzi 61 P
 avverte 61
 ottimi 61
 indiscrezioni 61
@@ -3089,16 +3091,16 @@ celebrare 61
 inizierà 61
 nonna 61
 podio 61
-angeles 61
+angeles 61 P
 romanzo 61
 certezza 61
 paga 61
-disney 61
+disney 61 P
 vivendo 61
 favorevole 61
 piogge 61
 preciso 61
-alghero 61
+alghero 61 P
 sottolineare 61
 votato 61
 fiction 61
@@ -3107,21 +3109,21 @@ potrete 61
 future 61
 corpi 61
 palestinesi 61
-vlahovic 61
+vlahovic 61 P
 chiamate 61
 dinamiche 61
-asl 61
+asl 61 P
 colpita 61
 guidato 61
 day 61
-fdi 61
+fdi 61 P
 extra 61
 violazione 61
-romagna 61
+romagna 61 P
 meteo 61
 comincia 61
 procuratore 61
-israele 61
+israele 61 P
 alternativa 61
 occupazione 61
 colpisce 61
@@ -3133,22 +3135,22 @@ sforzo 60
 dimensione 60
 maltempo 60
 under 60
-telegram 60
+telegram 60 P
 time 60
 segnalato 60
 rimangono 60
 investitori 60
 attrice 60
 fattore 60
-edoardo 60
+edoardo 60 P
 confermata 60
 franchi 60
 aperti 60
-william 60
+william 60 P
 definizione 60
 alberi 60
 grano 60
-fedez 60
+fedez 60 P
 luci 60
 vostri 60
 referendum 60
@@ -3162,9 +3164,9 @@ interessa 60
 borgo 60
 collegamento 60
 scende 60
-fabrizio 60
+fabrizio 60 P
 coinvolte 60
-sampdoria 60
+sampdoria 60 P
 criticità 60
 costruito 60
 street 60
@@ -3174,16 +3176,16 @@ fasi 60
 aula 60
 fece 60
 sindaci 59
-whatsapp 59
+whatsapp 59 P
 ascolti 59
 determinato 59
-inzaghi 59
+inzaghi 59 P
 pericoloso 59
 passano 59
 scatti 59
 showgirl 59
 elettrico 59
-manchester 59
+manchester 59 P
 trasferito 59
 congresso 59
 solare 59
@@ -3223,7 +3225,7 @@ tennis 59
 ripartire 59
 alternative 59
 saluto 59
-john 59
+john 59 P
 interni 59
 mirino 59
 chiarire 59
@@ -3267,15 +3269,15 @@ privacy 58
 condivisione 58
 finali 58
 interne 58
-brasile 58
-domenico 57
+brasile 58 P
+domenico 57 P
 preoccupazioni 57
 open 57
 prescindere 57
 governi 57
 atteggiamento 57
 sostanzialmente 57
-mourinho 57
+mourinho 57 P
 volete 57
 dramma 57
 ancor 57
@@ -3294,13 +3296,13 @@ orientale 57
 proteste 57
 parlamentari 57
 ritrovare 57
-silvia 57
+silvia 57 P
 sceso 57
 cellulare 57
 trasformazione 57
 guariti 57
 ingredienti 57
-salernitana 57
+salernitana 57 P
 rendono 57
 finanziamento 57
 lancia 57
@@ -3310,14 +3312,14 @@ strano 57
 est 57
 gip 57
 avversari 57
-joe 57
-alfonso 57
+joe 57 P
+alfonso 57 P
 stabilimento 57
 premi 57
 potremmo 57
 dotato 57
 ritenuto 57
-val 57
+val 57 P
 cambiata 57
 onore 57
 vicepresidente 57
@@ -3351,7 +3353,7 @@ vicende 56
 torre 56
 ridotto 56
 danza 56
-mediterraneo 56
+mediterraneo 56 P
 investito 56
 battuta 56
 giunti 56
@@ -3361,10 +3363,10 @@ mediche 56
 mini 56
 separazione 56
 sottoposto 56
-macron 56
+macron 56 P
 arrivando 56
 suolo 56
-pasqua 56
+pasqua 56 P
 raccolti 56
 fenomeni 56
 omaggio 56
@@ -3375,19 +3377,19 @@ varianti 56
 agente 56
 medaglia 56
 familiare 56
-sara 56
+sara 56 P
 umana 56
 caratterizzato 56
 conclusa 56
 docente 56
-ferragni 56
+ferragni 56 P
 fantasia 56
-elena 56
+elena 56 P
 tablet 56
 attaccato 55
 amica 55
 pasta 55
-salvatore 55
+salvatore 55 P
 bici 55
 patto 55
 tende 55
@@ -3413,7 +3415,7 @@ consorzio 55
 piante 55
 guardando 55
 scarpe 55
-dario 55
+dario 55 P
 fontana 55
 coach 55
 cadere 55
@@ -3426,16 +3428,16 @@ fasce 55
 contributi 55
 dovete 55
 chiamare 55
-meghan 55
+meghan 55 P
 promessa 55
 navi 55
 giornale 55
-signorini 55
+signorini 55 P
 for 55
 soffre 55
 neo 55
 incinta 55
-pil 55
+pil 55 P
 andate 55
 qua 55
 precisato 55
@@ -3475,7 +3477,7 @@ concesso 54
 bomba 54
 lockdown 54
 segnalazione 54
-lecce 54
+lecce 54 P
 cadavere 54
 statale 54
 colpire 54
@@ -3503,7 +3505,7 @@ radici 53
 cautelare 53
 prezioso 53
 intelligente 53
-valentina 53
+valentina 53 P
 comparto 53
 sofferenza 53
 terminato 53
@@ -3523,7 +3525,7 @@ arrivi 53
 saremo 53
 venivano 53
 medie 53
-johnson 53
+johnson 53 P
 rito 53
 commedia 53
 professione 53
@@ -3537,7 +3539,7 @@ bisognerà 53
 ios 53
 consenso 53
 messe 53
-psg 53
+psg 53 P
 aggredito 53
 adatta 53
 comprende 53
@@ -3546,7 +3548,7 @@ dirigenza 53
 pensiamo 53
 modificare 53
 sedi 53
-youtube 53
+youtube 53 P
 ritmo 53
 utente 53
 attende 52
@@ -3565,7 +3567,7 @@ dieta 52
 istituti 52
 riposo 52
 segreti 52
-bruno 52
+bruno 52 P
 pone 52
 deputati 52
 innanzitutto 52
@@ -3574,7 +3576,7 @@ disse 52
 importanza 52
 operativa 52
 indagati 52
-donetsk 52
+donetsk 52 P
 artistica 52
 profughi 52
 talenti 52
@@ -3583,11 +3585,11 @@ conoscono 52
 prepara 52
 avrete 52
 svolge 52
-tiktok 52
+tiktok 52 P
 stazioni 52
 esami 52
 applicazioni 52
-verissimo 52
+verissimo 52 P
 world 52
 produce 52
 azzurri 52
@@ -3604,14 +3606,14 @@ affetto 52
 coinvolgimento 52
 sperare 52
 gaming 52
-emma 52
+emma 52 P
 farmaci 52
-ida 52
+ida 52 P
 capaci 52
 costantemente 52
 influencer 52
 riqualificazione 52
-portogallo 52
+portogallo 52 P
 maschile 52
 centrocampo 52
 pesce 52
@@ -3624,19 +3626,19 @@ diagnosi 52
 britannico 51
 televisiva 51
 up 51
-volodymyr 51
+volodymyr 51 P
 preparato 51
 chiare 51
 serbo 51
 conduzione 51
 sospensione 51
 villaggio 51
-perugia 51
+perugia 51 P
 rappresentato 51
-amadeus 51
+amadeus 51 P
 destinazione 51
 componente 51
-diana 51
+diana 51 P
 crema 51
 comportamenti 51
 visitare 51
@@ -3644,18 +3646,18 @@ prospettive 51
 moltissimi 51
 tantissime 51
 riservata 51
-termoli 51
+termoli 51 P
 scontato 51
 esprime 51
 detta 51
 batte 51
-jessica 51
+jessica 51 P
 attaccante 51
 futura 51
 finanziari 51
 trasferta 51
 pratiche 51
-donbass 51
+donbass 51 P
 fatturato 51
 frequenza 51
 eseguiti 51
@@ -3668,7 +3670,7 @@ applicare 51
 man 51
 adatto 51
 saga 51
-berlino 51
+berlino 51 P
 hotel 51
 pixel 51
 riportare 51
@@ -3680,7 +3682,7 @@ scheda 51
 aggiungono 51
 britannica 50
 stamattina 50
-kate 50
+kate 50 P
 detenuti 50
 spiagge 50
 considera 50
@@ -3689,14 +3691,14 @@ coppie 50
 legali 50
 game 50
 complessa 50
-united 50
+united 50 P
 sarei 50
 sostituire 50
 quotidiana 50
 richiamo 50
 sottolineando 50
-diego 50
-belgio 50
+diego 50 P
+belgio 50 P
 chiusi 50
 efficaci 50
 informazione 50
@@ -3719,7 +3721,7 @@ adottare 50
 include 50
 accettato 50
 colto 50
-gazzetta 50
+gazzetta 50 P
 armate 50
 rimarrà 50
 colloqui 50
@@ -3729,7 +3731,7 @@ all 50
 bus 50
 rock 50
 investigatori 50
-piero 50
+piero 50 P
 strage 50
 rincari 50
 valido 50
@@ -3739,8 +3741,8 @@ comunicare 50
 registrazione 50
 protocollo 50
 dottor 50
-marvel 49
-cristina 49
+marvel 49 P
+cristina 49 P
 motori 49
 individuato 49
 salito 49
@@ -3791,20 +3793,20 @@ cercano 49
 destinati 49
 leone 49
 contento 49
-antonino 49
+antonino 49 P
 redazione 49
 vestito 49
 rivista 49
-mauro 49
+mauro 49 P
 salvezza 49
 grammi 49
 trasmesso 49
 poteri 49
 normativa 48
-mancini 48
+mancini 48 P
 linguaggio 48
 ospita 48
-giacomo 48
+giacomo 48 P
 specialmente 48
 sensibilità 48
 primis 48
@@ -3815,15 +3817,15 @@ compagnie 48
 assegnato 48
 necessariamente 48
 portoghese 48
-belen 48
+belen 48 P
 lady 48
-sofia 48
+sofia 48 P
 sorprese 48
 cibi 48
 vasta 48
 complicata 48
 nucleo 48
-benedetto 48
+benedetto 48 P
 profondità 48
 pazienza 48
 lutto 48
@@ -3835,12 +3837,12 @@ rafforzare 48
 limitata 48
 arriveranno 48
 vada 48
-miss 48
+miss 48 P
 altamente 48
 riserva 48
 vere 48
 certificato 48
-campobasso 48
+campobasso 48 P
 ruote 48
 sciopero 48
 accusa 48
@@ -3856,9 +3858,9 @@ esercizio 48
 esso 48
 argentina 48
 servirà 48
-tim 48
+tim 48 P
 parità 48
-siro 48
+siro 48 P
 fede 48
 viaggi 48
 tornati 47
@@ -3868,7 +3870,7 @@ seguono 47
 lavorano 47
 utilizzate 47
 sindacato 47
-angela 47
+angela 47 P
 stipendio 47
 evidenzia 47
 corretta 47
@@ -3884,7 +3886,7 @@ offrono 47
 poste 47
 aiutato 47
 realizzate 47
-lucca 47
+lucca 47 P
 tavola 47
 nomina 47
 deboli 47
@@ -3902,7 +3904,7 @@ autonomia 47
 subire 47
 inserito 47
 esame 47
-mara 47
+mara 47 P
 abito 47
 dottoressa 47
 prendersi 47
@@ -3910,7 +3912,7 @@ bombardamenti 47
 inclusi 47
 regalato 47
 carenza 47
-crimea 47
+crimea 47 P
 battere 47
 corse 47
 caduto 47
@@ -3923,15 +3925,15 @@ sviluppato 47
 ricovero 47
 attivare 47
 intenso 47
-oscar 47
+oscar 47 P
 soap 47
 suicidio 47
 attenti 46
-beautiful 46
+beautiful 46 P
 primaria 46
 attacca 46
-galaxy 46
-spalletti 46
+galaxy 46 P
+spalletti 46 P
 spaccio 46
 esterni 46
 normalità 46
@@ -3948,17 +3950,17 @@ conseguente 46
 elettrici 46
 code 46
 coprire 46
-pescara 46
+pescara 46 P
 costretta 46
 circolo 46
 colonna 46
 versioni 46
-trento 46
-washington 46
+trento 46 P
+washington 46 P
 prendendo 46
 elettorali 46
 inviare 46
-bruxelles 46
+bruxelles 46 P
 regalare 46
 cronaca 46
 negativi 46
@@ -3967,8 +3969,8 @@ abbandonare 46
 avvocato 46
 introdotto 46
 circolare 46
-dybala 46
-tommaso 46
+dybala 46 P
+tommaso 46 P
 piacerebbe 46
 consapevole 46
 camion 46
@@ -3981,7 +3983,7 @@ finché 46
 netta 46
 anti 46
 essenziali 46
-kharkiv 46
+kharkiv 46 P
 eccezionale 46
 massa 46
 fame 46
@@ -4023,8 +4025,8 @@ fresco 45
 complessiva 45
 consiglieri 45
 bisogni 45
-nintendo 45
-emanuele 45
+nintendo 45 P
+emanuele 45 P
 dell 45
 climatici 45
 professor 45
@@ -4036,9 +4038,9 @@ bosco 45
 anziché 45
 approfondire 45
 interessata 45
-orlando 45
+orlando 45 P
 segnare 45
-bce 45
+bce 45 P
 funzionari 45
 forum 45
 intesa 45
@@ -4057,7 +4059,7 @@ soci 45
 criptovalute 44
 crescente 44
 ct 44
-padova 44
+padova 44 P
 avverrà 44
 coscienza 44
 amministrazioni 44
@@ -4071,7 +4073,7 @@ tronista 44
 presentati 44
 drammatico 44
 resilienza 44
-musumeci 44
+musumeci 44 P
 legislatura 44
 alunni 44
 convincere 44
@@ -4091,7 +4093,7 @@ amministrative 44
 talmente 44
 lontani 44
 potremo 44
-rodriguez 44
+rodriguez 44 P
 abusi 44
 rilevante 44
 format 44
@@ -4111,11 +4113,11 @@ panico 44
 dem 44
 deposito 44
 convinti 44
-umbria 44
+umbria 44 P
 ecologica 44
-fed 44
+fed 44 P
 flusso 44
-olimpiadi 44
+olimpiadi 44 P
 essi 44
 sintesi 44
 vai 44
@@ -4127,7 +4129,7 @@ pesca 44
 motivazione 44
 spiegano 44
 chiarito 44
-quirinale 43
+quirinale 43 P
 basi 43
 giapponese 43
 chiari 43
@@ -4136,15 +4138,15 @@ documentario 43
 spinge 43
 totali 43
 provando 43
-gianluca 43
+gianluca 43 P
 bimbo 43
 unisce 43
-taiwan 43
+taiwan 43 P
 delitto 43
 svolgerà 43
 mandare 43
 tono 43
-toti 43
+toti 43 P
 avvertito 43
 portati 43
 crede 43
@@ -4162,7 +4164,7 @@ acquistato 43
 gratuita 43
 cosiddetto 43
 frutta 43
-coldiretti 43
+coldiretti 43 P
 diffusi 43
 crescono 43
 discusso 43
@@ -4173,7 +4175,7 @@ lettere 43
 colloquio 43
 esseri 43
 procedimento 43
-james 43
+james 43 P
 ministra 43
 fermarsi 43
 striscia 43
@@ -4207,10 +4209,10 @@ palio 42
 virale 42
 biodiversità 42
 crimini 42
-international 42
+international 42 P
 preferenze 42
 partirà 42
-martina 42
+martina 42 P
 sesta 42
 chiese 42
 alzare 42
@@ -4222,7 +4224,7 @@ affidata 42
 ricavi 42
 esistenti 42
 tarda 42
-ronaldo 42
+ronaldo 42 P
 veste 42
 fredda 42
 piatti 42
@@ -4230,10 +4232,10 @@ genovese 42
 mensile 42
 condivisa 42
 normali 42
-como 42
-valentino 42
+como 42 P
+valentino 42 P
 marchi 42
-dazn 42
+dazn 42 P
 scarsa 42
 mobilitazione 42
 fermi 42
@@ -4267,8 +4269,8 @@ raccontano 42
 ricette 42
 salvato 42
 proseguito 42
-michelle 42
-alessia 42
+michelle 42 P
+alessia 42 P
 busto 42
 continui 42
 classici 42
@@ -4276,7 +4278,7 @@ detenzione 42
 attento 41
 angolo 41
 spiegando 41
-martin 41
+martin 41 P
 iniziano 41
 party 41
 prenderà 41
@@ -4292,7 +4294,7 @@ unione 41
 cooperazione 41
 unici 41
 presunto 41
-trieste 41
+trieste 41 P
 affidato 41
 cinesi 41
 lanciata 41
@@ -4304,20 +4306,20 @@ sapeva 41
 francesi 41
 parcheggio 41
 succederà 41
-africa 41
+africa 41 P
 calciomercato 41
-ancona 41
+ancona 41 P
 usano 41
 istituto 41
 generali 41
 passate 41
-canada 41
+canada 41 P
 sabbia 41
 digital 41
 incontra 41
 sorpreso 41
 osservato 41
-albenga 41
+albenga 41 P
 infortunio 41
 concludere 41
 stupefacenti 41
@@ -4328,12 +4330,12 @@ logo 41
 entrati 41
 decina 41
 soddisfatto 41
-soleil 41
+soleil 41 P
 qualora 41
 crediamo 41
 valutazioni 41
-thomas 41
-pesaro 41
+thomas 41 P
+pesaro 41 P
 tradizionali 41
 partnership 41
 classi 41
@@ -4360,7 +4362,7 @@ umane 41
 allievi 41
 puntato 41
 contiene 41
-italy 41
+italy 41 P
 margini 40
 treni 40
 interpretare 40
@@ -4371,7 +4373,7 @@ averla 40
 ingressi 40
 apprezzato 40
 fotografia 40
-salerno 40
+salerno 40 P
 salone 40
 nasconde 40
 salvaguardia 40
@@ -4410,10 +4412,10 @@ calci 40
 figlie 40
 comfort 40
 dipendenza 40
-arezzo 40
+arezzo 40 P
 registro 40
 monitorare 40
-bayern 40
+bayern 40 P
 immediata 40
 nuoto 40
 invernali 40
@@ -4437,7 +4439,7 @@ relativamente 40
 sicura 40
 custodia 40
 esposto 40
-taranto 40
+taranto 40 P
 massimi 40
 prodotta 40
 certificazione 40
@@ -4462,8 +4464,8 @@ accoglienza 39
 avanzata 39
 potenziali 39
 emergere 39
-noemi 39
-liverpool 39
+noemi 39 P
+liverpool 39 P
 eventuale 39
 artificiale 39
 cervello 39
@@ -4471,7 +4473,7 @@ visibile 39
 unita 39
 lasciati 39
 sostengono 39
-paul 39
+paul 39 P
 fascino 39
 imprenditore 39
 giri 39
@@ -4482,14 +4484,14 @@ aumentati 39
 duramente 39
 usati 39
 cari 39
-camilla 39
+camilla 39 P
 cabina 39
-lukaku 39
+lukaku 39 P
 annua 39
 precedentemente 39
 napoletano 39
-roberta 39
-gabriele 39
+roberta 39 P
+gabriele 39 P
 trauma 39
 insulti 39
 assicura 39
@@ -4516,7 +4518,7 @@ significativa 39
 sessuali 39
 sembrare 39
 elettronica 39
-charles 39
+charles 39 P
 critico 39
 eseguire 39
 colpite 39
@@ -4526,7 +4528,7 @@ contempo 39
 forno 39
 protagoniste 39
 truffa 39
-iii 39
+iii 39 P
 racconti 39
 pronte 39
 ovvio 39
@@ -4542,7 +4544,7 @@ nascondere 39
 divisa 39
 rendendo 39
 immobile 39
-fano 39
+fano 39 P
 organizzazione 39
 pensi 39
 apparentemente 39
@@ -4553,7 +4555,7 @@ integrato 39
 tecnologica 38
 rientra 38
 fissata 38
-gb 38
+gb 38 P
 conversazione 38
 scappare 38
 mezzanotte 38
@@ -4568,7 +4570,7 @@ avventure 38
 fondato 38
 speranze 38
 spettacolare 38
-zaporizhzhia 38
+zaporizhzhia 38 P
 avvio 38
 quotidiani 38
 emergono 38
@@ -4580,8 +4582,8 @@ recarsi 38
 conservazione 38
 permanente 38
 poca 38
-cisl 38
-lucia 38
+cisl 38 P
+lucia 38 P
 elegante 38
 osservare 38
 rilevazione 38
@@ -4589,9 +4591,9 @@ definisce 38
 girato 38
 frasi 38
 rinnovato 38
-australia 38
+australia 38 P
 albero 38
-delia 38
+delia 38 P
 terminata 38
 adolescenti 38
 booster 38
@@ -4603,7 +4605,7 @@ music 38
 produttivo 38
 pannelli 38
 piazzale 38
-valeria 38
+valeria 38 P
 animale 38
 cosiddetta 38
 abbonati 38
@@ -4618,7 +4620,7 @@ corteo 38
 serate 38
 ritrova 38
 commesso 38
-svezia 38
+svezia 38 P
 routine 38
 tradizioni 38
 armati 38
@@ -4651,7 +4653,7 @@ occhiali 38
 conoscenze 38
 esplorare 38
 tipologia 38
-michael 38
+michael 38 P
 conosciuti 38
 pensate 38
 identificare 38
@@ -4664,7 +4666,7 @@ cerchiamo 37
 basa 37
 attaccare 37
 processati 37
-duomo 37
+duomo 37 P
 rappresentanza 37
 sorelle 37
 crimine 37
@@ -4685,11 +4687,11 @@ salva 37
 connessione 37
 propaganda 37
 semestre 37
-cabral 37
+cabral 37 P
 precisamente 37
 sapevo 37
 volere 37
-sarri 37
+sarri 37 P
 paesaggio 37
 correnti 37
 tematiche 37
@@ -4710,12 +4712,12 @@ incredibili 37
 parzialmente 37
 fotocamera 37
 target 37
-tokyo 37
+tokyo 37 P
 passeggiata 37
 greco 37
 maturità 37
 godere 37
-simona 37
+simona 37 P
 quarti 37
 fisiche 37
 dimostrano 37
@@ -4734,22 +4736,22 @@ centravanti 37
 odierna 37
 insegnato 37
 tendenze 37
-corea 37
+corea 37 P
 molteplici 37
-bielorussia 37
+bielorussia 37 P
 seriamente 37
-bretagna 37
+bretagna 37 P
 pubblicamente 37
 trailer 37
 giocano 37
 direttrice 37
 podcast 37
-sassari 37
+sassari 37 P
 domiciliare 37
 trasformato 37
 documentazione 37
 facili 37
-bmw 37
+bmw 37 P
 box 37
 vitale 37
 curare 37
@@ -4759,7 +4761,7 @@ delegazione 37
 rinunciato 37
 disposti 37
 distanze 37
-eric 37
+eric 37 P
 starebbe 37
 suv 37
 servire 37
@@ -4769,10 +4771,10 @@ attirare 37
 qualificazione 37
 soccorritori 37
 spento 37
-alessio 37
+alessio 37 P
 pubblicare 37
-windows 37
-sony 37
+windows 37 P
+sony 37 P
 piloti 37
 presidio 37
 inferiori 37
@@ -4790,29 +4792,29 @@ determinare 36
 violenta 36
 violento 36
 dimostrazione 36
-arena 36
+arena 36 P
 single 36
 minacciato 36
 volare 36
-foggia 36
-abruzzo 36
+foggia 36 P
+abruzzo 36 P
 registrate 36
-gesù 36
+gesù 36 P
 strategico 36
 notevolmente 36
 biblioteca 36
 policlinico 36
 ripartenza 36
-venier 36
+venier 36 P
 cara 36
 segreteria 36
 dovute 36
 liberare 36
 abituati 36
-leao 36
+leao 36 P
 vario 36
 clan 36
-sonia 36
+sonia 36 P
 rosse 36
 vasto 36
 ditta 36
@@ -4823,8 +4825,8 @@ universale 36
 regala 36
 trasferita 36
 criminalità 36
-veronica 36
-finlandia 36
+veronica 36 P
+finlandia 36 P
 accelerare 36
 affermano 36
 inflazione 36
@@ -4840,12 +4842,12 @@ pulito 36
 speso 36
 circostanza 36
 peggiori 36
-caserta 36
+caserta 36 P
 trascorrere 36
 ritrovati 36
 turistico 36
 contano 36
-umberto 36
+umberto 36 P
 soddisfare 36
 febbre 36
 funzionamento 36
@@ -4864,7 +4866,7 @@ ospiterà 36
 collaborare 36
 contanti 36
 elicottero 36
-intel 36
+intel 36 P
 successive 36
 fisici 36
 cantare 36
@@ -4877,9 +4879,9 @@ contenti 36
 osserva 36
 curiosi 36
 meravigliosa 36
-alice 36
+alice 36 P
 farmaco 36
-enzo 36
+enzo 36 P
 complimenti 36
 comodo 36
 attimo 36
@@ -4887,19 +4889,19 @@ risolto 36
 fastidio 36
 consulente 36
 convegno 36
-pioli 36
+pioli 36 P
 aggiornato 36
 penisola 36
-raffaele 36
-siracusa 36
-samp 36
+raffaele 36 P
+siracusa 36 P
+samp 36 P
 caratterizzata 36
 scattata 36
 sopravvivere 36
 tirato 36
-asia 36
+asia 36 P
 liberazione 36
-renato 36
+renato 36 P
 chili 36
 sedia 36
 combinazione 36
@@ -4919,14 +4921,14 @@ lasciano 35
 cimitero 35
 opinioni 35
 presunta 35
-manuel 35
+manuel 35 P
 registrata 35
 fornitori 35
 presentate 35
 partecipa 35
 commissioni 35
 agenzie 35
-ginevra 35
+ginevra 35 P
 insegnante 35
 avvenire 35
 confermati 35
@@ -4947,7 +4949,7 @@ agricole 35
 volante 35
 multe 35
 fisso 35
-ravenna 35
+ravenna 35 P
 cornice 35
 intenzioni 35
 muove 35
@@ -4956,9 +4958,9 @@ patente 35
 pulire 35
 donato 35
 donare 35
-aurora 35
+aurora 35 P
 creativo 35
-mark 35
+mark 35 P
 incentivi 35
 rimborso 35
 sostituto 35
@@ -4970,7 +4972,7 @@ false 35
 diffuse 35
 acceso 35
 insegna 35
-maradona 35
+maradona 35 P
 magistratura 35
 lombardo 35
 quotidianamente 35
@@ -4995,7 +4997,7 @@ esposti 35
 mantiene 35
 pieni 35
 follia 35
-christian 35
+christian 35 P
 interrompere 35
 quartieri 35
 precipitazioni 35
@@ -5017,7 +5019,7 @@ espressione 35
 radicale 35
 bianconero 35
 aspettava 35
-claudia 35
+claudia 35 P
 attivato 35
 trovavano 35
 pesci 35
@@ -5037,28 +5039,28 @@ scritte 34
 remoto 34
 atteggiamenti 34
 riteniamo 34
-playstation 34
+playstation 34 P
 contemporaneamente 34
 siciliani 34
 tagli 34
 composizione 34
-tesla 34
+tesla 34 P
 salma 34
 redditi 34
 segnalati 34
 presentano 34
-toro 34
+toro 34 P
 usate 34
 tassa 34
 uccise 34
-carmen 34
+carmen 34 P
 licenza 34
 plus 34
 riapertura 34
 rompe 34
 difeso 34
 esordio 34
-madonna 34
+madonna 34 P
 cosi 34
 mostre 34
 consueto 34
@@ -5066,8 +5068,8 @@ stavo 34
 nascere 34
 usufruire 34
 cambi 34
-lugano 34
-pordenone 34
+lugano 34 P
+pordenone 34 P
 ettari 34
 oramai 34
 uscirà 34
@@ -5086,12 +5088,12 @@ consultare 34
 edificio 34
 shopping 34
 sportello 34
-mattia 34
+mattia 34 P
 teatrale 34
 varietà 34
 cantieri 34
 assicurare 34
-moro 34
+moro 34 P
 abbonamenti 34
 ricoperto 34
 coste 34
@@ -5114,7 +5116,7 @@ lentamente 34
 presidenti 34
 convinta 34
 vincitori 34
-kim 34
+kim 34 P
 bolletta 34
 jack 34
 anniversario 34
@@ -5125,7 +5127,7 @@ operare 34
 van 34
 storiche 34
 aggressione 34
-margherita 34
+margherita 34 P
 proseguirà 34
 discussioni 34
 farò 34
@@ -5133,10 +5135,10 @@ scaricare 34
 creduto 34
 scienza 34
 rivale 34
-fifa 34
+fifa 34 P
 appassionato 34
 slogan 34
-odessa 33
+odessa 33 P
 selvaggia 33
 citando 33
 chirurgia 33
@@ -5158,15 +5160,15 @@ determinati 33
 rispondendo 33
 attesta 33
 prigionieri 33
-romania 33
+romania 33 P
 dirette 33
 trasparente 33
 terre 33
 tira 33
 killer 33
-luciano 33
+luciano 33 P
 bimba 33
-trapani 33
+trapani 33 P
 gratuitamente 33
 viveva 33
 vecchie 33
@@ -5177,13 +5179,13 @@ trattamenti 33
 cala 33
 centinaio 33
 terreni 33
-giancarlo 33
+giancarlo 33 P
 cruciale 33
 belga 33
 ambiti 33
 bensì 33
-mercedes 33
-beppe 33
+mercedes 33 P
+beppe 33 P
 clip 33
 preziosi 33
 puro 33
@@ -5194,9 +5196,9 @@ invitati 33
 malgrado 33
 scooter 33
 avvenuti 33
-daniela 33
+daniela 33 P
 stand 33
-lamborghini 33
+lamborghini 33 P
 caldi 33
 corridoi 33
 riflessioni 33
@@ -5241,10 +5243,10 @@ switch 33
 rallentamento 33
 franchise 33
 hub 33
-iva 33
+iva 33 P
 isola 33
 ispirato 33
-marcello 33
+marcello 33 P
 metro 33
 brillante 33
 cavalli 33
@@ -5267,7 +5269,7 @@ vaccinazioni 33
 amate 33
 miliardo 33
 spaziale 33
-chigi 33
+chigi 33 P
 trasmessa 33
 assume 32
 relax 32
@@ -5293,7 +5295,7 @@ preoccupato 32
 vinta 32
 wireless 32
 infezioni 32
-marconi 32
+marconi 32 P
 ostacoli 32
 legami 32
 trasparenza 32
@@ -5305,7 +5307,7 @@ sorprendente 32
 influenza 32
 singola 32
 potenzialità 32
-pisa 32
+pisa 32 P
 israeliano 32
 integrazione 32
 lati 32
@@ -5318,7 +5320,7 @@ finanze 32
 ansia 32
 disturbi 32
 auguriamo 32
-ticino 32
+ticino 32 P
 laterale 32
 operativi 32
 indagato 32
@@ -5335,7 +5337,7 @@ usciti 32
 rimedio 32
 sentite 32
 gratuiti 32
-falcone 32
+falcone 32 P
 accompagnare 32
 battute 32
 raggio 32
@@ -5343,7 +5345,7 @@ doppietta 32
 pugno 32
 continueremo 32
 incubo 32
-lavrov 32
+lavrov 32 P
 sostenitori 32
 gesti 32
 falsa 32
@@ -5355,12 +5357,12 @@ intervistato 32
 confessione 32
 sfuggire 32
 assente 32
-games 32
+games 32 P
 costituito 32
 quadri 32
 caduti 32
 autonoma 32
-kherson 32
+kherson 32 P
 taglia 32
 allontanarsi 32
 ritrovamento 32
@@ -5383,13 +5385,13 @@ mettiamo 32
 esecutivo 32
 auricolari 32
 week 32
-west 32
+west 32 P
 riprende 32
 eroi 32
 videosorveglianza 32
 mln 32
 studente 32
-bucha 32
+bucha 32 P
 schianto 32
 ottimismo 32
 garantito 32
@@ -5398,7 +5400,7 @@ superbonus 32
 cottura 32
 accorto 32
 posizionamento 32
-var 32
+var 32 P
 sequestrato 32
 sentiero 32
 semi 32
@@ -5407,7 +5409,7 @@ arti 32
 valutato 32
 fama 32
 sposato 32
-loano 32
+loano 32 P
 pochissimo 32
 scandalo 32
 procede 32
@@ -5424,13 +5426,13 @@ entrando 31
 esclude 31
 mostrando 31
 appreso 31
-dragon 31
+dragon 31 P
 decisiva 31
 resistere 31
-huawei 31
-carolina 31
+huawei 31 P
+carolina 31 P
 sovrana 31
-leclerc 31
+leclerc 31 P
 determinate 31
 tradimento 31
 punizione 31
@@ -5447,16 +5449,16 @@ appartiene 31
 ciascun 31
 conflitti 31
 urgente 31
-tottenham 31
+tottenham 31 P
 sofferto 31
 occupano 31
 postato 31
 tappe 31
-maldini 31
+maldini 31 P
 sessanta 31
 usata 31
 generato 31
-frosinone 31
+frosinone 31 P
 moltissimo 31
 dovuti 31
 favorevoli 31
@@ -5464,25 +5466,25 @@ sostituzione 31
 valli 31
 sbaglia 31
 uniche 31
-inghilterra 31
+inghilterra 31 P
 leva 31
 direi 31
 respiro 31
-austria 31
+austria 31 P
 pupa 31
 line 31
 comparsa 31
 missile 31
 presentarsi 31
 ammirare 31
-trentino 31
+trentino 31 P
 torta 31
 terremoto 31
 succedendo 31
 lupo 31
 giardini 31
 accennato 31
-group 31
+group 31 P
 distruggere 31
 rimanendo 31
 sottile 31
@@ -5539,11 +5541,11 @@ allerta 31
 emersi 31
 ricci 31
 bandiere 31
-aldo 31
+aldo 31 P
 eletti 31
 decennio 31
-grecia 31
-tar 31
+grecia 31 P
+tar 31 P
 medaglie 31
 commercianti 31
 montagne 31
@@ -5552,7 +5554,7 @@ scatola 31
 parlerà 31
 uguali 31
 tirare 31
-siena 31
+siena 31 P
 sponsor 31
 costume 31
 conosciuta 31
@@ -5565,19 +5567,19 @@ cardinale 31
 seggi 30
 crescendo 30
 sufficienti 30
-xbox 30
+xbox 30 P
 by 30
 cv 30
-dc 30
-fi 30
+dc 30 P
+fi 30 P
 parlarne 30
 iniziali 30
 indirizzo 30
-ferrara 30
+ferrara 30 P
 conduce 30
 lavorava 30
 giovanili 30
-castel 30
+castel 30 P
 ottica 30
 stradali 30
 lotto 30
@@ -5599,7 +5601,7 @@ puntando 30
 mestiere 30
 associato 30
 farmacie 30
-tina 30
+tina 30 P
 accadrà 30
 osservazione 30
 cieli 30
@@ -5630,7 +5632,7 @@ attraversato 30
 consigliamo 30
 orgogliosi 30
 fresca 30
-confindustria 30
+confindustria 30 P
 ricoverate 30
 applica 30
 immobiliare 30
@@ -5638,7 +5640,7 @@ statunitensi 30
 requisito 30
 urne 30
 stipendi 30
-cecilia 30
+cecilia 30 P
 intraprendere 30
 educazione 30
 inseriti 30
@@ -5646,7 +5648,7 @@ story 30
 sensibile 30
 turista 30
 rossonero 30
-cristo 30
+cristo 30 P
 facilitare 30
 turistica 30
 mica 30
@@ -5657,7 +5659,7 @@ corsia 30
 farmi 30
 riconosce 30
 immaginato 30
-giuliano 30
+giuliano 30 P
 cellulari 30
 contenere 30
 futuri 30
@@ -5679,17 +5681,17 @@ serviranno 30
 straordinari 30
 coinvolta 30
 diploma 30
-conference 30
+conference 30 P
 deciderà 30
 amo 30
 celebrazione 30
-bbc 30
-lucarelli 30
-cnn 30
+bbc 30 P
+lucarelli 30 P
+cnn 30 P
 duo 30
 salutare 30
 spetta 30
-eva 30
+eva 30 P
 massime 30
 telecamera 30
 gpu 30
@@ -5700,14 +5702,14 @@ indicano 30
 metaverso 30
 prenotare 30
 cordoglio 30
-bucci 30
+bucci 30 P
 altissimo 30
 argentino 30
 garantita 30
 moderno 30
 copertina 30
-tom 30
-uil 30
+tom 30 P
+uil 30 P
 righe 30
 denunciare 30
 talvolta 30
@@ -5720,13 +5722,13 @@ formata 30
 scrivendo 30
 bianconera 30
 guadagnare 30
-national 30
+national 30 P
 sfoggiato 30
 trattare 30
 dimostrando 30
 scrittrice 30
 mantenuto 30
-elisa 30
+elisa 30 P
 gloria 30
 reggiana 30
 sognare 30
