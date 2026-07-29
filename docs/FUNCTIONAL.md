@@ -10,7 +10,7 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.14 (Fase 1 completa).
+**Allineato a:** Step 1.15 (Fase 1 completa).
 
 ## Indice
 - [Panoramica architettura](#panoramica-architettura)
@@ -527,6 +527,15 @@ in `KeyboardSettings` (`autoCapitalise`, `autoSpace`, accese di default), pronte
 schermata impostazioni di Fase 3 — un aiuto automatico è esattamente il genere di cosa che
 qualcuno vuole poter spegnere.
 
+### Dove gli aiuti tacciono (`FieldRules`)
+
+**Prima regola, perché è quella che evita danni.** Maiuscole e spazi aiutano nella prosa e
+rovinano tutto il resto: uno spazio dopo il punto in `nome.cognome@posta.it`, una maiuscola
+all'inizio di una password, uno spazio dentro `3,14`. Il campo dichiara che tipo è, quindi si
+aiuta **solo dove il campo è testo semplice**: fuori — email, URL, password, numeri, telefono,
+date, e i campi che chiedono esplicitamente nessun suggerimento (terminali, editor di codice)
+— entrambi gli automatismi sono spenti.
+
 ### Maiuscola automatica
 
 La domanda "qui ci va la maiuscola?" la risponde **Android**, non noi:
@@ -539,11 +548,38 @@ Viene ricalcolata dove il contesto può essere cambiato: apertura di un campo, c
 parola, cancellazione (tornare indietro oltre un punto rimette la maiuscola) e spostamento del
 cursore (`onUpdateSelection`).
 
+**Due cose il sistema non può sapere, e le mette `SentenceRules`:**
+
+- **Le abbreviazioni.** Per Android `ecc.` è un punto seguito da spazio, quindi "maiuscola".
+  In italiano è falso abbastanza spesso da dare fastidio: `ecc.`, `dott.`, `pag. 12`, `p.v.`
+  Il confronto avviene sul **token prima del punto**, così `p.v.` funziona nonostante il punto
+  interno. (`vedi` non ha punto: le forme che lo hanno sono `v.` e `vd.`, ed è quelle che la
+  lista contiene.)
+- **Le virgolette e le parentesi di apertura.** In `Ciao. «Come stai` la maiuscola appartiene
+  alla parola dentro le virgolette, non al simbolo.
+
 **La parte delicata non è quando mettere la maiuscola, ma quando *non* toccarla.** Spegnere
 `⇧` a inizio frase è un gesto deliberato, e una tastiera che la riaccende subito dopo sta
 litigando con chi scrive. La regola è la **proprietà** (`AutoShift.resolve`): la tastiera può
 cambiare solo ciò che ha impostato lei; uno stato scelto dall'utente resta finché quella parola
 non è confermata, dopodiché la parola successiva è una decisione nuova.
+
+### Nomi propri (`ProperNouns`)
+
+Alcune parole vogliono la maiuscola ovunque cadano: `Roma`, `Italia`, `Natale`. È una proprietà
+della **parola**, non della posizione del cursore, quindi si applica nell'anteprima e nella
+barra dei candidati — una proposta che legge "roma" e atterra come "Roma" farebbe sembrare che
+la tastiera abbia cambiato idea.
+
+**La lista è volutamente stretta.** Il corpus non può aiutare: `tools/ConvertLeipzig.java`
+minuscola ogni parola e somma le varianti, quindi il dizionario non sa più che "roma" era
+"Roma". La strada giusta è rigenerarlo conservando, per ogni parola, la **quota di occorrenze
+maiuscole** — prove invece di una lista scritta a mano — ed è quella pianificata. Intanto la
+lista contiene solo nomi che **non sono anche parole comuni**: i nomi di persona ne restano
+fuori del tutto, perché Rosa, Viola, Bianca, Vera e Marco metterebbero la maiuscola a un fiore,
+un colore e una moneta. Una maiuscola sbagliata dà più fastidio di una mancante.
+
+Mesi e giorni della settimana in italiano sono minuscoli, e semplicemente non ci sono.
 
 ### Spazio automatico
 
@@ -558,8 +594,33 @@ precedente (`. , ; : ! ? …` e le chiusure `) ] } » "`) **si riprende lo spazi
 segno che chiude una frase, uno spazio nuovo va **dopo** — che è dove comincia la frase
 successiva e dove la maiuscola automatica poi cade.
 
-Un punto porta lo spazio **solo dopo una lettera** (`AutoSpace.deservesFollowingSpace`): è ciò
-che tiene interi `3.14` e `www.sito.it`, dove uno spazio sarebbe attivamente sbagliato.
+Un segno porta lo spazio **solo dopo una lettera** (`AutoSpace.deservesFollowingSpace`): è ciò
+che tiene interi `3,14`, `10:30` e `www.sito.it`, dove uno spazio sarebbe attivamente sbagliato.
+La blacklist dei campi non basterebbe: un orario si scrive dentro un messaggio, in un campo di
+testo normale.
+
+**Le altre regole della spaziatura italiana:**
+
+| Caso | Comportamento |
+|------|---------------|
+| Aperture `( [ { «` | Spazio **prima** (se lì finisce una parola), mai dopo |
+| Chiusure `) ] } »` | Niente prima, spazio **dopo** |
+| `"` | È l'unico simbolo che apre *e* chiude: dopo una lettera o una cifra può solo chiudere, altrove apre |
+| Apostrofo `'` | **Nessuno spazio, mai**: in italiano unisce le parole (`l'albero`, `un'amica`) |
+| `...` | Trattati come un segno solo: il secondo punto non prende spazio, il terzo sì |
+| Abbreviazioni | Il punto di `ecc.` non è una fine frase e non ne prende la spaziatura |
+| Spazio esplicito dopo uno automatico | Ignorato: resta un solo spazio |
+
+Il carattere inserito resta **quello digitato**: per le virgolette dritte il ruolo (apre o
+chiude) serve solo a decidere gli spazi, non a sostituirle con quelle tipografiche.
+
+### Annullare con il backspace
+
+Un backspace subito dopo una maiuscola automatica significa "non quella maiuscola": la
+disinnesca, e non la riarma un istante dopo. Ma **cancella comunque un carattere**, perché una
+pressione che non produce nulla di visibile sembra un tocco perso. Lo spazio automatico non ha
+bisogno di un caso speciale: *è* l'ultimo carattere, quindi una cancellazione normale toglie
+esattamente lui.
 
 **Ci si fida del campo, non del flag.** Prima di togliere lo spazio si verifica che davanti al
 cursore ci sia davvero uno spazio: il flag può sopravvivere al suo spazio (cursore spostato,
@@ -602,6 +663,9 @@ Unit test JVM (nessun emulatore necessario): `./gradlew :app:testDebugUnitTest`.
 | `LongPressKeysTest` | Contenuto dei popup, entrambe le semantiche, variante email; e **"ogni cifra 0–9 è raggiungibile da esattamente un popup"**, che impedisce sia il ritorno dei numeri intypabili sia una cifra offerta da due posti |
 | `AutoSpaceTest` | Quale punteggiatura si riprende lo spazio e quale porta il proprio; e che dopo una cifra il punto non lo porti (`3.14`) |
 | `AutoShiftTest` | La regola di proprietà: fra i casi, **"una maiuscola spenta dall'utente non viene riaccesa"** |
+| `SentenceRulesTest` | Abbreviazioni (compreso `p.v.` col punto interno), virgolette di apertura, puntini di sospensione |
+| `FieldRulesTest` | Dove gli aiuti tacciono: indirizzi, password, numeri, campi senza suggerimenti |
+| `ProperNounsTest` | Fra i casi, **"mesi e giorni restano minuscoli"** e **"le parole che sono anche nomi comuni non si capitalizzano"** |
 | `SingleLetterEngineTest` | L'ordine di un tasto solo: fra i casi, **"ogni lettera del tasto è offerta"** (era sparita la `q`) e **"un accento imparato non scavalca la lettera semplice"** |
 
 Le verifiche su emulatore sono documentate step per step in `DEVELOPMENT.md`, con gli

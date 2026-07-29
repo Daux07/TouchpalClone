@@ -28,7 +28,8 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** Step 1.14 — **un tasto solo si comporta da tasto**: lettera semplice per prima, accentata seconda, nessuna lettera mancante. Prima: 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **Ultimo step completato:** Step 1.15 — **le regole italiane di maiuscole e spaziatura** (abbreviazioni, virgolette, apostrofo, puntini, blacklist dei campi, nomi propri, annullamento col backspace). Prima: 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **Da fare quando si riprende:** rigenerare il dizionario conservando la **quota di occorrenze maiuscole** per parola, così i nomi propri escono dai dati invece che da una lista scritta a mano (vedi Step 1.15). Serve riscaricare il corpus Leipzig.
 - **Prossimo step:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
 - **Dopo:** **Fase 3** (impostazioni/ergonomia, dove rientrano la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente). Il test reale sullo smartphone continua in parallelo: `bash tools/dev.sh apk` → `app/build/outputs/apk/debug/app-debug.apk`.
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
@@ -381,6 +382,53 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-29 — Step 1.15: le regole italiane di maiuscole e spaziatura
+**Fatto:** implementata la specifica dell'utente (4 sezioni: maiuscole, spazi, blacklist dei
+campi, annullamento col backspace) sopra la base dello Step 1.13.
+
+**Prima di tutto la blacklist** (`FieldRules`), perché è quella che evita danni: fuori dal
+testo semplice — email, URL, password, numeri, telefono, date, campi che chiedono nessun
+suggerimento — **entrambi gli automatismi tacciono**. Senza, le altre regole peggiorerebbero
+gli indirizzi invece di migliorare la prosa.
+
+**Maiuscole** (`SentenceRules`): due cose che `getCursorCapsMode` non può sapere.
+Le **abbreviazioni** (`ecc. dott. pag. p.v.`), confrontate sul token prima del punto così che
+il punto interno di `p.v.` non rompa il riconoscimento; e le **virgolette/parentesi di
+apertura** dopo una fine frase, dove la maiuscola appartiene alla parola dentro.
+`vedi` non ha punto: in lista ci sono `v.` e `vd.`, che sono le forme che il punto ce l'hanno.
+
+**Spazi** (`AutoSpace` esteso): aperture con lo spazio prima e non dopo, chiusure il contrario,
+apostrofo che non prende spazio da nessuna parte, `...` trattati come un segno solo (il secondo
+punto niente, il terzo sì). La guardia "solo dopo una lettera" **resta**, ed è ciò che tiene
+interi `3,14` e `10:30`: la blacklist non li coprirebbe, perché un orario si scrive dentro un
+messaggio, in un campo di testo normale.
+
+**Le virgolette dritte** sono l'unico simbolo che apre *e* chiude, quindi il ruolo si legge dal
+testo: dopo una lettera o una cifra possono solo chiudere. Il carattere inserito resta però
+quello digitato — il ruolo serve alle regole di spaziatura, non a sostituirlo con le
+tipografiche.
+
+**Nomi propri** (`ProperNouns`): lista **volutamente stretta**. Il corpus non può aiutare
+(`ConvertLeipzig` minuscola e somma le varianti, quindi "Roma" è andata perduta): la strada
+giusta è rigenerarlo tenendo la quota di occorrenze maiuscole, ed è quella pianificata.
+Intanto solo nomi che non sono anche parole comuni, e **niente nomi di persona**: Rosa, Viola,
+Bianca, Vera e Marco metterebbero la maiuscola a un fiore, un colore e una moneta. Una
+maiuscola sbagliata dà più fastidio di una mancante.
+
+**Backspace (§4), con una modifica alla specifica.** Annullare la maiuscola *senza cancellare*
+rende la pressione invisibile e sembra un tocco perso. Quindi il backspace **cancella comunque**
+e in più disinnesca la maiuscola automatica. Lo spazio automatico non ha bisogno di nulla: è
+l'ultimo carattere, quindi la cancellazione normale toglie esattamente lui.
+
+**File:** `input/FieldRules.kt`, `input/SentenceRules.kt`, `input/ProperNouns.kt` (nuovi),
+`input/AutoSpace.kt` (riscritto), `service/T9ImeService.kt`; test `FieldRulesTest`,
+`SentenceRulesTest`, `ProperNounsTest`, `AutoSpaceTest` (riscritto) — 30 casi in tutto.
+**Verificato su emulatore:** nel campo **Email** `casa.` resta minuscolo e senza spazio dopo
+il punto (blacklist attiva); nelle note `7-6-6-2` dà **"Roma"** maiuscola con lo shift spento →
+`docs/screenshots/step-1.15-campo-email-senza-aiuti.png`, `step-1.15-nome-proprio.png`.
+**Da rivedere sul telefono:** le abbreviazioni e i puntini di sospensione sono coperti dai test
+ma non provati a mano — svuotare il campo via adb si è rivelato inaffidabile.
 
 ### 2026-07-29 — Step 1.14: un tasto solo si comporta da tasto, non da parola
 **Segnalazione dell'utente:** scrivendo una sola lettera esce l'accentata, e l'ordine dei

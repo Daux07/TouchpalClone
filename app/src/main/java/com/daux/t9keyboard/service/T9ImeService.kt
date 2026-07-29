@@ -16,6 +16,9 @@ import com.daux.t9keyboard.R
 import com.daux.t9keyboard.input.AutoShift
 import com.daux.t9keyboard.input.AutoSpace
 import com.daux.t9keyboard.input.ComposeState
+import com.daux.t9keyboard.input.FieldRules
+import com.daux.t9keyboard.input.ProperNouns
+import com.daux.t9keyboard.input.SentenceRules
 import com.daux.t9keyboard.input.ShiftState
 import com.daux.t9keyboard.learning.RoomLearnedWordsStore
 import com.daux.t9keyboard.model.FavouriteSymbols
@@ -84,6 +87,9 @@ class T9ImeService : InputMethodService() {
     /** Email/URL field: the `1` key's popup offers address parts instead of symbols. */
     private var emailField = false
 
+    /** What this field allows: prose gets the writing aids, addresses and codes do not. */
+    private var fieldAllows = FieldRules.Allowed.ALL
+
     override fun onCreate() {
         super.onCreate()
         settings = KeyboardSettings(this)
@@ -123,6 +129,7 @@ class T9ImeService : InputMethodService() {
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
         emailField = isAddressField(info)
+        fieldAllows = FieldRules.forInputType(info?.inputType ?: 0)
         // A new field starts on letters, wherever the previous one left the keyboard.
         keyboardView?.hidePopup()
         keyboardView?.setMode(KeyboardMode.T9)
@@ -279,14 +286,20 @@ class T9ImeService : InputMethodService() {
      * fields that ask for every word capitalised, like a name in a contact form.
      */
     private fun updateAutoShift() {
-        if (!settings.autoCapitalise || shiftOverridden) return
+        if (!settings.autoCapitalise || !fieldAllows.autoCapitalise || shiftOverridden) return
         if (!state.isEmpty()) return // mid-word: the decision was made when it began
 
         val ic = currentInputConnection ?: return
         val caps = ic.getCursorCapsMode(currentInputEditorInfo?.inputType ?: 0)
+        val before = textBeforeCursor()
         val wanted = when {
             caps and TextUtils.CAP_MODE_CHARACTERS != 0 -> ShiftState.LOCK
+            // The platform sees "dot, space, capital". It cannot know that the dot
+            // belonged to "ecc." — that is ours to catch.
+            caps != 0 && SentenceRules.endsWithAbbreviation(before) -> ShiftState.OFF
             caps != 0 -> ShiftState.ONCE
+            // …and it may miss the capital that belongs after an opening quote.
+            SentenceRules.afterOpeningAtSentenceStart(before) -> ShiftState.ONCE
             else -> ShiftState.OFF
         }
 
@@ -312,7 +325,7 @@ class T9ImeService : InputMethodService() {
      * The space is *provisional* — punctuation typed next takes it back (see [AutoSpace]).
      */
     private fun insertProvisionalSpace() {
-        if (!settings.autoSpace) return
+        if (!settings.autoSpace || !fieldAllows.autoSpace) return
         currentInputConnection?.commitText(" ", 1)
         provisionalSpace = true
     }
@@ -327,27 +340,16 @@ class T9ImeService : InputMethodService() {
      * space goes after it, which is where the next sentence starts and where the
      * automatic capital then lands.
      */
-    private fun consumedByProvisionalSpace(text: String): Boolean {
+    /**
+     * The space bar pressed straight after an automatic space: keep just the one, rather
+     * than leaving the orphan double space the user did not ask for.
+     */
+    private fun swallowsExplicitSpace(): Boolean {
         if (!provisionalSpace) return false
         provisionalSpace = false
-        val ic = currentInputConnection ?: return false
-
-        // Trust the field, not the flag. The cursor may have been moved, or the app may
-        // have rewritten the text underneath us; deleting a character on the strength of
-        // a stale belief would eat something the user typed.
-        if (charBeforeCursor(offset = 0) != ' ') return false
-
-        // An explicit space where we already put one: keep just the one.
-        if (text == " ") return true
-        if (!AutoSpace.hugsPreviousWord(text)) return false
-
-        ic.deleteSurroundingText(1, 0)
-        ic.commitText(text, 1)
-        if (AutoSpace.deservesFollowingSpace(text, charBeforeCursor(offset = 1))) {
-            insertProvisionalSpace()
-        }
-        afterWordCommitted()
-        return true
+        // Trust the field, not the flag: the cursor may have moved, or the app may have
+        // rewritten the text underneath us.
+        return charBeforeCursor(offset = 0) == ' '
     }
 
     /** The character [offset] positions back from the cursor, or null if there is none. */
@@ -355,6 +357,10 @@ class T9ImeService : InputMethodService() {
         val before = currentInputConnection?.getTextBeforeCursor(offset + 1, 0) ?: return null
         return before.getOrNull(before.length - 1 - offset)
     }
+
+    /** Enough of the text before the cursor to recognise an abbreviation or an ellipsis. */
+    private fun textBeforeCursor(): CharSequence =
+        currentInputConnection?.getTextBeforeCursor(CONTEXT_CHARS, 0) ?: ""
 
     /**
      * Switch surface (T9 ↔ symbol pages). The word in progress is committed first:
@@ -369,21 +375,53 @@ class T9ImeService : InputMethodService() {
 
     private fun onSpace() {
         val ic = currentInputConnection ?: return
-        if (consumedByProvisionalSpace(" ")) return
+        if (state.isEmpty() && swallowsExplicitSpace()) return
         if (!state.isEmpty()) commitCurrentWord()
         ic.commitText(" ", 1)
         afterWordCommitted()
     }
 
-    private fun onInsert(text: String) {
+    /**
+     * Insert literal text, applying the Italian spacing rules around it.
+     *
+     * The order matters: the word in progress is committed first (so what precedes is
+     * final), then a provisional space is taken back if the symbol hugs the word, then
+     * an opening bracket gets its space *before*, and only at the end does a phrase
+     * ending earn a space after.
+     */
+    private fun onInsert(rawText: String) {
         val ic = currentInputConnection ?: return
-        if (consumedByProvisionalSpace(text)) return
         if (!state.isEmpty()) commitCurrentWord()
-        ic.commitText(text, 1)
-        // A full stop is where one sentence ends and the next — capitalised — begins.
-        if (AutoSpace.deservesFollowingSpace(text, charBeforeCursor(offset = 1))) {
-            insertProvisionalSpace()
+
+        if (!fieldAllows.autoSpace) {
+            provisionalSpace = false
+            ic.commitText(rawText, 1)
+            afterWordCommitted()
+            return
         }
+
+        // The symbol the *rules* reason about. Only the straight double quote differs
+        // from what is typed: it both opens and closes, so its role is read from the
+        // text and stands in for it here — while the field still gets the plain `"`.
+        val symbol = if (rawText != "\"") rawText
+        else if (AutoSpace.straightQuoteCloses(charBeforeCursor(offset = 0))) "”" else "“"
+
+        // Take back our own space when the symbol belongs against the previous word.
+        if (provisionalSpace && AutoSpace.hugsPreviousWord(symbol) &&
+            charBeforeCursor(offset = 0) == ' '
+        ) {
+            ic.deleteSurroundingText(1, 0)
+        }
+        provisionalSpace = false
+
+        val before = textBeforeCursor()
+        if (AutoSpace.deservesPrecedingSpace(symbol, before.lastOrNull())) {
+            ic.commitText(" ", 1)
+        }
+
+        ic.commitText(rawText, 1)
+
+        if (AutoSpace.deservesFollowingSpace(symbol, before)) insertProvisionalSpace()
         afterWordCommitted()
     }
 
@@ -472,14 +510,37 @@ class T9ImeService : InputMethodService() {
         if (state.chooseLetter(letter)) render()
     }
 
+    /**
+     * Backspace, with one extra job: **undoing the keyboard's last automatic decision**.
+     *
+     * If a capital is armed and nothing has been typed against it yet, the capital is
+     * what the user is objecting to — so backspace disarms it instead of deleting a
+     * character. Writing a lowercase word after a full stop takes one tap, not a
+     * detour through `⇧`. An automatic space needs no special case: it is the last
+     * character, so an ordinary delete already removes exactly it.
+     */
     private fun onBackspace() {
         val ic = currentInputConnection ?: return
+
+        // Undo the keyboard's last decision as well as the last character. A backspace
+        // straight after an automatic capital means "not that capital" — but it must
+        // still delete something, or the press would look like it did nothing at all.
+        // The automatic space needs no special case: it *is* the last character.
+        val undoingAutoCapital = state.isEmpty() && shiftIsAutomatic && shift != ShiftState.OFF
+        if (undoingAutoCapital) {
+            shiftIsAutomatic = false
+            shiftOverridden = true // and do not re-arm it a moment later
+            setShift(ShiftState.OFF)
+        }
+
         provisionalSpace = false // whatever is being deleted, it is not ours to undo twice
         if (state.backspace()) {
             render()
         } else {
             ic.deleteSurroundingText(1, 0)
-            updateAutoShift() // deleting back past a full stop restores the capital
+            // Deleting back past a full stop restores the capital — unless the user has
+            // just said they do not want it.
+            if (!undoingAutoCapital) updateAutoShift()
         }
     }
 
@@ -517,7 +578,7 @@ class T9ImeService : InputMethodService() {
 
     private fun onPickCandidate(candidate: Candidate) {
         val ic = currentInputConnection ?: return
-        ic.setComposingText(shift.apply(candidate.word), 1)
+        ic.setComposingText(shift.apply(ProperNouns.display(candidate.word)), 1)
         ic.finishComposingText()
         learn(candidate.word)
         setShift(shift.afterCommit())
@@ -548,7 +609,12 @@ class T9ImeService : InputMethodService() {
         } else {
             keyboardView?.setColumnFavourites(favourites)
         }
-        keyboardView?.setSuggestions(candidates)
+        // Shown as they will be written: a suggestion reading "roma" that lands as "Roma"
+        // makes the keyboard look like it changed its mind.
+        keyboardView?.setSuggestions(
+            if (properNounsActive()) candidates.map { it.copy(word = ProperNouns.display(it.word)) }
+            else candidates
+        )
         renderShift()
 
         val preview = currentPreview()
@@ -573,12 +639,24 @@ class T9ImeService : InputMethodService() {
         // dictionary stay lowercase, so learning and lookups are unaffected by shift.
         shift.apply(previewWord())
 
-    /** The preview before capitalisation — one letter per pressed digit. */
-    private fun previewWord(): String = when {
-        state.isForcing() -> state.forcedText()
-        else -> candidates.firstOrNull { !it.fuzzy }?.word
-            ?: state.defaultLetters() // letters, never raw digits
+    /**
+     * The preview before the shift state is applied — one letter per pressed digit.
+     *
+     * A proper noun is capitalised here rather than by shift: "Roma" is written with a
+     * capital wherever it falls in a sentence, and that is a property of the word, not
+     * of where the cursor happens to be.
+     */
+    private fun previewWord(): String {
+        val word = when {
+            state.isForcing() -> state.forcedText()
+            else -> candidates.firstOrNull { !it.fuzzy }?.word
+                ?: state.defaultLetters() // letters, never raw digits
+        }
+        return if (properNounsActive()) ProperNouns.display(word) else word
     }
+
+    private fun properNounsActive(): Boolean =
+        settings.autoCapitalise && fieldAllows.autoCapitalise
 
     private fun commitCurrentWord() {
         val ic = currentInputConnection ?: return
@@ -616,5 +694,8 @@ class T9ImeService : InputMethodService() {
     private companion object {
         /** How far back to look for the start of a word. Longer than any word. */
         const val WORD_SCAN_CHARS = 64
+
+        /** Enough context to recognise an abbreviation or an ellipsis before the cursor. */
+        const val CONTEXT_CHARS = 24
     }
 }
