@@ -2,13 +2,16 @@ package com.daux.t9keyboard.ui
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Rect
 import android.os.Build
 import android.view.View
 import android.view.WindowInsets
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import com.daux.t9keyboard.engine.Candidate
 import com.daux.t9keyboard.input.ShiftState
 import com.daux.t9keyboard.model.KeyAction
+import com.daux.t9keyboard.model.KeySpec
 import com.daux.t9keyboard.model.KeyboardMode
 import com.daux.t9keyboard.model.SymbolLayout
 
@@ -18,7 +21,8 @@ import com.daux.t9keyboard.model.SymbolLayout
  * ([GridKeyboardView], used by the symbol pages and, later, by QWERTY).
  *
  * Owns what is common to every mode: the dark background, the navigation-bar inset
- * (targetSdk 35 is edge-to-edge) and the keyboard's overall height.
+ * (targetSdk 35 is edge-to-edge), the keyboard's overall height, and the long-press
+ * panel that floats above the keys.
  */
 @SuppressLint("ViewConstructor")
 class KeyboardView(
@@ -27,13 +31,25 @@ class KeyboardView(
     onPickCandidate: (Candidate) -> Unit,
     onPickLetter: (Char) -> Unit,
     onPickSymbol: (String) -> Unit,
-    onEditSymbol: (Int) -> Unit
-) : LinearLayout(context) {
+    onEditSymbol: (Int) -> Unit,
+    private val keyAlternates: (KeySpec) -> List<KeySpec>
+) : FrameLayout(context), KeyViewFactory.PopupHost {
 
-    private val keys = KeyViewFactory(context, onKey)
+    private val keys = KeyViewFactory(context, onKey, this)
     private val suggestionBar = SuggestionBarView(context, onPickCandidate)
     private val t9Body = T9BodyView(context, keys, onPickLetter, onPickSymbol, onEditSymbol)
     private val gridBody = GridKeyboardView(context, keys)
+
+    /**
+     * The keyboard proper. It is a child rather than this view itself so the popup can
+     * be a sibling drawn on top of it, without a `PopupWindow`.
+     */
+    private val content = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+
+    private val popup = KeyPopupView(context)
+
+    /** The key the popup belongs to; non-null exactly while the popup is showing. */
+    private var popupAnchor: View? = null
 
     private var mode = KeyboardMode.T9
 
@@ -44,18 +60,24 @@ class KeyboardView(
     private var navBottomPx = 0
 
     init {
-        orientation = VERTICAL
         setBackgroundColor(KeyboardTheme.BG)
         fitsSystemWindows = false
         applyBottomPadding()
 
-        addView(suggestionBar, LayoutParams(LayoutParams.MATCH_PARENT, dp(BAR_DP)))
-        addView(t9Body, bodyParams())
-        addView(gridBody, bodyParams())
+        content.addView(
+            suggestionBar,
+            LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(BAR_DP))
+        )
+        content.addView(t9Body, bodyParams())
+        content.addView(gridBody, bodyParams())
+
+        addView(content, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+        addView(popup, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT))
         showMode(KeyboardMode.T9)
     }
 
-    private fun bodyParams() = LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f)
+    private fun bodyParams() =
+        LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f)
 
     // --- Modes ----------------------------------------------------------------
 
@@ -100,6 +122,64 @@ class KeyboardView(
 
     fun setShiftState(state: ShiftState, keysUppercase: Boolean, columnUppercase: Boolean) =
         t9Body.setShiftState(state, keysUppercase, columnUppercase)
+
+    // --- Long-press popup -----------------------------------------------------
+
+    override fun alternatesFor(spec: KeySpec): List<KeySpec> = keyAlternates(spec)
+
+    override fun showPopup(anchor: View, cells: List<KeySpec>) {
+        popup.setCells(cells)
+        popupAnchor = anchor
+        // Invisible, not gone: it must be measured before it can be placed, and it is
+        // placed in onLayout — showing it here would flash it at the top-left corner.
+        popup.visibility = View.INVISIBLE
+        requestLayout()
+    }
+
+    override fun movePopup(rawX: Float, rawY: Float) {
+        if (popupAnchor != null) popup.highlightAt(rawX, rawY)
+    }
+
+    override fun dismissPopup(rawX: Float, rawY: Float, select: Boolean): KeySpec? {
+        val chosen = if (select && popupAnchor != null) popup.selectionAt(rawX, rawY) else null
+        hidePopup()
+        return chosen
+    }
+
+    /** Close the panel unconditionally (mode change, field change). */
+    fun hidePopup() {
+        if (popupAnchor == null) return
+        popup.clearHighlight()
+        popup.visibility = View.GONE
+        popupAnchor = null
+    }
+
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+        positionPopup()
+    }
+
+    /**
+     * Centre the panel over its key and lift it clear of the finger, kept inside the
+     * keyboard: keys in the first and last columns would otherwise push a panel wider
+     * than themselves off the screen.
+     */
+    private fun positionPopup() {
+        val anchor = popupAnchor ?: return
+        if (popup.width == 0 || popup.height == 0) return
+
+        val rect = Rect(0, 0, anchor.width, anchor.height)
+        offsetDescendantRectToMyCoords(anchor, rect)
+
+        val maxX = (width - popup.width).coerceAtLeast(0)
+        val x = (rect.centerX() - popup.width / 2).coerceIn(0, maxX)
+        val y = (rect.top - popup.height - dp(2)).coerceAtLeast(0)
+
+        // Translation is relative to where the layout put it, not to the origin.
+        popup.translationX = (x - popup.left).toFloat()
+        popup.translationY = (y - popup.top).toFloat()
+        popup.visibility = View.VISIBLE
+    }
 
     // --- Insets & sizing ------------------------------------------------------
 

@@ -22,6 +22,21 @@ sealed interface KeyAction {
     /** Insert literal text such as punctuation (commits the word in progress first). */
     data class Insert(val text: String) : KeyAction
 
+    /**
+     * Insert a pair and leave the cursor **between** the two halves — what you
+     * actually want from brackets: open, type, close becomes a single gesture.
+     */
+    data class InsertPair(val open: String, val close: String) : KeyAction
+
+    /**
+     * Force [letter] as the resolution of a [digit] press — exactly what tapping the
+     * disambiguation column does, reached from a key's long-press popup instead.
+     *
+     * The digit travels with the letter because it cannot always be derived from it:
+     * accented vowels have no entry in the reverse letter→digit map.
+     */
+    data class ForceLetter(val digit: Int, val letter: Char) : KeyAction
+
     /** Switch the whole input surface to another [KeyboardMode] ("12#", "abc", "1/2"). */
     data class Mode(val target: KeyboardMode) : KeyAction
 

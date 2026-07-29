@@ -10,7 +10,7 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.11 (Fase 1 completa).
+**Allineato a:** Step 1.12 (Fase 1 completa).
 
 ## Indice
 - [Panoramica architettura](#panoramica-architettura)
@@ -23,8 +23,9 @@
 - [7. Maiuscole, accenti, emoji](#7-maiuscole-accenti-emoji)
 - [8. Cancellazione](#8-cancellazione-tap-tenuto-premuto-parole)
 - [9. Simboli preferiti](#9-simboli-preferiti-nella-colonna)
-- [10. Impostazioni e persistenza](#10-impostazioni-e-persistenza)
-- [11. Copertura dei test](#11-copertura-dei-test)
+- [10. Popup a pressione prolungata](#10-popup-a-pressione-prolungata)
+- [11. Impostazioni e persistenza](#11-impostazioni-e-persistenza)
+- [12. Copertura dei test](#12-copertura-dei-test)
 - [Cosa non c'è ancora](#cosa-non-cè-ancora)
 
 ---
@@ -153,8 +154,8 @@ lista nella barra suggerimenti.
 | `0` / `space` | Conferma la parola in composizione (e la impara) + inserisce spazio |
 | `⌫` | Pop dell'ultima coppia (cifra, lettera); a sequenza vuota cancella nel campo. Tenuto premuto: vedi §8 |
 | `⏎` | Conferma la parola ed esegue l'azione dell'editor (search/done/invio) |
-| `,` `.` | Conferma la parola e inserisce il segno |
-| `1` | Attualmente conferma soltanto — il pannello punteggiatura è pianificato |
+| `,` `.` | Conferma la parola e inserisce il segno (tenuti premuti: vedi §10) |
+| `1` | Conferma la parola e inserisce `@` — ciò che il tasto mostra; il resto è nel suo popup (§10) |
 | `⇧` | Cicla le maiuscole (§7) |
 | `12#` / `☺` | Cambia superficie |
 
@@ -212,7 +213,8 @@ dopo quel momento: la ricostruzione avviene quindi in `onLayout`, che copre entr
 ordini e la riapertura di una vista riusata (`onSizeChanged` non basterebbe, non scatta a
 dimensione invariata).
 
-**A riposo** la colonna non è spazio morto: mostra i simboli preferiti (§9).
+**A riposo** la colonna non è spazio morto: mostra i simboli preferiti (§9). Tenendo premuto un
+tasto lettera si ottiene la stessa scelta della colonna senza spostare il pollice (§10).
 
 ---
 
@@ -333,7 +335,9 @@ Non entrano in `letters` di proposito: non devono toccare le etichette dei tasti
 si cerca e si impara come qualsiasi altra parola.
 
 **Perché la colonna:** la colonna *è* già il meccanismo "quale lettera esattamente", è sempre
-visibile e non aggiunge UI né conflitti col long-press dei preferiti.
+visibile e non aggiunge UI né conflitti col long-press dei preferiti. Dallo Step 1.12 le
+accentate si raggiungono **anche** dal popup del tasto (§10), che però fa la stessa,
+identica operazione — non è una seconda strada con regole proprie.
 
 ### Emoji — `EmojiLayout`
 
@@ -385,7 +389,85 @@ colonna.
 
 ---
 
-## 10. Impostazioni e persistenza
+## 10. Popup a pressione prolungata
+
+Tenendo premuto un tasto per **400 ms** si apre un pannello di alternative; si scorre il dito
+e si rilascia sulla scelta (rilasciando fuori non succede nulla). Un tocco normale resta
+esattamente quello che era.
+
+### Cosa offre ciascun tasto
+
+| Tasto | Popup |
+|-------|-------|
+| `2`–`9` | Le lettere del tasto, **accenti inclusi**, poi la **cifra** (`d e f è é` · `3`) |
+| `1` | `@` `()` `/` `%` `+` `=` `€` · `1` — ciò che le altre superfici rendono costoso |
+| `1` in campo email/URL | `@` `.com` `.it` `.net` `.org` `/` · `1` |
+| `,` | `,` `;` `:` `"` · `0` |
+| `.` | I 7 **simboli preferiti**, gli stessi della colonna |
+| `⌫`, `space`, `⇧`, `⏎` | Nessuno |
+
+### Le due semantiche
+
+Un popup non fa sempre la stessa cosa, e non potrebbe: sui tasti 2–9 le lettere le decide il
+dizionario, quindi infilare una `à` grezza a metà composizione romperebbe l'invariante di
+`ComposeState` — il campo mostrerebbe una cosa e la sequenza ne conterrebbe un'altra.
+
+- **Celle lettera → `KeyAction.ForceLetter(digit, letter)`**: forzano quella lettera, cioè
+  **la stessa operazione del tap sulla colonna**. Il popup è una scorciatoia posizionale della
+  colonna, non un secondo meccanismo con regole proprie. Le lettere vengono da
+  `T9Keypad.columnLetters`, la fonte di verità che la colonna già usa, quindi i due **non
+  possono divergere**. La cifra viaggia dentro l'azione perché non è sempre derivabile dalla
+  lettera: le vocali accentate non stanno nella mappa inversa lettera→cifra.
+- **Tutto il resto → `Insert`** (o `InsertPair`): conferma la parola in corso e scrive.
+
+**Un dettaglio di correttezza che non si vede ma conta.** `chooseLetter` risolve la *prima*
+posizione non ancora risolta. Forzare una lettera dal popup dopo aver digitato "cas" in
+predittivo avrebbe quindi risolto la posizione 0 con quella lettera, trasformando la parola in
+tutt'altro. Prima di appendere, `resolvePendingFromPreview()` chiude le posizioni ancora
+aperte **con ciò che il campo sta già mostrando**: la parola non cambia sotto le mani
+dell'utente.
+
+### Le cifre
+
+Ogni tasto numerico offre la **propria cifra come ultima cella**, resa in teal come il
+numerino d'angolo che rappresenta. Non è un abbellimento: il tastierino **non ha tasti 0–9**
+(i numeri sulle facce sono etichette), quindi prima dello Step 1.12 un numero si poteva
+scrivere solo passando da `12#`.
+
+Lo `0` sta sul popup della **virgola**, che infatti ora mostra `0` nell'angolo. In ITU-T E.161
+la sua casa sarebbe la barra spazio, ma quel long-press è **riservato allo scorrimento del
+cursore** (Fase 3), che vale più di un percorso più breve per una cifra.
+
+### Coppie
+
+La cella `()` inserisce **entrambe le parentesi con il cursore in mezzo**
+(`KeyAction.InsertPair`): apri, scrivi, chiudi in un gesto solo. Implementata con
+`commitText(open, 1)` + `commitText(close, 0)` — una posizione non positiva è misurata
+dall'inizio del testo inserito, quindi il cursore atterra in mezzo senza alcun calcolo di
+posizione assoluta.
+
+### Come è costruito
+
+- **`LongPressKeys`** — quali celle per quale tasto: dati puri, quindi testabili. I preferiti
+  e il tipo di campo arrivano dall'esterno, non vengono letti qui.
+- **`KeyPopupView`** — il pannello. **Non riceve mai eventi propri:** il dito appartiene al
+  tasto che lo ha aperto, che gli inoltra le coordinate finché non si solleva. È ciò che rende
+  il gesto uno solo, ed è il motivo per cui può essere una normale vista figlia invece di un
+  `PopupWindow`: nessun token di finestra, niente che possa sopravvivere alla tastiera.
+- **`KeyViewFactory.PopupHost`** — il gesto. Un tasto senza alternative è lasciato del tutto
+  in pace: il listener declina al `DOWN` e il click normale funziona come prima. Quando invece
+  prende il controllo, un rilascio senza pannello aperto chiama comunque `performClick()`.
+- **`KeyboardView`** — è un `FrameLayout` proprio per questo: il corpo tastiera è un figlio, e
+  il popup un fratello disegnato sopra, centrato sul tasto e **rientrato ai bordi** (un tasto
+  di prima colonna spingerebbe fuori schermo un pannello più largo di sé).
+
+Le celle lettera seguono le maiuscole come tasti e colonna; la cella cifra no. Come sempre
+solo le *etichette* sono maiuscole: l'azione porta la lettera minuscola, così composizione e
+dizionario restano indifferenti allo shift.
+
+---
+
+## 11. Impostazioni e persistenza
 
 Due meccanismi, scelti in base a ciò che devono reggere:
 
@@ -398,7 +480,7 @@ Entrambi restano nella sandbox dell'app.
 
 ---
 
-## 11. Copertura dei test
+## 12. Copertura dei test
 
 Unit test JVM (nessun emulatore necessario): `./gradlew :app:testDebugUnitTest`.
 
@@ -413,6 +495,7 @@ Unit test JVM (nessun emulatore necessario): `./gradlew :app:testDebugUnitTest`.
 | `ShiftStateTest` | Ciclo, `apply`, `afterCommit`, `appliesToNext` |
 | `FavouriteSymbolsTest` | Normalizzazione, sostituzione, scambio, "ogni default è raggiungibile" |
 | `SymbolLayoutTest` | Fra cui "un tasto inserisce esattamente ciò che mostra" |
+| `LongPressKeysTest` | Contenuto dei popup, entrambe le semantiche, variante email; e **"ogni cifra 0–9 è raggiungibile da esattamente un popup"**, che impedisce sia il ritorno dei numeri intypabili sia una cifra offerta da due posti |
 
 Le verifiche su emulatore sono documentate step per step in `DEVELOPMENT.md`, con gli
 screenshot in `docs/screenshots/`.
@@ -423,16 +506,13 @@ screenshot in `docs/screenshots/`.
 
 Riferimento completo e ordinato: `DEVELOPMENT.md` (Fasi 2 e 3). In sintesi:
 
-- **Popup long-press sul tasto** per accentate e caratteri speciali, stile Gboard — **prossimo
-  step (1.12)**, prima della Fase 2. Include: due popup di simboli con ruoli distinti — `.`
-  mostra i preferiti (raggiungibili così anche a metà parola, cosa che la colonna non
-  permette) e `1` ciò che oggi costa più di un gesto (`@ () % + = € $`), con variante
-  `.com/.it` nei campi email/URL — e **le cifre nel popup del proprio tasto**
-  (`0` sullo spazio), che oggi sono digitabili solo passando da `12#`.
-- **Bilingue IT+EN** (Fase 2): manca solo `EnglishDictionaryEngine` + corpus, il merge esiste.
+- **Bilingue IT+EN** (Fase 2, prossimo): manca solo `EnglishDictionaryEngine` + corpus, il
+  merge esiste.
+- **Scorrimento del cursore trascinando sulla barra spazio**: il long-press dello spazio è
+  tenuto libero apposta (vedi §10).
 - **QWERTY come layout alternativo**: `KeyGrid` e vista sono già pronti, manca la griglia.
 - Impostazioni: posizione colonna, altezza tastiera, dimensione candidati, numero di preferiti.
 - Maiuscola automatica a inizio frase (`getCursorCapsMode`).
 - Schermata di gestione del dizionario personale e rimozione di una parola imparata
   (il DAO ha già `delete(word)`).
-- Tasto `1` → pannello punteggiatura; microfono (`KeyAction.Mic`, oggi no-op e fuori layout).
+- Microfono (`KeyAction.Mic`, oggi no-op e fuori dal layout attuale).

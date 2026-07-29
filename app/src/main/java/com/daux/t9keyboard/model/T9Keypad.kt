@@ -128,7 +128,9 @@ object T9Layout {
      */
     val bottomRow: List<KeySpec> = listOf(
         KeySpec("12#", null, isFunction = true, KeyAction.Mode(KeyboardMode.SYMBOLS_1), weight = 0.9f),
-        KeySpec(",", null, isFunction = false, KeyAction.Insert(","), weight = 1f),
+        // Carries the corner "0" because its popup is where the zero lives (see
+        // LongPressKeys.comma): the space bar's long-press is reserved for the cursor.
+        KeySpec(",", "0", isFunction = false, KeyAction.Insert(","), weight = 1f),
         KeySpec("space", null, isFunction = false, KeyAction.Space, weight = 3.3f),
         KeySpec(".", null, isFunction = false, KeyAction.Insert("."), weight = 1f),
         KeySpec("⏎", null, isFunction = true, KeyAction.Enter, weight = 1.2f)

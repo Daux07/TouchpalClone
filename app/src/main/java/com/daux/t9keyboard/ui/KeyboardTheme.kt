@@ -22,6 +22,8 @@ object KeyboardTheme {
     const val COLUMN_CELL = 0xFF66707D.toInt()         // disambiguation cell (lighter, to stand out)
     const val COLUMN_CELL_PRESSED = 0xFF7B8593.toInt()
 
+    const val POPUP_BG = 0xFF454B57.toInt()    // long-press panel: lighter, floats over the keys
+
     const val TEXT = 0xFFF2F4F7.toInt()        // primary text (letters)
     const val TEXT_DIM = 0xFFAEB4BF.toInt()    // secondary text
     const val ACCENT = 0xFF35C5D0.toInt()      // teal accent (numbers, icons, 1st suggestion)

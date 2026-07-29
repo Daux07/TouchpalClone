@@ -27,10 +27,10 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
-- **Fase in corso:** Fase 1 — MVP **completa**. Ultimi step: 1.7 (fuzzy) e 1.8 (simboli).
-- **Ultimo step completato:** Step 1.11 — **cancella con pressione prolungata** (accelera e passa alle parole intere) e **maiuscole visibili** su tasti e colonna. Entrambi da feedback della prima prova reale.
-- **Prossimo step:** **Step 1.12 — popup long-press sul tasto** (stile tastiera Google) per accentate e caratteri speciali. Deciso dall'utente come **prerequisito alla Fase 2**: si fa prima del bilingue. Piano dettagliato nella sezione "Step 1.12 — piano" qui sotto.
-- **Dopo:** **Fase 2** (bilingue IT+EN), poi **Fase 3** (impostazioni/ergonomia, dove rientra la **QWERTY come layout alternativo**, richiesta dall'utente). Il test reale sullo smartphone continua in parallelo. APK: `./gradlew :app:assembleDebug` → `app/build/outputs/apk/debug/app-debug.apk`.
+- **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
+- **Ultimo step completato:** Step 1.12 — **popup long-press** sui tasti (accentate, simboli, e **le cifre**, che prima erano digitabili solo da `12#`).
+- **Prossimo step:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
+- **Dopo:** **Fase 3** (impostazioni/ergonomia, dove rientrano la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente). Il test reale sullo smartphone continua in parallelo. APK: `./gradlew :app:assembleDebug` → `app/build/outputs/apk/debug/app-debug.apk`.
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
 
 > ℹ️ **Multi-tap rimosso**: dallo Step 1.2 l'inserimento è predittivo (digiti la
@@ -103,8 +103,8 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
         binario indicizzato resta un'ottimizzazione futura (non necessaria a questa dimensione).
 - [x] Test unitari: `T9Keypad.sequenceFor`, `ItalianDictionaryEngine`, `ComposeState`,
       `LearnedWordsEngine`, `MergingDictionaryEngine`, `FuzzyDictionaryEngine`, `SymbolLayout`
-- [ ] **Step 1.12 — popup long-press sul tasto** (accentate e caratteri speciali, stile
-      Gboard) — piano dettagliato nella sezione "Step 1.12 — piano" più sopra
+- [x] **Step 1.12 — popup long-press sul tasto** (accentate, simboli e cifre, stile Gboard)
+      — decisioni e razionale nella sezione "Step 1.12 — piano" più sopra
 - [x] **Step 1.8 — pagine simboli/numeri in stile QWERTY** dietro `12#`, su griglia riusabile
 - [x] **Step 1.7 — candidati "fuzzy" (tolleranti agli errori)** (idea utente)
       Oltre ai match esatti, proporre parole a **distanza di modifica 1** dalla sequenza
@@ -133,14 +133,16 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
       `SuggestionBarView.textSizeSp`)
 - [x] Vocali accentate (nella colonna) — anticipate allo Step 1.10
 - [x] Pannello emoji base — anticipato allo Step 1.10
-- [→] Long-press tasto 1 → caratteri di punteggiatura — **spostato allo Step 1.12**
-- [→] Popup long-press sul tasto con lettere+accentate — **spostato allo Step 1.12**
-      (deciso dall'utente dopo il test reale: si fa prima della Fase 2)
+- [x] Long-press tasto 1 → simboli costosi altrove — **fatto nello Step 1.12**
+- [x] Popup long-press sul tasto con lettere+accentate — **fatto nello Step 1.12**
+- [ ] **Scorrimento del cursore trascinando sulla barra spazio** (idea utente): con la
+      scrittura predittiva riposizionare il cursore è utile. Occupa il long-press dello
+      spazio, oggi libero proprio per questo (lo `0` è già sulla virgola)
 - [ ] Maiuscola automatica a inizio frase (`getCursorCapsMode`)
 - [x] Modalità numerica/simboli dedicata (`12#`, due pagine QWERTY) — anticipata allo Step 1.8
 - [ ] **QWERTY come layout alternativo alla T9** (idea utente): un nuovo `KeyGrid` +
       voce in `KeyboardMode`; vista e plumbing già pronti dallo Step 1.8
-- [→] Vocali accentate via long-press — **spostato allo Step 1.12**
+- [x] Vocali accentate via long-press — **fatto nello Step 1.12**
 - [ ] Schermata gestione dizionario personale (lista + cancella)
 - [ ] Long-press su candidato → rimuovi dal dizionario
 - [ ] Opzione "salvataggio sicuro"
@@ -149,10 +151,10 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 
 ---
 
-## 🧭 Step 1.12 — piano: popup long-press sul tasto (stile Gboard)
+## 🧭 Step 1.12 — decisioni di piano: popup long-press sul tasto (stile Gboard)
 
-> **Stato:** pianificato, non ancora implementato. Da fare **prima della Fase 2**
-> (decisione dell'utente). Voce di Fase 1: `- [ ] Step 1.12`.
+> **Stato: implementato** (vedi la voce di log in fondo). Questa sezione resta come
+> registro delle **decisioni e del perché**, che il log riassume soltanto.
 
 **Obiettivo.** Tenendo premuto un tasto compare un popup con i caratteri alternativi
 (accentate e simboli), come sulla tastiera Google: si scorre il dito e si rilascia sulla
@@ -373,6 +375,57 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-29 — Step 1.12: popup long-press (accentate, simboli e **cifre**)
+**Fatto:** tenendo premuto un tasto si apre un pannello di alternative; si scorre il dito e
+si rilascia sulla scelta. Le decisioni e il loro perché stanno nella sezione "Step 1.12 —
+decisioni di piano" più sopra; qui cosa è stato costruito.
+
+**Due semantiche in un solo meccanismo.** Sui tasti 2–9 una cella lettera **forza** quella
+lettera (`KeyAction.ForceLetter`) — la stessa operazione del tap sulla colonna, quindi il
+popup è una sua scorciatoia e non un secondo modello da imparare; tutto il resto
+**inserisce**. Le lettere vengono da `T9Keypad.columnLetters`, la fonte di verità che la
+colonna già usa: popup e colonna non possono divergere.
+
+**Le cifre.** Ogni tasto numerico offre la propria cifra come **ultima** cella, in teal come
+il numerino d'angolo che rappresenta. Chiude un buco reale: il tastierino non ha tasti 0–9,
+quindi prima un numero si scriveva solo passando da `12#`. Lo `0` sta sul popup della
+virgola — la barra spazio sarebbe la sua casa in E.161, ma quel long-press è **riservato allo
+scorrimento del cursore** (Fase 3) — e il tasto `,` ora mostra `0` nell'angolo come gli altri.
+
+**Correttezza, il punto meno ovvio:** forzare una lettera dal popup quando restano posizioni
+non risolte risolverebbe la *prima* di esse, non l'ultima, trasformando la parola in
+tutt'altro. `resolvePendingFromPreview()` chiude prima le posizioni aperte **con ciò che il
+campo sta già mostrando**, così la parola non cambia sotto le mani dell'utente.
+
+**Perché una vista figlia e non un `PopupWindow`:** il pannello non riceve mai eventi propri
+— il dito appartiene al tasto, che gli inoltra le coordinate — quindi non serve una finestra:
+niente token, niente `dismiss()` dimenticata che sopravvive alla tastiera. `KeyboardView` è
+diventata un `FrameLayout` con il corpo tastiera come figlio e il popup come fratello sopra.
+
+**Altro:** `KeyAction.InsertPair` inserisce `()` col **cursore in mezzo**
+(`commitText(close, 0)`: posizione non positiva = misurata dall'inizio del testo inserito,
+quindi nessun `setSelection`); il popup di `1` diventa `@ .com .it .net .org /` nei campi
+email/URL (`inputType` letto in `onStartInputView`); il tap su `1` ora **scrive `@`**, ciò che
+il tasto mostra; le celle lettera seguono le maiuscole, la cella cifra no.
+
+**File:** `model/LongPressKeys.kt`, `ui/KeyPopupView.kt` (nuovi), `model/KeyAction.kt`
+(`ForceLetter`, `InsertPair`), `model/T9Keypad.kt` (`0` sulla virgola), `ui/KeyViewFactory.kt`
+(`PopupHost` + gesto), `ui/KeyboardView.kt` (FrameLayout + posizionamento), `ui/KeyboardTheme.kt`
+(`POPUP_BG`), `service/T9ImeService.kt`; test `model/LongPressKeysTest.kt` (11 casi, fra cui
+**"ogni cifra 0–9 è raggiungibile da esattamente un popup"**, che impedisce sia il ritorno del
+buco sia una cifra offerta da due posti).
+
+**Verificato su emulatore (Pixel, Android 17):** test verdi; `3` → `d e f è é 3` con la cella
+sotto il dito evidenziata e `è` inserita coerentemente; `1` → `@ () / % + = € 1`, e in un
+campo email → `@ .com .it .net .org / 1`; `,` → `, ; : " 0`; `.` → i preferiti, gli stessi
+della colonna; **"alle 8" scritto senza mai passare da `12#`**; `()` seguito da una lettera dà
+`(a)`; con `⇧` le celle sono `A B C À` e la cifra resta teal; rilascio sul tasto = nessun
+inserimento. Screenshot `docs/screenshots/step-1.12-*.png`.
+
+**Non incluso:** conteggio di frequenza dei simboli (valutato e scartato: `12#` dà già tutti i
+simboli in un tap e il popup di `.` copre quelli scelti a mano); popup sulle pagine simboli
+oltre a `,` e `.`.
 
 ### 2026-07-29 — Step 1.11: cancella tenendo premuto + maiuscole visibili (feedback dalla prima prova reale)
 Due riscontri dell'utente dopo la prima prova sul campo.

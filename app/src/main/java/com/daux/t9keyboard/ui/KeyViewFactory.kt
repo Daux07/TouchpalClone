@@ -23,8 +23,26 @@ import com.daux.t9keyboard.model.KeySpec
  */
 class KeyViewFactory(
     private val context: Context,
-    private val onKey: (KeyAction) -> Unit
+    private val onKey: (KeyAction) -> Unit,
+    private val popups: PopupHost? = null
 ) {
+
+    /**
+     * Whoever can display a long-press panel above a key — implemented by the root
+     * keyboard view, which is the only thing that knows where the key sits.
+     *
+     * [alternatesFor] is asked at press time, not when the key is built, because the
+     * answer changes with the state: the favourite symbols, the capitalisation, and
+     * whether the field is an email address all affect it.
+     */
+    interface PopupHost {
+        fun alternatesFor(spec: KeySpec): List<KeySpec>
+        fun showPopup(anchor: View, cells: List<KeySpec>)
+        fun movePopup(rawX: Float, rawY: Float)
+
+        /** Closes the panel; returns the cell under the finger when [select]. */
+        fun dismissPopup(rawX: Float, rawY: Float, select: Boolean): KeySpec?
+    }
 
     /** A horizontal row; each key's width comes from its [KeySpec.weight]. */
     fun row(keys: List<KeySpec>): View {
@@ -49,9 +67,11 @@ class KeyViewFactory(
             isClickable = true
             isFocusable = true
             if (spec.action is KeyAction.Backspace) {
+                // Backspace owns its touch stream (hold to repeat), so it gets no popup.
                 attachHoldToDelete(this)
             } else {
                 setOnClickListener { onKey(spec.action) }
+                attachLongPressPopup(this, spec)
             }
         }
 
@@ -122,6 +142,68 @@ class KeyViewFactory(
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                     v.isPressed = false
                     handler.removeCallbacks(tick)
+                    true
+                }
+
+                else -> false
+            }
+        }
+    }
+
+    /**
+     * Hold a key to open its alternatives, slide onto one, release to pick it — the
+     * gesture everyone already knows from Gboard.
+     *
+     * The whole thing is one touch stream, which is what lets sliding work. A key with
+     * no alternatives is left completely alone: the listener declines the gesture at
+     * `ACTION_DOWN` and the ordinary click listener handles it exactly as before. When
+     * we do take over, a release without an open panel still fires [View.performClick],
+     * so a plain tap behaves the same and accessibility keeps working.
+     */
+    @SuppressLint("ClickableViewAccessibility")
+    private fun attachLongPressPopup(view: View, spec: KeySpec) {
+        val host = popups ?: return
+        val handler = Handler(Looper.getMainLooper())
+        var handling = false
+        var open = false
+        var cells: List<KeySpec> = emptyList()
+
+        val openPopup = Runnable {
+            open = true
+            host.showPopup(view, cells)
+        }
+
+        view.setOnTouchListener { v, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    cells = host.alternatesFor(spec)
+                    handling = cells.isNotEmpty()
+                    if (handling) {
+                        v.isPressed = true
+                        open = false
+                        handler.postDelayed(openPopup, HOLD_DELAY_MS)
+                    }
+                    handling
+                }
+
+                MotionEvent.ACTION_MOVE -> {
+                    if (handling && open) host.movePopup(event.rawX, event.rawY)
+                    handling
+                }
+
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    if (!handling) return@setOnTouchListener false
+                    val cancelled = event.actionMasked == MotionEvent.ACTION_CANCEL
+                    v.isPressed = false
+                    handler.removeCallbacks(openPopup)
+                    if (open) {
+                        host.dismissPopup(event.rawX, event.rawY, select = !cancelled)
+                            ?.let { onKey(it.action) }
+                    } else if (!cancelled) {
+                        v.performClick()
+                    }
+                    handling = false
+                    open = false
                     true
                 }
 

@@ -1,6 +1,7 @@
 package com.daux.t9keyboard.service
 
 import android.inputmethodservice.InputMethodService
+import android.text.InputType
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import com.daux.t9keyboard.engine.Candidate
@@ -15,7 +16,9 @@ import com.daux.t9keyboard.input.ShiftState
 import com.daux.t9keyboard.learning.RoomLearnedWordsStore
 import com.daux.t9keyboard.model.FavouriteSymbols
 import com.daux.t9keyboard.model.KeyAction
+import com.daux.t9keyboard.model.KeySpec
 import com.daux.t9keyboard.model.KeyboardMode
+import com.daux.t9keyboard.model.LongPressKeys
 import com.daux.t9keyboard.model.T9Keypad
 import com.daux.t9keyboard.settings.KeyboardSettings
 import com.daux.t9keyboard.ui.KeyboardView
@@ -62,6 +65,9 @@ class T9ImeService : InputMethodService() {
 
     private var shift = ShiftState.OFF
 
+    /** Email/URL field: the `1` key's popup offers address parts instead of symbols. */
+    private var emailField = false
+
     override fun onCreate() {
         super.onCreate()
         settings = KeyboardSettings(this)
@@ -88,7 +94,8 @@ class T9ImeService : InputMethodService() {
             onPickCandidate = ::onPickCandidate,
             onPickLetter = ::onPickLetter,
             onPickSymbol = ::onInsert,
-            onEditSymbol = ::onEditFavourite
+            onEditSymbol = ::onEditFavourite,
+            keyAlternates = ::alternatesFor
         )
         keyboardView = view
         render()
@@ -97,7 +104,9 @@ class T9ImeService : InputMethodService() {
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
+        emailField = isAddressField(info)
         // A new field starts on letters, wherever the previous one left the keyboard.
+        keyboardView?.hidePopup()
         keyboardView?.setMode(KeyboardMode.T9)
         resetComposition()
     }
@@ -105,7 +114,77 @@ class T9ImeService : InputMethodService() {
     override fun onFinishInput() {
         super.onFinishInput()
         currentInputConnection?.finishComposingText()
+        keyboardView?.hidePopup()
         resetComposition()
+    }
+
+    /** Email address or URL field — where `.com` is wanted and nowhere else. */
+    private fun isAddressField(info: EditorInfo?): Boolean {
+        val type = info?.inputType ?: return false
+        if (type and InputType.TYPE_MASK_CLASS != InputType.TYPE_CLASS_TEXT) return false
+        return when (type and InputType.TYPE_MASK_VARIATION) {
+            InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS,
+            InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS,
+            InputType.TYPE_TEXT_VARIATION_URI -> true
+            else -> false
+        }
+    }
+
+    // --- Long-press popups ----------------------------------------------------
+
+    /**
+     * What a key offers when held. Asked at press time because the answer depends on
+     * the current state: the favourites, the field type, and the capitalisation.
+     *
+     * Only the *labels* are capitalised: the actions keep the lowercase letter, so the
+     * composition and the dictionary stay unaffected by shift, exactly as elsewhere.
+     */
+    private fun alternatesFor(spec: KeySpec): List<KeySpec> {
+        val cells = LongPressKeys.forKey(spec.action, favourites, emailField)
+        if (cells.isEmpty()) return cells
+        if (!shift.appliesToNext(atWordStart = !state.isForcing())) return cells
+        return cells.map {
+            if (it.action is KeyAction.ForceLetter) it.copy(mainLabel = it.mainLabel.uppercase())
+            else it
+        }
+    }
+
+    /**
+     * A letter picked from a key's popup: the same thing the column does, at the end
+     * of the word rather than at the column's active position.
+     *
+     * Positions still unresolved are first filled in **from what the field is already
+     * showing**, so the word does not change under the user: without this, forcing a
+     * letter after typing "cas" predictively would resolve position 0 with it and turn
+     * the word into something else entirely.
+     */
+    private fun onForceLetter(digit: Int, letter: Char) {
+        resolvePendingFromPreview()
+        state.pressDigit(digit)
+        state.chooseLetter(letter)
+        render()
+    }
+
+    private fun resolvePendingFromPreview() {
+        val shown = previewWord()
+        while (true) {
+            val pending = state.activeColumnDigit() ?: return
+            val position = state.forcedText().length
+            val fallback = T9Keypad.letters[pending]?.firstOrNull() ?: return
+            val letter = shown.getOrNull(position) ?: fallback
+            // The fallback is always a letter of its own digit, so this terminates.
+            if (!state.chooseLetter(letter) && !state.chooseLetter(fallback)) return
+        }
+    }
+
+    /** Insert a pair and leave the cursor between the halves — `()` typed in one go. */
+    private fun onInsertPair(open: String, close: String) {
+        val ic = currentInputConnection ?: return
+        if (!state.isEmpty()) commitCurrentWord()
+        ic.commitText(open, 1)
+        // A non-positive position is measured from the start of the inserted text, so
+        // the cursor lands between the two halves without any absolute arithmetic.
+        ic.commitText(close, 0)
     }
 
     /** Always show our soft keyboard, even with a hardware keyboard attached. */
@@ -125,6 +204,8 @@ class T9ImeService : InputMethodService() {
             KeyAction.DeleteWord -> onDeleteWord()
             KeyAction.Enter -> onEnter()
             is KeyAction.Insert -> onInsert(action.text)
+            is KeyAction.InsertPair -> onInsertPair(action.open, action.close)
+            is KeyAction.ForceLetter -> onForceLetter(action.digit, action.letter)
             is KeyAction.Mode -> onModeSwitch(action.target)
             KeyAction.Shift -> onShift()
             // Wired for real in Phase 3; no-op for now (present for layout fidelity).
@@ -144,6 +225,7 @@ class T9ImeService : InputMethodService() {
      */
     private fun onModeSwitch(target: KeyboardMode) {
         if (!state.isEmpty()) commitCurrentWord()
+        keyboardView?.hidePopup()
         keyboardView?.setMode(target)
         render()
     }
@@ -167,9 +249,9 @@ class T9ImeService : InputMethodService() {
                 if (!state.isEmpty()) commitCurrentWord()
                 ic.commitText(" ", 1)
             }
-            1 -> { // punctuation key: handled in Phase 3; for now just commit
-                if (!state.isEmpty()) commitCurrentWord()
-            }
+            // The key shows "@", so tapping it types "@" — the same invariant the symbol
+            // pages are held to. Everything else it offers is under its long-press.
+            1 -> onInsert("@")
             else -> { // 2–9: extend the sequence
                 state.pressDigit(n)
                 render()
@@ -327,15 +409,16 @@ class T9ImeService : InputMethodService() {
      * typing a word the dictionary doesn't know would silently turn into a similar
      * one, which is exactly what the column exists to prevent.
      */
-    private fun currentPreview(): String {
-        val word = when {
-            state.isForcing() -> state.forcedText()
-            else -> candidates.firstOrNull { !it.fuzzy }?.word
-                ?: state.defaultLetters() // letters, never raw digits
-        }
+    private fun currentPreview(): String =
         // Capitalisation is applied here, at the last moment: the composition and the
         // dictionary stay lowercase, so learning and lookups are unaffected by shift.
-        return shift.apply(word)
+        shift.apply(previewWord())
+
+    /** The preview before capitalisation — one letter per pressed digit. */
+    private fun previewWord(): String = when {
+        state.isForcing() -> state.forcedText()
+        else -> candidates.firstOrNull { !it.fuzzy }?.word
+            ?: state.defaultLetters() // letters, never raw digits
     }
 
     private fun commitCurrentWord() {
