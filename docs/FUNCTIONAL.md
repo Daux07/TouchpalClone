@@ -10,7 +10,7 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.12 (Fase 1 completa).
+**Allineato a:** Step 1.12b (Fase 1 completa).
 
 ## Indice
 - [Panoramica architettura](#panoramica-architettura)
@@ -454,6 +454,17 @@ posizione assoluta.
   tasto che lo ha aperto, che gli inoltra le coordinate finché non si solleva. È ciò che rende
   il gesto uno solo, ed è il motivo per cui può essere una normale vista figlia invece di un
   `PopupWindow`: nessun token di finestra, niente che possa sopravvivere alla tastiera.
+
+  **Oltre 5 celle va a capo** (`LongPressKeys.MAX_PER_ROW`), su righe bilanciate e centrate:
+  otto celle in fila coprivano quasi tutto lo schermo. Cinque è la soglia perché i popup più
+  frequenti (`a b c à 2`, `p q r s 7`) restano su una riga, dove il gesto è una sola spazzata.
+
+  La cella scelta è la **più vicina** al dito, non la prima che lo contiene: con due righe
+  qualsiasi tolleranza attorno a una cella invaderebbe la riga accanto, e un test di
+  contenimento risponderebbe sempre con la riga visitata per prima. La tolleranza è
+  asimmetrica — larga di lato (scorrere oltre il fondo di una riga ne prende comunque
+  l'ultima cella), stretta in basso, perché il dito che ha aperto il pannello poggia sul
+  tasto sottostante e un rilascio senza spostarsi deve significare "lascia perdere".
 - **`KeyViewFactory.PopupHost`** — il gesto. Un tasto senza alternative è lasciato del tutto
   in pace: il listener declina al `DOWN` e il click normale funziona come prima. Quando invece
   prende il controllo, un rilascio senza pannello aperto chiama comunque `performClick()`.

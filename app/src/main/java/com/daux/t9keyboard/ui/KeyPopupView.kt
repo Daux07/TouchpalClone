@@ -8,6 +8,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import com.daux.t9keyboard.model.KeySpec
 import com.daux.t9keyboard.model.LongPressKeys
+import kotlin.math.hypot
 
 /**
  * The panel shown above a key while it is held down.
@@ -42,7 +43,12 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
         cells.clear()
         highlighted = -1
         for (row in LongPressKeys.rows(specs)) {
-            val rowView = LinearLayout(context).apply { orientation = HORIZONTAL }
+            val rowView = LinearLayout(context).apply {
+                orientation = HORIZONTAL
+                // Rows can differ in width (".com" is wider than "@"): centring keeps a
+                // wrapped panel looking like a grid instead of a ragged edge.
+                gravity = Gravity.CENTER_HORIZONTAL
+            }
             for (spec in row) {
                 val cell = buildCell(spec)
                 cells += cell to spec
@@ -80,19 +86,46 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
         highlighted = index
     }
 
+    /**
+     * The cell **nearest** the finger, or -1 if it is too far to count as a choice.
+     *
+     * Nearest rather than "the first one containing the point", because the panel wraps
+     * onto two rows once it grows past [LongPressKeys.MAX_PER_ROW]: any tolerance added
+     * around a cell would then overlap the row above or below, and a containment test
+     * would always answer with whichever row it happened to visit first. Distance has no
+     * such ambiguity — a point between two rows belongs to the closer one.
+     *
+     * The tolerance is deliberately asymmetric. Sideways it is generous, so sliding past
+     * the end of a row still lands on its last cell. Downwards it is tight: the finger
+     * that opened the panel is resting on the key just below it, and a release without
+     * moving must mean "never mind", not a character chosen at random.
+     */
     private fun indexAt(rawX: Float, rawY: Float): Int {
         val location = IntArray(2)
+        var nearest = -1
+        var nearestDistance = Float.MAX_VALUE
+
         for ((index, entry) in cells.withIndex()) {
             val cell = entry.first
             cell.getLocationOnScreen(location)
-            // Vertically forgiving: the finger sits below the popup while sliding, and
-            // demanding it be inside the row would make selection feel finicky.
-            val insideX = rawX >= location[0] && rawX <= location[0] + cell.width
-            val insideY = rawY >= location[1] - dp(TOUCH_SLOP_DP) &&
-                rawY <= location[1] + cell.height + dp(TOUCH_SLOP_DP)
-            if (insideX && insideY) return index
+            val dx = gap(rawX, location[0].toFloat(), (location[0] + cell.width).toFloat())
+            val dy = gap(rawY, location[1].toFloat(), (location[1] + cell.height).toFloat())
+            if (dx > dp(REACH_X_DP) || dy > dp(REACH_Y_DP)) continue
+
+            val distance = hypot(dx, dy)
+            if (distance < nearestDistance) {
+                nearestDistance = distance
+                nearest = index
+            }
         }
-        return -1
+        return nearest
+    }
+
+    /** How far [value] falls outside [min]..[max]; zero when inside. */
+    private fun gap(value: Float, min: Float, max: Float): Float = when {
+        value < min -> min - value
+        value > max -> value - max
+        else -> 0f
     }
 
     fun clearHighlight() = setHighlighted(-1)
@@ -104,7 +137,10 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
         const val CELL_MIN_WIDTH_DP = 40
         const val CELL_HEIGHT_DP = 46
 
-        /** Extra vertical reach, since the finger is below the popup while sliding. */
-        const val TOUCH_SLOP_DP = 28
+        /** Sideways tolerance: sliding past the end of a row still picks its last cell. */
+        const val REACH_X_DP = 32
+
+        /** Vertical tolerance, kept under the distance to the key below (see indexAt). */
+        const val REACH_Y_DP = 18
     }
 }

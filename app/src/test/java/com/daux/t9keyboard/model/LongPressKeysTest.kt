@@ -128,4 +128,35 @@ class LongPressKeysTest {
         assertEquals(cells, rows.flatten())
         assertNotNull(LongPressKeys.rows(emptyList()))
     }
+
+    /** A wrapped panel should read as a grid, not as a full row plus a stray cell. */
+    @Test
+    fun `wrapping splits evenly`() {
+        fun sizes(count: Int) =
+            LongPressKeys.rows((1..count).map { KeySpec("$it", null, false, KeyAction.Insert("$it")) })
+                .map { it.size }
+
+        assertEquals(listOf(3, 3), sizes(6))
+        assertEquals(listOf(4, 4), sizes(8))
+        assertEquals(listOf(4, 3), sizes(7))
+        // Up to the maximum nothing wraps: one sweep of the thumb is the whole gesture.
+        assertEquals(listOf(LongPressKeys.MAX_PER_ROW), sizes(LongPressKeys.MAX_PER_ROW))
+    }
+
+    /** No popup should be wide enough to stretch across the screen. */
+    @Test
+    fun `no popup row is wider than the maximum`() {
+        val popups: List<List<KeySpec>> = (1..9).map { popupFor(it) } + listOf(
+            popupFor(1, emailField = true),
+            LongPressKeys.forKey(KeyAction.Insert(",")),
+            LongPressKeys.forKey(KeyAction.Insert("."))
+        )
+
+        for (cells in popups) {
+            assertTrue(
+                cells.joinToString(" ") { it.mainLabel },
+                LongPressKeys.rows(cells).all { it.size <= LongPressKeys.MAX_PER_ROW }
+            )
+        }
+    }
 }

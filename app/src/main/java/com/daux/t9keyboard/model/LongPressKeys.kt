@@ -18,8 +18,16 @@ package com.daux.t9keyboard.model
  */
 object LongPressKeys {
 
-    /** Cells are laid out in rows of at most this many; longer lists wrap. */
-    const val MAX_PER_ROW = 8
+    /**
+     * Cells per row before wrapping. Beyond this a panel gets wider than the thumb can
+     * comfortably sweep — eight across covered most of the screen — so long lists become
+     * a small grid instead.
+     *
+     * Five, not four: it keeps the commonest popups (`a b c à 2`, `p q r s 7`) on one
+     * row, where a horizontal sweep is all the gesture needs, and splits only the long
+     * ones. [rows] balances the split, so six cells give 3+3 rather than 5+1.
+     */
+    const val MAX_PER_ROW = 5
 
     private fun letter(digit: Int, c: Char) =
         KeySpec(c.toString(), null, isFunction = false, KeyAction.ForceLetter(digit, c))

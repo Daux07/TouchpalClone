@@ -28,7 +28,7 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** Step 1.12 — **popup long-press** sui tasti (accentate, simboli, e **le cifre**, che prima erano digitabili solo da `12#`).
+- **Ultimo step completato:** Step 1.12b — **popup long-press** sui tasti (accentate, simboli, e **le cifre**, che prima erano digitabili solo da `12#`), con i pannelli lunghi mandati a capo su due righe.
 - **Prossimo step:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
 - **Dopo:** **Fase 3** (impostazioni/ergonomia, dove rientrano la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente). Il test reale sullo smartphone continua in parallelo: `bash tools/dev.sh apk` → `app/build/outputs/apk/debug/app-debug.apk`.
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
@@ -378,6 +378,33 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-29 — Step 1.12b: popup su due righe (feedback dagli screenshot)
+**Fatto:** (segnalazione dell'utente sugli screenshot dello Step 1.12) i popup lunghi
+erano troppo larghi — quello del `1` con 8 celle copriva l'**84% della larghezza schermo**.
+Ora oltre **5 celle** il pannello va a capo: `LongPressKeys.MAX_PER_ROW` 8 → 5, con
+`rows()` che bilancia lo spezzone (6 celle → 3+3, non 5+1). Cinque e non quattro perché
+tiene su una riga sola i popup più frequenti (`a b c à 2`, `p q r s 7`), dove il gesto è
+una singola spazzata orizzontale, e spezza solo quelli lunghi. Le righe sono **centrate**,
+così un pannello con celle di larghezza diversa (`.com` accanto a `@`) resta una griglia.
+
+**Il bug che la richiesta ha scoperto.** `KeyPopupView.indexAt` cercava la prima cella che
+*contiene* il dito, allargata di 28dp in verticale perché il dito sta sotto al pannello
+mentre scorre. Con due righe quella tolleranza copre la riga successiva: due celle
+rispondono allo stesso punto e vinceva sempre quella visitata per prima, cioè la riga in
+alto — **la seconda riga sarebbe stata inselezionabile**. Ora si prende la cella **più
+vicina**: un punto fra due righe appartiene alla più prossima, senza ambiguità. La
+tolleranza è diventata asimmetrica (32dp di lato, 18dp in verticale): larga per lo
+scorrimento oltre il fondo della riga, stretta in basso perché il dito che ha aperto il
+pannello poggia sul tasto sottostante, e un rilascio senza spostarsi deve voler dire
+"lascia perdere", non un carattere a caso.
+
+**File:** `model/LongPressKeys.kt`, `ui/KeyPopupView.kt`; test `LongPressKeysTest`
+(+2 casi: lo spezzone è bilanciato, e nessun popup supera il massimo per riga).
+**Verificato su emulatore:** `1` → due righe da 4 (dall'84% al ~43% della larghezza),
+`3` → `d e f` / `è é 3`; **selezionata `è` sulla seconda riga**, che è esattamente il caso
+che il vecchio hit-testing sbagliava → `docs/screenshots/step-1.12b-seconda-riga.png`,
+`step-1.12b-seconda-riga-scelta.png`.
 
 ### 2026-07-29 — Step 1.12: popup long-press (accentate, simboli e **cifre**)
 **Fatto:** tenendo premuto un tasto si apre un pannello di alternative; si scorre il dito e
