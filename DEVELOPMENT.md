@@ -28,7 +28,7 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** Step 1.13 — **maiuscola automatica** a inizio frase e **spazio automatico** dopo la scelta di un candidato, con la punteggiatura che si riprende lo spazio. Prima: Step 1.12a–d, i **popup long-press** sui tasti.
+- **Ultimo step completato:** Step 1.14 — **un tasto solo si comporta da tasto**: lettera semplice per prima, accentata seconda, nessuna lettera mancante. Prima: 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
 - **Prossimo step:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
 - **Dopo:** **Fase 3** (impostazioni/ergonomia, dove rientrano la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente). Il test reale sullo smartphone continua in parallelo: `bash tools/dev.sh apk` → `app/build/outputs/apk/debug/app-debug.apk`.
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
@@ -381,6 +381,39 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-29 — Step 1.14: un tasto solo si comporta da tasto, non da parola
+**Segnalazione dell'utente:** scrivendo una sola lettera esce l'accentata, e l'ordine dei
+candidati di un tasto singolo sembra strano.
+
+**Due cause, entrambe reali.**
+
+1. **I pesi del corpus.** Per il tasto `3` il dizionario ha `e 48146`, `è 27734`, `é 82`,
+   `d 37`, `f 9`: ordinando per frequenza le accentate finiscono **davanti alle altre
+   lettere del tasto**. Peggio, `q` non compare mai da sola nel corpus e quindi **spariva
+   del tutto** dal tasto 7.
+2. **L'apprendimento.** Una parola imparata pesa ≥ 1.000.000 e batte tutto il corpus: basta
+   scrivere `è` **una volta** perché diventi per sempre la prima scelta del tasto `3`. È
+   questa la ragione per cui la tastiera "prendeva in automatico l'accentata".
+
+**Fatto.**
+- `SingleLetterEngine` (decoratore, il più esterno): per una cifra sola la lista è
+  **ricostruita dal tastierino** — ci sono tutte le lettere del tasto, quelle che sono parole
+  vere (oltre le mille occorrenze) vengono prima, e un accento non precede mai la sua lettera
+  semplice. Le sequenze più lunghe non vengono toccate: lì la frequenza è la risposta giusta.
+- **Le lettere singole non si imparano più** (`learn()` ignora le parole di un carattere):
+  un danno permanente sulla pressione di tasto più comune che esista, in cambio di
+  un'informazione che non serve — l'ordine di un tasto solo lo decide la regola, non la
+  cronologia.
+
+**File:** `engine/SingleLetterEngine.kt` (nuovo), `service/T9ImeService.kt`;
+test `engine/SingleLetterEngineTest.kt` (7 casi, fra cui "ogni lettera del tasto è offerta"
+e "un accento imparato non scavalca la lettera semplice").
+**Verificato su emulatore:** `3` → **`e è d f é`** (accentata seconda, come richiesto),
+`7` → **`p q r s`** nell'ordine del tasto, con la `q` finalmente presente →
+`docs/screenshots/step-1.14-tasto-singolo-3.png`, `step-1.14-tasto-singolo-7.png`.
+**Nota:** nel primo istante dopo l'avvio, con il corpus ancora in caricamento, un tasto solo
+mostra il semplice ordine del tastierino (nessun peso è ancora noto). Si sistema da sé.
 
 ### 2026-07-29 — Step 1.13: maiuscola automatica e spazio automatico
 **Fatto:** (richiesta dell'utente) i due aiuti alla scrittura che mancavano, che poi si

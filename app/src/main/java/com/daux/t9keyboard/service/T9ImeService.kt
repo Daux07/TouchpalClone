@@ -11,6 +11,7 @@ import com.daux.t9keyboard.engine.FuzzyDictionaryEngine
 import com.daux.t9keyboard.engine.ItalianDictionaryEngine
 import com.daux.t9keyboard.engine.LearnedWordsEngine
 import com.daux.t9keyboard.engine.MergingDictionaryEngine
+import com.daux.t9keyboard.engine.SingleLetterEngine
 import com.daux.t9keyboard.R
 import com.daux.t9keyboard.input.AutoShift
 import com.daux.t9keyboard.input.AutoSpace
@@ -90,14 +91,16 @@ class T9ImeService : InputMethodService() {
 
         val learnedEngine = LearnedWordsEngine(RoomLearnedWordsStore(this))
         learned = learnedEngine
-        engine = FuzzyDictionaryEngine(learnedEngine)
+        // Single-letter ordering sits outermost: it has the last word on what a lone
+        // keypress offers, whatever the corpus and the learned words make of it.
+        engine = SingleLetterEngine(FuzzyDictionaryEngine(learnedEngine))
         // ~50k-word Italian dictionary: parse off the main thread so the keyboard
         // shows instantly (predictions appear once loading completes, ~a moment).
         Thread {
             learnedEngine.load()
             val corpus = ItalianDictionaryEngine.fromAssets(this, "dict/it.txt")
-            engine = FuzzyDictionaryEngine(
-                MergingDictionaryEngine(listOf(learnedEngine, corpus))
+            engine = SingleLetterEngine(
+                FuzzyDictionaryEngine(MergingDictionaryEngine(listOf(learnedEngine, corpus)))
             )
         }.apply { name = "dict-loader"; isDaemon = true }.start()
     }
@@ -595,6 +598,11 @@ class T9ImeService : InputMethodService() {
      * Cheap: in-RAM bump plus a queued database write.
      */
     private fun learn(word: String) {
+        // Single letters are never learned. A learned word outranks the whole corpus, so
+        // writing "è" once would demote "e" for good on the most common keypress there
+        // is — a permanent cost for a keystroke that carries no information anyway. What
+        // a lone key offers is decided by SingleLetterEngine, not by history.
+        if (word.length < 2) return
         learned.learn(word, System.currentTimeMillis())
     }
 

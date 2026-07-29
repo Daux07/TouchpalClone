@@ -10,7 +10,7 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.13 (Fase 1 completa).
+**Allineato a:** Step 1.14 (Fase 1 completa).
 
 ## Indice
 - [Panoramica architettura](#panoramica-architettura)
@@ -228,10 +228,11 @@ fondono con un sort.
 **La composizione attiva a regime:**
 
 ```
-FuzzyDictionaryEngine
-  └── MergingDictionaryEngine
-        ├── LearnedWordsEngine   (dizionario personale, pesi ≥ 1.000.000)
-        └── ItalianDictionaryEngine (corpus Leipzig, 50k parole)
+SingleLetterEngine                  (ultima parola su cosa offre un tasto solo)
+  └── FuzzyDictionaryEngine
+        └── MergingDictionaryEngine
+              ├── LearnedWordsEngine        (dizionario personale, pesi ≥ 1.000.000)
+              └── ItalianDictionaryEngine   (corpus Leipzig, 50k parole)
 ```
 
 ### `ItalianDictionaryEngine` — il corpus
@@ -277,6 +278,25 @@ per pressione.
 Sta **fuori** dal merge, quindi tollera i refusi anche sulle parole imparate e (Fase 2) su
 entrambe le lingue.
 
+### `SingleLetterEngine` — un tasto solo non è una parola
+
+Ordinare i risultati di **una sola cifra** per frequenza dà una lista che sembra casuale,
+perché a una lettera la frequenza smette di misurare ciò che serve: le forme accentate
+finiscono davanti alle altre lettere del tasto (`e è é d f`) e una lettera che da sola non
+compare mai — `q` — sparisce del tutto dal tasto 7.
+
+Per una cifra sola la lista è quindi **ricostruita dal tastierino**: ci sono **tutte** le
+lettere del tasto, quelle che sono parole vere vengono prima, e un accento non precede mai la
+lettera semplice a cui appartiene. Il `3` offre `e è d f é`, il `7` offre `p q r s`
+nell'ordine stampato sul tasto. Sopra le mille occorrenze una voce di una lettera è una parola
+che si scrive davvero (`e`, `a`, `è`); sotto è residuo del corpus — iniziali, abbreviazioni —
+che non ha motivo di precedere le lettere del tasto.
+
+Le sequenze più lunghe non vengono toccate: lì la frequenza è la risposta giusta.
+
+> Nel primo istante dopo l'avvio, finché il corpus è in caricamento, un tasto singolo mostra
+> semplicemente l'ordine del tastierino: nessun peso è ancora noto. Si sistema da sé.
+
 ### `T9Keypad.sequenceFor(word)`
 
 Parola → sequenza cifre, con **fold degli accenti** italiani (perché/perche stessa sequenza).
@@ -303,6 +323,10 @@ punteggiatura, o scegliendo un suggerimento — finisce nel dizionario personale
   garantito dall'executor a thread singolo.
 - Le parole sono memorizzate **minuscole**: "Casa" e "casa" sono la stessa parola per lookup
   e apprendimento.
+- **Le lettere singole non si imparano.** Una parola imparata batte l'intero corpus, quindi
+  scrivere `è` una volta demoterebbe `e` per sempre sulla pressione di tasto più comune che
+  esista: un danno permanente per un tasto che non porta informazione utile. Cosa offre un
+  tasto solo lo decide `SingleLetterEngine`, non la cronologia.
 
 ---
 
@@ -578,6 +602,7 @@ Unit test JVM (nessun emulatore necessario): `./gradlew :app:testDebugUnitTest`.
 | `LongPressKeysTest` | Contenuto dei popup, entrambe le semantiche, variante email; e **"ogni cifra 0–9 è raggiungibile da esattamente un popup"**, che impedisce sia il ritorno dei numeri intypabili sia una cifra offerta da due posti |
 | `AutoSpaceTest` | Quale punteggiatura si riprende lo spazio e quale porta il proprio; e che dopo una cifra il punto non lo porti (`3.14`) |
 | `AutoShiftTest` | La regola di proprietà: fra i casi, **"una maiuscola spenta dall'utente non viene riaccesa"** |
+| `SingleLetterEngineTest` | L'ordine di un tasto solo: fra i casi, **"ogni lettera del tasto è offerta"** (era sparita la `q`) e **"un accento imparato non scavalca la lettera semplice"** |
 
 Le verifiche su emulatore sono documentate step per step in `DEVELOPMENT.md`, con gli
 screenshot in `docs/screenshots/`.
