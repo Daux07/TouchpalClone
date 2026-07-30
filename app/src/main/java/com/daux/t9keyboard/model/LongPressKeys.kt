@@ -23,11 +23,20 @@ object LongPressKeys {
      * comfortably sweep — eight across covered most of the screen — so long lists become
      * a small grid instead.
      *
-     * Five, not four: it keeps the commonest popups (`a b c à 2`, `p q r s 7`) on one
-     * row, where a horizontal sweep is all the gesture needs, and splits only the long
-     * ones. [rows] balances the split, so six cells give 3+3 rather than 5+1.
+     * **Four, down from five in Step 1.12k**, which puts the five-cell popups (`2 a b c à`,
+     * `7 p q r s`) on 3+2 instead of one long row. That is not only a matter of taste: with
+     * the gesture starting on the first cell, the last cell of a row of five is four cell
+     * pitches away — ~188dp of panel, ~125dp of finger at the horizontal gain — and on the
+     * **right-hand column of keys** (`6`, `9`) there is only ~117dp of screen left of the
+     * key, so the last cell could not be reached without running the finger off the edge.
+     * Wrapping halves the horizontal reach and spends the difference on a downward step,
+     * which has room.
+     *
+     * Not lower than four: [rows] balances the split, so at four a six-cell panel is still
+     * 3+3 and an eight-cell one 4+4, while at three the eight-cell `1` popup would grow to
+     * three rows — taller, and height is the scarce dimension (see `KeyboardView`).
      */
-    const val MAX_PER_ROW = 5
+    const val MAX_PER_ROW = 4
 
     private fun letter(digit: Int, c: Char) =
         KeySpec(c.toString(), null, isFunction = false, KeyAction.ForceLetter(digit, c))

@@ -28,8 +28,7 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** Step 1.12j — **anche il popup del `.` preseleziona la prima cella**: una regola sola per tutti i pannelli. Prima: 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
-- **In attesa di riscontro dell'utente:** con il guadagno orizzontale dello Step 1.12f, le **5 celle su una riga** sono comode o vanno spezzate in 3+2? L'utente le preferirebbe su due righe, ma sospettava che il problema fosse la corsa richiesta — quindi prima si prova il guadagno. Se serve, basta `LongPressKeys.MAX_PER_ROW` = 3 (con `rows()` che bilancia già: 5 → 3+2).
+- **Ultimo step completato:** Step 1.12k — **i popup da 5 celle vanno su due righe (3+2)**, il che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`. Prima: 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
 - **Prossimo step:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
 - **Dopo:** **Fase 3** (impostazioni/ergonomia, dove rientrano la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente). Il test reale sullo smartphone continua in parallelo: `bash tools/dev.sh apk` → `app/build/outputs/apk/debug/app-debug.apk`.
@@ -383,6 +382,32 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-30 — Step 1.12k: i popup da 5 vanno su due righe (3+2) — e i tasti di bordo
+**Due segnalazioni dell'utente, una causa sola.** *"3+2 secondo me meglio sull'orizzontale a
+5"* e *"sul 6 e sul 9 ho difficoltà a far arrivare il cursore sull'ultima posizione, troppo
+al limite dello schermo"*.
+
+**Non sono due problemi.** Con il gesto che parte dalla prima cella (Step 1.12i), l'ultima
+cella di una riga da cinque sta **quattro passi di cella** più a destra: ~188dp di pannello,
+cioè **~125dp di corsa del dito** al guadagno orizzontale 1.5. I tasti `6` e `9` stanno sulla
+colonna destra del tastierino, a ~117dp dal bordo schermo: **la corsa non ci sta**, e il dito
+finiva contro il bordo prima di arrivare in fondo. Non era una sensazione, era aritmetica.
+
+**Fatto:** `MAX_PER_ROW` 5 → **4**, quindi i popup da cinque (`2 a b c à`, `6 m n o ò`,
+`7 p q r s`, `9 w x y z`, `4`, `8`, e la virgola `0 , ; : "`) diventano **3+2**. La corsa
+orizzontale massima si dimezza (~63dp) e la differenza si paga con un passo in giù, dove lo
+spazio c'è. La richiesta estetica e il difetto si chiudono con la stessa costante.
+
+**Perché 4 e non 3**, che pure darebbe 3+2: `rows()` bilancia, quindi a 4 un pannello da sei
+celle resta 3+3 e uno da otto 4+4, mentre a 3 il popup di `1` (otto celle) passerebbe a **tre
+righe**. L'altezza è la dimensione che scarseggia — sulla prima fila di tasti il pannello è
+già appoggiato al bordo superiore della tastiera (Step 1.12h).
+
+**File:** `model/LongPressKeys.kt`; test `LongPressKeysTest` (+1 caso: 5 → 3+2).
+**Verificato su emulatore (Pixel 10 Pro, Android 17):** il popup di `6` è `6 M N` / `O Ò` e
+l'ultima cella `Ò` si raggiunge con un movimento breve in diagonale, senza avvicinarsi al
+bordo destro → `docs/screenshots/step-1.12k-tasto-6-tre-piu-due.png`.
 
 ### 2026-07-30 — Step 1.12j: anche il `.` preseleziona, niente eccezioni (scelta utente)
 **L'utente:** *"io adeguerei il `.` al resto dei popup per coerenza"*.

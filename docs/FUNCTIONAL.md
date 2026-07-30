@@ -10,7 +10,7 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.12j (Fase 1 completa).
+**Allineato a:** Step 1.12k (Fase 1 completa).
 
 ## Indice
 - [Panoramica architettura](#panoramica-architettura)
@@ -459,7 +459,8 @@ I due assi hanno guadagni diversi perché hanno problemi diversi: **di lato** le
 brevi (una cella) e troppo guadagno rende l'evidenziazione nervosa; **in su** il dito deve
 coprire un passo di riga *e* restare fuori da un pannello che gli sta appena sopra. Valori
 tarati a mano, prima sull'emulatore e poi sul telefono (2/2 risultava troppo veloce di lato e
-ancora insufficiente in su). Oggi: riga sopra ~20dp, estremità di una riga da 5 ~59dp.
+ancora insufficiente in su). Oggi, su un pannello 3+2: riga sotto ~20dp, estremità della riga
+~63dp.
 
 **Il pannello si stacca dal tasto di `POPUP_GAP_DP` (10dp)**, che è spazio sottratto alla
 mano. Non serve però alla **prima fila di tasti**: lì il pannello è già appoggiato al bordo
@@ -565,9 +566,20 @@ posizione assoluta.
   il gesto uno solo, ed è il motivo per cui può essere una normale vista figlia invece di un
   `PopupWindow`: nessun token di finestra, niente che possa sopravvivere alla tastiera.
 
-  **Oltre 5 celle va a capo** (`LongPressKeys.MAX_PER_ROW`), su righe bilanciate e centrate:
-  otto celle in fila coprivano quasi tutto lo schermo. Cinque è la soglia perché i popup più
-  frequenti (`a b c à 2`, `p q r s 7`) restano su una riga, dove il gesto è una sola spazzata.
+  **Oltre 4 celle va a capo** (`LongPressKeys.MAX_PER_ROW`), su righe bilanciate e centrate:
+  otto celle in fila coprivano quasi tutto lo schermo. I popup da cinque (`2 a b c à`,
+  `7 p q r s`, `6 m n o ò`) diventano quindi **3+2**.
+
+  La soglia è scesa da 5 a 4 nello Step 1.12k, e non per gusto: partendo il gesto dalla prima
+  cella, l'ultima di una riga da cinque sta **quattro passi di cella** più a destra, ~125dp di
+  corsa del dito. Sulla **colonna destra del tastierino** (`6`, `9`) restano solo ~117dp di
+  schermo a destra del tasto, quindi quella cella non era raggiungibile senza uscire dal
+  bordo. Andando a capo la corsa orizzontale si dimezza e la differenza si paga con un passo
+  in giù, dove lo spazio c'è.
+
+  Non meno di 4: `rows()` bilancia, quindi a 4 un pannello da sei celle resta 3+3 e uno da
+  otto 4+4, mentre a 3 il popup di `1` (otto celle) diventerebbe di **tre righe** — più alto,
+  e l'altezza è la dimensione che scarseggia.
 
   La cella sotto il dito si **riempie di teal** con il glifo invertito allo scuro del tema,
   come su Gboard — non un pallino, che coprirebbe il carattere proprio mentre lo si legge.

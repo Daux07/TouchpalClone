@@ -142,6 +142,9 @@ class LongPressKeysTest {
             LongPressKeys.rows((1..count).map { KeySpec("$it", null, false, KeyAction.Insert("$it")) })
                 .map { it.size }
 
+        // Five is the case that made the maximum drop to four: one row of five put its
+        // last cell beyond the screen edge on the right-hand column of keys.
+        assertEquals(listOf(3, 2), sizes(5))
         assertEquals(listOf(3, 3), sizes(6))
         assertEquals(listOf(4, 4), sizes(8))
         assertEquals(listOf(4, 3), sizes(7))
