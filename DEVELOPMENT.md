@@ -32,6 +32,13 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
 - **Prossimo step:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
 - **Dopo:** **Fase 3** (impostazioni/ergonomia, dove rientrano la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente). Il test reale sullo smartphone continua in parallelo: `bash tools/dev.sh apk` → `app/build/outputs/apk/debug/app-debug.apk`.
+- 📝 **Appunti dell'utente dalla prova reale (30/07 sera) — da affrontare per primi nella prossima sessione.** Tre cose, tutte sull'apostrofo e sull'apprendimento; nessuna ancora riprodotta né corretta:
+
+  1. **La parola composta a mano non risulta imparata.** Caso reale: serviva `farla`, che nel dizionario non c'è; il motore proponeva `farà`, l'utente ha cancellato la `à` e ha allungato il prefisso fino a `farla`, poi spazio. *Richiesta:* premendo lo spazio la parola dev'essere memorizzata.
+     **Nota per chi riprende:** il percorso **esiste già** — `onSpace()` → `commitCurrentWord()` → `learn(word)`, e `learn` scarta solo le parole di una lettera. Quindi non è una funzione mancante ma un motivo per cui in *quel* flusso non ha avuto effetto: da riprodurre prima di toccare qualsiasi cosa. Piste: cosa restituisce `currentPreview()` dopo un backspace che ha fatto pop di una coppia (forcing o no), e se la parola imparata poi vinca davvero il ranking sulla sua sequenza.
+  2. **Maiuscola sbagliata dopo l'apostrofo:** scriveva `l'Aveva` invece di `l'aveva`. Da guardare `SentenceRules.OPENING`, che include `'` fra i segni di apertura (pensato per le virgolette), e il ricalcolo delle maiuscole dopo `onInsert` di un simbolo. Va distinta l'apostrofo **elisione** (dentro la parola) dall'apostrofo usato come virgoletta.
+  3. **Elisioni come parola unica:** `l'`, `un'`, `d'`… oggi non è verificato se `l'aveva` venga imparata come una parola sola o spezzata in due. *Opinione dell'utente:* dev'essere **una parola unica**. Da decidere insieme al punto 2, perché entrambi dipendono dal considerare l'apostrofo interno alla parola.
+
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
 
 > ℹ️ **Multi-tap rimosso**: dallo Step 1.2 l'inserimento è predittivo (digiti la
