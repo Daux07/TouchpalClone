@@ -47,6 +47,8 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
      **Domanda dell'utente, verificata: cliccare un candidato non passa da `onSpace()`.** Sono due percorsi indipendenti — `onPickCandidate()` chiama `learn()` da sé e poi aggiunge lo spazio con `insertProvisionalSpace()` (spazio *provvisorio*, che viene ritirato se segue punteggiatura), mentre `onSpace()` impara via `commitCurrentWord()`. `learn()` ha quindi due chiamanti distinti. **Conseguenza pratica:** la seconda opzione è **autosufficiente** — se la voce aggiunta è un `Candidate` vero, cliccarla impara già di suo, quindi è una via d'uscita indipendente dalla correzione del difetto, non un'aggiunta che la aspetta.
   2. **Maiuscola sbagliata dopo l'apostrofo:** scriveva `l'Aveva` invece di `l'aveva`. Da guardare `SentenceRules.OPENING`, che include `'` fra i segni di apertura (pensato per le virgolette), e il ricalcolo delle maiuscole dopo `onInsert` di un simbolo. Va distinta l'apostrofo **elisione** (dentro la parola) dall'apostrofo usato come virgoletta.
   3. **Elisioni come parola unica:** `l'`, `un'`, `d'`… oggi non è verificato se `l'aveva` venga imparata come una parola sola o spezzata in due. *Opinione dell'utente:* dev'essere **una parola unica**. Da decidere insieme al punto 2, perché entrambi dipendono dal considerare l'apostrofo interno alla parola.
+  4. **Manca il ritorno tattile: la tastiera non vibra sotto il dito.** L'utente: *"mi sta mancando tanto non sentire il tasto quando schiaccio"* — quindi **non** è una rifinitura da rimandare, va fatta presto; la durata **regolabile** arriverà con la schermata impostazioni.
+     **Nota per chi riprende:** il posto giusto è `KeyViewFactory`, dove ogni tasto ha già il suo `ACTION_DOWN`: si scrive una volta sola e vale per tutte le superfici (T9, simboli, emoji, popup). Una decisione da prendere subito, perché cambia l'implementazione — `performHapticFeedback(KEYBOARD_TAP)` rispetta l'impostazione di sistema e il profilo del telefono ma **non** ha durata regolabile; il `Vibrator` con durata esplicita è calibrabile ma deve tacere da sé quando l'utente ha spento il feedback tattile di sistema. Da considerare anche la ripetizione del backspace tenuto premuto (non deve diventare un ronzio continuo) e l'apertura del popup, che di solito ha un colpo suo.
 
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
 
@@ -148,6 +150,8 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 - [x] Simboli preferiti a stack vuoto (configurabili) — anticipati allo Step 1.9
 - [ ] Riordino dei preferiti per trascinamento (oggi si riordina scambiandoli, vedi 1.9)
 - [ ] Numero di preferiti configurabile (oggi fisso a `FavouriteSymbols.COUNT` = 7)
+- [ ] **Vibrazione alla pressione dei tasti** (richiesta dell'utente dopo la prova reale, da
+      anticipare: manca proprio all'uso) + **durata regolabile** nelle impostazioni
 - [ ] Altezza tastiera regolabile con riproporzionamento uniforme
 - [ ] Dimensione del testo dei candidati regolabile (seam già pronto:
       `SuggestionBarView.textSizeSp`)
