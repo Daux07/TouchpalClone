@@ -10,7 +10,7 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.12h (Fase 1 completa).
+**Allineato a:** Step 1.12i (Fase 1 completa).
 
 ## Indice
 - [Panoramica architettura](#panoramica-architettura)
@@ -442,13 +442,13 @@ e si rilascia sulla scelta. Un tocco normale resta esattamente quello che era.
 **Il dito non copre mai il pannello.** Non si scorre *sopra* le alternative — la mano
 nasconderebbe proprio i caratteri fra cui si sta scegliendo. Il dito resta sulla tastiera e la
 selezione lo segue **più in alto**, come su Gboard: il punto usato per la scelta è la
-traduzione del dito dentro il pannello, che parte dal **centro della riga in basso**.
+traduzione del dito dentro il pannello, che parte dalla **cella preselezionata** (vedi sotto;
+sul popup del `.`, che non ne ha una, dal centro della riga in basso).
 
 **Lo zero del gesto è il dito, non il tasto.** Lo spostamento si misura da dov'era il dito
 quando il pannello si è aperto: dove dentro il tasto è caduta la pressione non deve spostare
-il punto di partenza, che è il centro della riga in basso sempre. Rende anche il gesto
-identico per un tasto di bordo, il cui pannello viene rientrato nello schermo e quindi non è
-più centrato sopra di lui.
+il punto di partenza. Rende anche il gesto identico per un tasto di bordo, il cui pannello
+viene rientrato nello schermo e quindi non è più centrato sopra di lui.
 
 **Il movimento è amplificato**, ma **non allo stesso modo sui due assi**:
 `HORIZONTAL_GAIN` ×1.5, `VERTICAL_GAIN` ×2.5. Con un inseguimento 1:1 il pannello andava
@@ -485,11 +485,15 @@ cella è il default ovvio e sceglierne una a caso la scriverebbe di sorpresa.
 allo Step 1.12f bastava rilasciare senza muoversi; è il prezzo della scorciatoia, pagato
 consapevolmente.
 
-⚠️ **Discontinuità nota** (aperta dallo Step 1.12g). La preselezione è la **prima cella**, ma
-il punto di partenza geometrico resta il **centro della riga in basso**: sono due posti
-diversi, quindi al primo movimento oltre i 10dp la selezione non scorre dalla cifra, **salta**
-al centro della riga. Su `jkl` (`5 j k l`) 17dp verso destra portano da `5` a `k`, scavalcando
-`j`. Da risolvere facendo coincidere i due punti; vedi `DEVELOPMENT.md`.
+**Il punto di partenza è la cella preselezionata**, non un punto qualsiasi del pannello: il
+primo movimento scorre via dalla cifra invece di saltare altrove. Fino allo Step 1.12h i due
+posti erano diversi (evidenziata la prima cella, ma il gesto partiva dal centro della riga in
+basso) e superare i 10dp teletrasportava la selezione — su `jkl` (`5 j k l`) un colpetto a
+destra andava da `5` direttamente a `k`, scavalcando `j`.
+
+Poiché la cifra è la prima cella, cioè **in alto a sinistra**, il resto del pannello si
+raggiunge andando a destra e **in giù**. È il compromesso scelto: un gesto che parte da dove
+l'occhio già guarda, invece che dal punto più vicino al dito.
 
 ### Cosa offre ciascun tasto
 

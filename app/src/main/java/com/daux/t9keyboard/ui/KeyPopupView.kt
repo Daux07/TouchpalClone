@@ -129,42 +129,67 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
         indexAt(rawX, rawY).takeIf { it >= 0 }?.let { cells[it].second }
 
     /**
-     * The finger's position translated into the panel, so that the finger at rest points
-     * at the **middle of the bottom row** and a small movement reaches any cell.
+     * The finger's position translated into the panel: it starts on [anchorPoint] and
+     * moves from there, amplified.
      *
      * Two things shape the mapping, and they belong together:
      *
      * - **The zero is the finger, not the key.** Where inside the key the press landed
      *   must not decide what starts out selected; measuring from [originX]/[originY]
-     *   makes "hasn't moved" mean "middle of the bottom row" every time. It also makes
-     *   the gesture identical for a key at the edge of the keyboard, whose panel gets
-     *   nudged back inside the screen and so no longer sits centred over it.
+     *   makes "hasn't moved" mean the same cell every time. It also makes the gesture
+     *   identical for a key at the edge of the keyboard, whose panel gets nudged back
+     *   inside the screen and so no longer sits centred over it.
      * - **The movement is amplified**, more upwards than sideways ([VERTICAL_GAIN],
-     *   [HORIZONTAL_GAIN]). One-to-one tracking meant the
-     *   panel had to be crossed at its real size: the row above cost a whole row pitch of
-     *   travel (about the height of a key) and the far end of a five-cell row two cell
-     *   widths. Reaching either meant walking the finger onto the panel, the very thing
-     *   tracking from below exists to avoid. At double speed the whole panel is within a
-     *   key's width of where the finger already is.
+     *   [HORIZONTAL_GAIN]). One-to-one tracking meant the panel had to be crossed at its
+     *   real size: the row above cost a whole row pitch of travel (about the height of a
+     *   key) and the far end of a five-cell row two cell widths. Reaching either meant
+     *   walking the finger onto the panel, the very thing tracking from below exists to
+     *   avoid.
      *
      * Returns null while the finger has not really moved, which hands the choice to
      * [restingIndex] instead of to whatever cell happens to be nearest.
      */
     private fun pointerInPanel(rawX: Float, rawY: Float): PointF? {
         if (hypot(rawX - originX, rawY - originY) < dp(MOVE_THRESHOLD_DP)) return null
+        val anchor = anchorPoint() ?: return null
+
+        return PointF(
+            anchor.x + (rawX - originX) * HORIZONTAL_GAIN,
+            anchor.y + (rawY - originY) * VERTICAL_GAIN
+        )
+    }
+
+    /**
+     * Where in the panel a motionless finger points: **the centre of the cell that is
+     * already selected**, so the first movement slides off it instead of jumping.
+     *
+     * Getting this wrong is not cosmetic. Until Step 1.12i the anchor was the middle of
+     * the bottom row while the highlight sat on the first cell — two different places, so
+     * crossing the 10dp threshold teleported the selection: on `jkl` (`5 j k l`) a nudge
+     * to the right went from `5` straight to `k`, skipping `j`.
+     *
+     * With the digit first the anchor is the top-left cell, which is why the rest of the
+     * panel is now reached by moving right and **down**. That is the trade the user chose:
+     * a gesture that starts where the eye already is, rather than one that starts nearest
+     * the finger.
+     *
+     * The `.` panel has no preselected cell (no digit among the favourites), and there the
+     * old anchor is still the right one: nothing is selected, so the finger should point
+     * at the row closest to it.
+     */
+    private fun anchorPoint(): PointF? {
+        val location = IntArray(2)
+        cells.getOrNull(restingIndex)?.first?.let { cell ->
+            cell.getLocationOnScreen(location)
+            return PointF(location[0] + cell.width / 2f, location[1] + cell.height / 2f)
+        }
 
         val bottomRow = cells.lastOrNull()?.first ?: return null
-        val location = IntArray(2)
         bottomRow.getLocationOnScreen(location)
         val bottomRowCentreY = location[1] + bottomRow.height / 2f
         // Rows are centred inside the panel, so the panel's own centre is every row's.
         getLocationOnScreen(location)
-        val centreX = location[0] + width / 2f
-
-        return PointF(
-            centreX + (rawX - originX) * HORIZONTAL_GAIN,
-            bottomRowCentreY + (rawY - originY) * VERTICAL_GAIN
-        )
+        return PointF(location[0] + width / 2f, bottomRowCentreY)
     }
 
     /**

@@ -28,8 +28,7 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** Step 1.12h — **taratura del gesto sul popup**: guadagni separati per asse (orizzontale ×1.5, verticale ×2.5) e pannello staccato di 10dp dal tasto. Prima: 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
-- 🐞 **Difetto aperto (introdotto dallo Step 1.12g, trovato verificando l'1.12h):** la preselezione è la **prima cella**, ma il punto di partenza geometrico è il **centro della riga in basso**. Sono due posti diversi, quindi al primo movimento la selezione **salta** invece di scorrere: su `jkl` (`5 j k l`) 17dp a destra portano da `5` a `k`, scavalcando `j` (`docs/screenshots/step-1.12h-salto-dalla-preselezione.png`). Vanno fatti coincidere, e sono due strade opposte: **(a)** l'origine mappa sulla cella preselezionata — niente salto, ma con la cifra in alto a sinistra le altre celle si raggiungono andando a destra e **in giù**, invertendo il senso attuale; **(b)** l'origine resta il centro della riga in basso e la preselezione diventa quella cella — coerente col gesto ma **perde la scorciatoia** dello Step 1.12g. Decisione dell'utente.
+- **Ultimo step completato:** Step 1.12i — **il gesto parte dalla cella preselezionata**: risolto il salto della selezione al primo movimento. Prima: 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
 - **In attesa di riscontro dell'utente:** con il guadagno orizzontale dello Step 1.12f, le **5 celle su una riga** sono comode o vanno spezzate in 3+2? L'utente le preferirebbe su due righe, ma sospettava che il problema fosse la corsa richiesta — quindi prima si prova il guadagno. Se serve, basta `LongPressKeys.MAX_PER_ROW` = 3 (con `rows()` che bilancia già: 5 → 3+2).
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
 - **Prossimo step:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
@@ -384,6 +383,33 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-30 — Step 1.12i: il gesto parte dalla cella preselezionata (scelta utente)
+**Chiude il difetto** aperto dallo Step 1.12g e documentato nell'1.12h. L'utente: *"mi ero
+accorto del salto ma era più impellente il cambio di guadagno, io andrei con la a"* — cioè
+l'origine del gesto si sposta **sulla cella preselezionata**.
+
+**Fatto:** `anchorPoint()` sostituisce il punto fisso "centro della riga in basso". A dito
+fermo il puntatore sta **al centro della cella evidenziata**, quindi il primo movimento
+**scorre via da lì** invece di teletrasportarsi: su `jkl` un colpetto a destra ora dà `j`,
+non più `k`.
+
+**La conseguenza, che è il prezzo della scelta:** la cifra è in alto a sinistra, quindi il
+resto del pannello si raggiunge andando a destra e **in giù** — non più in su. Il senso del
+gesto verticale si inverte rispetto agli Step 1.12d–h. È coerente (si scende *dentro* il
+pannello, verso le celle che stanno visivamente sotto), ma è un'abitudine diversa da quella
+di due step fa: se all'uso non convince, l'alternativa scartata era tenere l'origine sulla
+riga in basso e rinunciare alla preselezione della cifra.
+
+**L'eccezione resta:** il popup del `.` non ha una cella preselezionata, e lì l'origine
+continua a essere il centro della riga in basso — senza niente di selezionato, il dito deve
+puntare alla riga che gli è più vicina.
+
+**File:** `ui/KeyPopupView.kt`.
+**Verificato su emulatore (Pixel 10 Pro, Android 17):** su `jkl` (`5 j k l`) 33dp a destra
+danno **`j`**, la cella adiacente (prima: `k`, scavalcando `j`); su `def` **20dp in giù**
+danno **`f`**, la cella sotto al `3` →
+`docs/screenshots/step-1.12i-scorrimento-continuo.png`, `step-1.12i-riga-sotto.png`.
 
 ### 2026-07-30 — Step 1.12h: taratura del gesto sul popup (feedback utente)
 **Segnalazione:** "il movimento lungo l'asse orizzontale ora è troppo accentuato, mentre
