@@ -25,10 +25,9 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
     private val cells = mutableListOf<Pair<View, KeySpec>>()
     private var highlighted = -1
 
-    /** Where the finger was when the panel opened, and the key it belongs to (screen px). */
+    /** Where the finger was when the panel opened (screen px): the zero of the gesture. */
     private var originX = 0f
     private var originY = 0f
-    private var anchorCenterY = 0f
 
     init {
         orientation = VERTICAL
@@ -91,15 +90,14 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
         if (spec.isFunction) KeyboardTheme.ACCENT else KeyboardTheme.TEXT
 
     /**
-     * Where the finger was when the panel opened, and how far above it the selection
-     * runs. The finger stays down on the keypad and the highlight tracks **above** it,
-     * so the hand never covers the very characters you are choosing between — the trick
-     * Gboard uses. Set together with the position, in screen coordinates.
+     * Where the finger was when the panel opened, in screen coordinates. The finger stays
+     * down on the keypad and the highlight tracks **above** it, so the hand never covers
+     * the very characters you are choosing between — the trick Gboard uses. That spot is
+     * the zero of the gesture: everything the finger does afterwards is measured from it.
      */
-    fun setTracking(originX: Float, originY: Float, anchorCenterY: Float) {
+    fun setTracking(originX: Float, originY: Float) {
         this.originX = originX
         this.originY = originY
-        this.anchorCenterY = anchorCenterY
     }
 
     /** Follow the finger: light up the cell it points at, if any. */
@@ -111,8 +109,19 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
 
     /**
      * The finger's position translated into the panel: the same distance left or right,
-     * but lifted so that resting on the key points at the **bottom row**, and moving up
-     * by a cell reaches the row above.
+     * but vertically remapped so that the finger at rest points at the **bottom row** and
+     * a short lift reaches the row above.
+     *
+     * Two things happen to the vertical axis, and they belong together:
+     *
+     * - **The zero is the finger, not the key.** Where inside the key the press landed
+     *   must not decide which row starts out selected; measuring from [originY] makes
+     *   "hasn't moved" mean "bottom row" every time.
+     * - **The movement is amplified by [VERTICAL_GAIN].** One-to-one tracking made the
+     *   upper row cost a whole row pitch of travel — about the height of a key — so
+     *   reaching it meant physically walking the finger up onto the panel, which is the
+     *   very thing tracking from below exists to avoid. Sideways one cell is one cell of
+     *   travel and that felt right, so only the vertical axis is scaled.
      *
      * Returns null while the finger has not really moved, which keeps a long press that
      * ends where it began from choosing anything: opening the panel and letting go must
@@ -127,7 +136,7 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
             location[1] + cell.height / 2f
         } ?: return null
 
-        return PointF(rawX, rawY - (anchorCenterY - bottomRowCentre))
+        return PointF(rawX, bottomRowCentre + (rawY - originY) * VERTICAL_GAIN)
     }
 
     /**
@@ -207,6 +216,13 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
 
         /** Vertical tolerance around a row, once the finger has been translated up. */
         const val REACH_Y_DP = 30
+
+        /**
+         * How much panel movement one unit of finger movement buys, vertically. At 2 the
+         * row above sits half a row pitch away (~25dp of travel) instead of a full one,
+         * so the row changes with a flick of the fingertip and the hand stays on the keys.
+         */
+        const val VERTICAL_GAIN = 2f
 
         /** Below this the finger counts as still, and nothing is selected yet. */
         const val MOVE_THRESHOLD_DP = 10

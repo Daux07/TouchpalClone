@@ -185,15 +185,9 @@ class KeyboardView(
         popup.translationY = (y - popup.top).toFloat()
         popup.visibility = View.VISIBLE
 
-        // The panel tracks the finger from above, so it needs the key's centre on screen
-        // to know how far up the selection sits.
-        val anchorOnScreen = IntArray(2)
-        anchor.getLocationOnScreen(anchorOnScreen)
-        popup.setTracking(
-            popupOrigin.x,
-            popupOrigin.y,
-            anchorOnScreen[1] + anchor.height / 2f
-        )
+        // The panel tracks the finger from above, measuring from where the finger was when
+        // the panel opened — the geometry it needs on top of that it reads off itself.
+        popup.setTracking(popupOrigin.x, popupOrigin.y)
     }
 
     // --- Insets & sizing ------------------------------------------------------

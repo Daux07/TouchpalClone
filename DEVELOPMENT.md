@@ -28,7 +28,7 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** Step 1.17 — **dizionario da messaggi**: sottotitoli (70%) fusi con la prosa giornalistica (30%), che resta la fonte delle maiuscole per i nomi propri. Prima: 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **Ultimo step completato:** Step 1.12e — **la riga sopra del popup si raggiunge con un guizzo**: asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto. Prima: 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
 - **Prossimo step:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
 - **Dopo:** **Fase 3** (impostazioni/ergonomia, dove rientrano la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente). Il test reale sullo smartphone continua in parallelo: `bash tools/dev.sh apk` → `app/build/outputs/apk/debug/app-debug.apk`.
@@ -382,6 +382,35 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-30 — Step 1.12e: la riga sopra del popup si raggiunge con un guizzo (feedback utente)
+**Segnalazione dell'utente:** "lo spostamento in orizzontale sulla stessa riga funziona bene,
+per arrivare alla riga sopra devo praticamente arrivare con il dito sulla riga".
+
+**La causa.** L'inseguimento verticale era **1:1**: cambiare riga costava mezzo passo di riga
+di corsa e centrarla uno intero, cioè ~50dp, all'incirca **l'altezza di un tasto**. Il dito
+finiva quindi sul pannello — esattamente ciò che lo Step 1.12d aveva costruito il tracking
+sfalsato per evitare. In orizzontale il problema non si pone perché una cella è larga ~44dp ma
+il gesto è una spazzata laterale, dove quella distanza è naturale.
+
+**Fatto: l'asse verticale è amplificato ×2** (`VERTICAL_GAIN`), l'orizzontale no. Nessuna
+soglia a scatti: la mappatura resta continua, solo con pendenza doppia, così l'evidenziazione
+continua a seguire il dito invece di saltare. Ora la riga sopra è a ~25dp.
+
+**Il secondo difetto, che emerge solo amplificando.** Il perno era il **centro del tasto**: con
+guadagno 1 premere 15dp sopra il centro era innocuo (restava dentro la tolleranza della riga in
+basso), con guadagno 2 diventano 30dp e il pannello si sarebbe aperto con la riga *sopra* già
+selezionata. Lo zero ora è **`originY`**, dov'era il dito all'apertura: dove dentro il tasto è
+caduta la pressione non decide più quale riga parte selezionata. Come effetto collaterale
+`anchorCenterY` non serve più e `setTracking` perde un parametro — il pannello si misura da sé.
+
+**File:** `ui/KeyPopupView.kt`, `ui/KeyboardView.kt` (call site più corto).
+**Verificato su emulatore (Pixel 10 Pro, Android 17):** test verdi; long-press su `def` e
+**20dp** di corsa verso l'alto (meno di metà tasto, il dito non lascia il tastierino) →
+si illumina `e` sulla **riga sopra**; con il codice precedente a 20dp sarebbe rimasta
+selezionata la riga in basso. Scorrimento solo orizzontale → `3`, riga in basso, invariato →
+`docs/screenshots/step-1.12e-riga-sopra-con-poco-movimento.png`,
+`step-1.12e-orizzontale-invariato.png`.
 
 ### 2026-07-29 — Step 1.17: un dizionario da messaggi, non da giornale
 **Domanda dell'utente:** "non esiste un dizionario da messaggio?" Sì, e il corpus

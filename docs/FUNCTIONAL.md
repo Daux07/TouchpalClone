@@ -10,7 +10,7 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.17 (Fase 1 completa).
+**Allineato a:** Step 1.12e (Fase 1 completa).
 
 ## Indice
 - [Panoramica architettura](#panoramica-architettura)
@@ -442,11 +442,23 @@ e si rilascia sulla scelta. Un tocco normale resta esattamente quello che era.
 **Il dito non copre mai il pannello.** Non si scorre *sopra* le alternative — la mano
 nasconderebbe proprio i caratteri fra cui si sta scegliendo. Il dito resta sulla tastiera e la
 selezione lo segue **più in alto**, come su Gboard: il punto usato per la scelta è la
-traduzione del dito dentro il pannello, alla stessa distanza di lato ma sollevata quel tanto
-che basta perché il dito fermo sul tasto punti alla **riga in basso**, e salire di una cella
-raggiunga la riga sopra. Lo scarto si ricava dalla geometria reale (centro del tasto meno
-centro dell'ultima riga), quindi resta corretto anche quando il pannello viene rientrato in
-alto perché non ci starebbe.
+traduzione del dito dentro il pannello, alla stessa distanza di lato ma sollevata in modo che
+il dito fermo punti alla **riga in basso**.
+
+**Lo zero del gesto è il dito, non il tasto.** Lo spostamento si misura da dov'era il dito
+quando il pannello si è aperto: dove dentro il tasto è caduta la pressione non deve decidere
+quale riga parte selezionata, e così "non mi sono mosso" significa "riga in basso" sempre.
+
+**L'asse verticale è amplificato ×2** (`KeyPopupView.VERTICAL_GAIN`). Con un inseguimento
+1:1 la riga sopra costava un passo di riga intero di corsa — all'incirca l'altezza di un
+tasto — quindi per raggiungerla bisognava letteralmente portare il dito sul pannello, cioè
+proprio ciò che l'inseguimento dal basso esiste per evitare. Ora bastano ~25dp. **Solo la
+verticale è scalata:** di lato una cella è una cella di corsa, e in orizzontale il gesto era
+già giusto così.
+
+La geometria di partenza si ricava dal pannello reale (centro dell'ultima riga misurato a
+schermo), quindi resta corretta anche quando il pannello viene rientrato in alto perché non
+ci starebbe.
 
 Finché il dito non si è mosso davvero (10dp) **non è selezionato nulla**: aprire il pannello e
 rilasciare senza spostarsi è un modo per cambiare idea, non per scrivere il carattere che
