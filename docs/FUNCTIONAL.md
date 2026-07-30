@@ -10,7 +10,7 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.12e (Fase 1 completa).
+**Allineato a:** Step 1.12f (Fase 1 completa).
 
 ## Indice
 - [Panoramica architettura](#panoramica-architettura)
@@ -442,23 +442,25 @@ e si rilascia sulla scelta. Un tocco normale resta esattamente quello che era.
 **Il dito non copre mai il pannello.** Non si scorre *sopra* le alternative — la mano
 nasconderebbe proprio i caratteri fra cui si sta scegliendo. Il dito resta sulla tastiera e la
 selezione lo segue **più in alto**, come su Gboard: il punto usato per la scelta è la
-traduzione del dito dentro il pannello, alla stessa distanza di lato ma sollevata in modo che
-il dito fermo punti alla **riga in basso**.
+traduzione del dito dentro il pannello, che a dito fermo punta al **centro della riga in
+basso**.
 
 **Lo zero del gesto è il dito, non il tasto.** Lo spostamento si misura da dov'era il dito
 quando il pannello si è aperto: dove dentro il tasto è caduta la pressione non deve decidere
-quale riga parte selezionata, e così "non mi sono mosso" significa "riga in basso" sempre.
+cosa parte selezionato, e così "non mi sono mosso" significa "centro della riga in basso"
+sempre. Rende anche il gesto identico per un tasto di bordo, il cui pannello viene rientrato
+nello schermo e quindi non è più centrato sopra di lui.
 
-**L'asse verticale è amplificato ×2** (`KeyPopupView.VERTICAL_GAIN`). Con un inseguimento
-1:1 la riga sopra costava un passo di riga intero di corsa — all'incirca l'altezza di un
-tasto — quindi per raggiungerla bisognava letteralmente portare il dito sul pannello, cioè
-proprio ciò che l'inseguimento dal basso esiste per evitare. Ora bastano ~25dp. **Solo la
-verticale è scalata:** di lato una cella è una cella di corsa, e in orizzontale il gesto era
-già giusto così.
+**Il movimento è amplificato ×2 su entrambi gli assi** (`KeyPopupView.POINTER_GAIN`). Con un
+inseguimento 1:1 il pannello andava attraversato alla sua misura reale: la riga sopra costava
+un passo di riga (l'altezza di un tasto) e l'estremità di una riga da 5 due larghezze di
+cella. In entrambi i casi bisognava portare il dito sul pannello, cioè proprio ciò che
+l'inseguimento dal basso esiste per evitare. A velocità doppia tutto il pannello sta dentro
+una larghezza di tasto: riga sopra ~25dp, estremità della riga ~44dp.
 
-La geometria di partenza si ricava dal pannello reale (centro dell'ultima riga misurato a
-schermo), quindi resta corretta anche quando il pannello viene rientrato in alto perché non
-ci starebbe.
+La geometria di partenza si ricava dal pannello reale (centro dell'ultima riga e centro del
+pannello, misurati a schermo), quindi resta corretta anche quando il pannello viene rientrato
+perché non ci starebbe.
 
 Finché il dito non si è mosso davvero (10dp) **non è selezionato nulla**: aprire il pannello e
 rilasciare senza spostarsi è un modo per cambiare idea, non per scrivere il carattere che
@@ -468,10 +470,10 @@ capita sopra al dito.
 
 | Tasto | Popup |
 |-------|-------|
-| `2`–`9` | Le lettere del tasto, **accenti inclusi**, poi la **cifra** (`d e f è é` · `3`) |
-| `1` | `@` `()` `/` `%` `+` `=` `€` · `1` — ciò che le altre superfici rendono costoso |
-| `1` in campo email/URL | `@` `.com` `.it` `.net` `.org` `/` · `1` |
-| `,` | `,` `;` `:` `"` · `0` |
+| `2`–`9` | La **cifra**, poi le lettere del tasto, **accenti inclusi** (`3` · `d e f è é`) |
+| `1` | `1` · `@` `()` `/` `%` `+` `=` `€` — ciò che le altre superfici rendono costoso |
+| `1` in campo email/URL | `1` · `@` `.com` `.it` `.net` `.org` `/` |
+| `,` | `0` · `,` `;` `:` `"` |
 | `.` | I 7 **simboli preferiti**, gli stessi della colonna |
 | `⌫`, `space`, `⇧`, `⏎` | Nessuno |
 
@@ -498,10 +500,14 @@ dell'utente.
 
 ### Le cifre
 
-Ogni tasto numerico offre la **propria cifra come ultima cella**, resa in teal come il
+Ogni tasto numerico offre la **propria cifra come prima cella**, resa in teal come il
 numerino d'angolo che rappresenta. Non è un abbellimento: il tastierino **non ha tasti 0–9**
 (i numeri sulle facce sono etichette), quindi prima dello Step 1.12 un numero si poteva
 scrivere solo passando da `12#`.
+
+**Prima e non ultima** (scelta dell'utente, Step 1.12f): un pannello può stare su una riga o
+su due, e solo la cella d'apertura significa la stessa cosa in entrambi i casi — l'ultima
+passa da "fine della riga" a "in basso a destra" appena la lista va a capo.
 
 Lo `0` sta sul popup della **virgola**, che infatti ora mostra `0` nell'angolo. In ITU-T E.161
 la sua casa sarebbe la barra spazio, ma quel long-press è **riservato allo scorrimento del

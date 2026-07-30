@@ -108,20 +108,22 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
         indexAt(rawX, rawY).takeIf { it >= 0 }?.let { cells[it].second }
 
     /**
-     * The finger's position translated into the panel: the same distance left or right,
-     * but vertically remapped so that the finger at rest points at the **bottom row** and
-     * a short lift reaches the row above.
+     * The finger's position translated into the panel, so that the finger at rest points
+     * at the **middle of the bottom row** and a small movement reaches any cell.
      *
-     * Two things happen to the vertical axis, and they belong together:
+     * Two things shape the mapping, and they belong together:
      *
      * - **The zero is the finger, not the key.** Where inside the key the press landed
-     *   must not decide which row starts out selected; measuring from [originY] makes
-     *   "hasn't moved" mean "bottom row" every time.
-     * - **The movement is amplified by [VERTICAL_GAIN].** One-to-one tracking made the
-     *   upper row cost a whole row pitch of travel — about the height of a key — so
-     *   reaching it meant physically walking the finger up onto the panel, which is the
-     *   very thing tracking from below exists to avoid. Sideways one cell is one cell of
-     *   travel and that felt right, so only the vertical axis is scaled.
+     *   must not decide what starts out selected; measuring from [originX]/[originY]
+     *   makes "hasn't moved" mean "middle of the bottom row" every time. It also makes
+     *   the gesture identical for a key at the edge of the keyboard, whose panel gets
+     *   nudged back inside the screen and so no longer sits centred over it.
+     * - **The movement is amplified by [POINTER_GAIN].** One-to-one tracking meant the
+     *   panel had to be crossed at its real size: the row above cost a whole row pitch of
+     *   travel (about the height of a key) and the far end of a five-cell row two cell
+     *   widths. Reaching either meant walking the finger onto the panel, the very thing
+     *   tracking from below exists to avoid. At double speed the whole panel is within a
+     *   key's width of where the finger already is.
      *
      * Returns null while the finger has not really moved, which keeps a long press that
      * ends where it began from choosing anything: opening the panel and letting go must
@@ -130,13 +132,18 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
     private fun pointerInPanel(rawX: Float, rawY: Float): PointF? {
         if (hypot(rawX - originX, rawY - originY) < dp(MOVE_THRESHOLD_DP)) return null
 
-        val bottomRowCentre = cells.lastOrNull()?.first?.let { cell ->
-            val location = IntArray(2)
-            cell.getLocationOnScreen(location)
-            location[1] + cell.height / 2f
-        } ?: return null
+        val bottomRow = cells.lastOrNull()?.first ?: return null
+        val location = IntArray(2)
+        bottomRow.getLocationOnScreen(location)
+        val bottomRowCentreY = location[1] + bottomRow.height / 2f
+        // Rows are centred inside the panel, so the panel's own centre is every row's.
+        getLocationOnScreen(location)
+        val centreX = location[0] + width / 2f
 
-        return PointF(rawX, bottomRowCentre + (rawY - originY) * VERTICAL_GAIN)
+        return PointF(
+            centreX + (rawX - originX) * POINTER_GAIN,
+            bottomRowCentreY + (rawY - originY) * POINTER_GAIN
+        )
     }
 
     /**
@@ -211,18 +218,25 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
         const val CELL_MIN_WIDTH_DP = 40
         const val CELL_HEIGHT_DP = 46
 
-        /** Sideways tolerance: sliding past the end of a row still picks its last cell. */
-        const val REACH_X_DP = 32
+        /**
+         * Sideways tolerance: sliding past the end of a row still picks its last cell.
+         * Measured in panel space, so [POINTER_GAIN] halves what it costs the finger —
+         * hence the generous value. Being generous here is safe: reach only decides
+         * whether *anything* is selected, never which cell wins, which is always the
+         * nearest one.
+         */
+        const val REACH_X_DP = 60
 
         /** Vertical tolerance around a row, once the finger has been translated up. */
         const val REACH_Y_DP = 30
 
         /**
-         * How much panel movement one unit of finger movement buys, vertically. At 2 the
-         * row above sits half a row pitch away (~25dp of travel) instead of a full one,
-         * so the row changes with a flick of the fingertip and the hand stays on the keys.
+         * How much panel movement one unit of finger movement buys, on both axes. At 2
+         * the row above is ~25dp of travel away and the end of a five-cell row ~44dp —
+         * roughly one key — instead of double that, so the panel is swept with the
+         * fingertip while the hand stays on the keys.
          */
-        const val VERTICAL_GAIN = 2f
+        const val POINTER_GAIN = 2f
 
         /** Below this the finger counts as still, and nothing is selected yet. */
         const val MOVE_THRESHOLD_DP = 10

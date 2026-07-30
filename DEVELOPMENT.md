@@ -28,7 +28,8 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** Step 1.12e — **la riga sopra del popup si raggiunge con un guizzo**: asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto. Prima: 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **Ultimo step completato:** Step 1.12f — **popup: guadagno anche in orizzontale e cifra in testa**. Prima: 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **In attesa di riscontro dell'utente:** con il guadagno orizzontale dello Step 1.12f, le **5 celle su una riga** sono comode o vanno spezzate in 3+2? L'utente le preferirebbe su due righe, ma sospettava che il problema fosse la corsa richiesta — quindi prima si prova il guadagno. Se serve, basta `LongPressKeys.MAX_PER_ROW` = 3 (con `rows()` che bilancia già: 5 → 3+2).
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
 - **Prossimo step:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
 - **Dopo:** **Fase 3** (impostazioni/ergonomia, dove rientrano la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente). Il test reale sullo smartphone continua in parallelo: `bash tools/dev.sh apk` → `app/build/outputs/apk/debug/app-debug.apk`.
@@ -382,6 +383,43 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-30 — Step 1.12f: guadagno anche in orizzontale, cifra in testa (feedback utente)
+**Tre punti dell'utente**, uno dei quali volutamente **non** implementato.
+
+**1. Anche l'orizzontale va amplificato.** Restava 1:1, e su una riga da 5 celle l'estremità
+sta a due larghezze di cella dal centro: ~88dp, quasi due tasti di corsa. Il guadagno ×2 dello
+Step 1.12e vale ora su **entrambi gli assi** (`VERTICAL_GAIN` → `POINTER_GAIN`), quindi
+l'estremità è a ~44dp: tutto il pannello sta dentro una larghezza di tasto.
+
+Perché in orizzontale serviva anche un perno, che prima non c'era: la x era **assoluta**
+(`pointer.x = rawX`), il che funzionava solo perché il pannello è centrato sul tasto — ma
+**non** per i tasti di bordo, il cui pannello viene rientrato nello schermo e quindi non è più
+centrato su di loro. Ora la x parte dal centro del pannello e si misura da `originX`, come la
+y: stesso gesto ovunque, bordo compreso.
+
+`REACH_X_DP` 32 → 60 di conseguenza: è tolleranza in coordinate del pannello, quindi il
+guadagno ne dimezza il costo per il dito, e "scorrere oltre il fondo della riga prende
+comunque l'ultima cella" doveva restare vero. Essere generosi lì è sicuro: la tolleranza
+decide solo *se* qualcosa è selezionato, mai quale cella vince — quella è sempre la più vicina.
+
+**2. La cifra come prima cella, non ultima** (richiesta esplicita). Ha anche una ragione
+strutturale: un pannello sta su una riga o su due, e solo la cella d'apertura significa la
+stessa cosa in entrambi i casi — l'ultima passa da "fine della riga" a "in basso a destra"
+appena la lista va a capo. Vale per tutti: `3 d e f è é`, `1 @ () / % + = €`, `0 , ; : "`.
+
+**3. Le 5 celle su una riga: non toccate, per ora.** L'utente le preferirebbe 3+2 ma sospetta
+che il fastidio venga dal punto 1 — quindi prima si prova il guadagno. Se non basta è una
+costante: `MAX_PER_ROW` = 3, e `rows()` bilancia già (5 → 3+2).
+
+**File:** `ui/KeyPopupView.kt`, `model/LongPressKeys.kt`; test `LongPressKeysTest` (la cifra
+è la prima cella, virgola inclusa, e il campo email).
+**Verificato su emulatore (Pixel 10 Pro, Android 17):** test verdi; popup di `def` = `3 d e` /
+`f è é` con il `3` teal in testa; **20dp** di scorrimento laterale arrivano a `é`, l'ultima
+cella (col codice precedente si fermavano su `è`, quella centrale); sul popup da 5 celle di
+`abc`, **44dp** a sinistra raggiungono il `2` all'estremità →
+`docs/screenshots/step-1.12f-cifra-in-testa-e-orizzontale.png`,
+`step-1.12f-riga-da-5-estremita.png`.
 
 ### 2026-07-30 — Step 1.12e: la riga sopra del popup si raggiunge con un guizzo (feedback utente)
 **Segnalazione dell'utente:** "lo spostamento in orizzontale sulla stessa riga funziona bene,

@@ -39,9 +39,13 @@ object LongPressKeys {
         KeySpec(open + close, null, isFunction = false, KeyAction.InsertPair(open, close))
 
     /**
-     * The key's own number, always the **last** cell so its position never moves, and
+     * The key's own number, always the **first** cell so its position never moves, and
      * marked as a function key so it is drawn in the accent colour — the same teal as
      * the little number in the key's corner, which is what it stands for.
+     *
+     * First rather than last (the user's call, changed in Step 1.12f): a panel can be one
+     * row or two, and only the opening cell is in the same place in both — the last cell
+     * moves from "end of the row" to "bottom right" as soon as the list wraps.
      *
      * Without these cells the digits are unreachable without switching to `12#`: the
      * keypad has no 0–9 keys at all, its number labels being just labels.
@@ -59,14 +63,14 @@ object LongPressKeys {
      * the popup is what tells you it is there.
      */
     private val key1: List<KeySpec> = listOf(
-        sym("@"), pair("(", ")"), sym("/"), sym("%"), sym("+"), sym("="), sym("€"),
-        digitCell(1)
+        digitCell(1),
+        sym("@"), pair("(", ")"), sym("/"), sym("%"), sym("+"), sym("="), sym("€")
     )
 
     /** In an email or URL field the same key turns into the parts of an address. */
     private val key1Email: List<KeySpec> = listOf(
-        sym("@"), sym(".com"), sym(".it"), sym(".net"), sym(".org"), sym("/"),
-        digitCell(1)
+        digitCell(1),
+        sym("@"), sym(".com"), sym(".it"), sym(".net"), sym(".org"), sym("/")
     )
 
     /**
@@ -76,7 +80,7 @@ object LongPressKeys {
      * The key shows a small `0` in its corner like every other numbered key.
      */
     private val comma: List<KeySpec> = listOf(
-        sym(","), sym(";"), sym(":"), sym("\""), digitCell(0)
+        digitCell(0), sym(","), sym(";"), sym(":"), sym("\"")
     )
 
     /**
@@ -94,7 +98,7 @@ object LongPressKeys {
     ): List<KeySpec> = when {
         action is KeyAction.Digit && action.n == 1 -> if (emailField) key1Email else key1
         action is KeyAction.Digit && action.n in 2..9 ->
-            T9Keypad.columnLetters(action.n).map { letter(action.n, it) } + digitCell(action.n)
+            listOf(digitCell(action.n)) + T9Keypad.columnLetters(action.n).map { letter(action.n, it) }
         action is KeyAction.Insert && action.text == "," -> comma
         // The favourites, reachable here even mid-word — which the column is not, since
         // it turns into letters as soon as you start composing.

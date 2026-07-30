@@ -31,26 +31,32 @@ class LongPressKeysTest {
     @Test
     fun `zero lives on the comma, whose key shows it in the corner`() {
         val comma = LongPressKeys.forKey(KeyAction.Insert(","))
-        assertEquals(KeyAction.Insert("0"), comma.last().action)
+        assertEquals(KeyAction.Insert("0"), comma.first().action)
 
         val commaKey = T9Layout.bottomRow.first { it.action == KeyAction.Insert(",") }
         assertEquals("0", commaKey.number)
     }
 
+    /**
+     * First, not last: it is the only position that means the same thing whether the
+     * panel fits on one row or wraps onto two.
+     */
     @Test
-    fun `the digit is always the last cell and marked as its own kind`() {
+    fun `the digit is always the first cell and marked as its own kind`() {
         for (digit in 1..9) {
             val cells = popupFor(digit)
-            val last = cells.last()
-            assertEquals("digit $digit", KeyAction.Insert(digit.toString()), last.action)
-            assertTrue("digit $digit is set apart", last.isFunction)
+            val first = cells.first()
+            assertEquals("digit $digit", KeyAction.Insert(digit.toString()), first.action)
+            assertTrue("digit $digit is set apart", first.isFunction)
         }
+        val email = popupFor(1, emailField = true).first()
+        assertEquals(KeyAction.Insert("1"), email.action)
     }
 
     /** Letter cells force, exactly like the column; only the digit inserts. */
     @Test
     fun `letter keys offer their letters as forced letters`() {
-        val cells = popupFor(3).dropLast(1)
+        val cells = popupFor(3).drop(1)
         assertEquals(
             T9Keypad.columnLetters(3),
             cells.map { (it.action as KeyAction.ForceLetter).letter }
