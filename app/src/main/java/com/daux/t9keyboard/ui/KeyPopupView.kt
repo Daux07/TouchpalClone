@@ -26,16 +26,19 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
     private var highlighted = -1
 
     /**
-     * What is selected while the finger has not moved: the **digit**, when the panel opens
-     * with one, otherwise nothing.
+     * What is selected while the finger has not moved: **the first cell**, always.
      *
-     * So holding a numbered key and letting go simply types its number — no aiming — which
-     * is the shortest path there is to a digit on a keypad that has no 0–9 keys. It costs
-     * the escape hatch of Step 1.12d (open the panel, release, nothing happens): to back
-     * out now you slide off the panel, where nothing is selected, and release there.
+     * On a numbered key that is the digit, so holding it and letting go simply types the
+     * number — no aiming — which is the shortest path there is to a digit on a keypad
+     * that has no 0–9 keys. It costs the escape hatch of Step 1.12d (open the panel,
+     * release, nothing happens): to back out now you slide off the panel, where nothing
+     * is selected, and release there.
      *
-     * On the `.` panel, which is favourites only, resting still selects nothing: no cell
-     * there is the obvious default, and picking one at random would type it by surprise.
+     * The `.` panel, favourites only, briefly worked differently — nothing preselected,
+     * for want of an obvious default. One rule beats a defensible exception (Step 1.12j):
+     * a panel that behaves like all the others needs no explaining, and the first
+     * favourite is a default the user has already chosen, since the favourites are
+     * ordered and configurable.
      */
     private var restingIndex = -1
 
@@ -75,10 +78,7 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
             }
             addView(rowView, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT))
         }
-        // The digit is the first cell (LongPressKeys) and the only one marked as a
-        // function key, which is exactly what makes it recognisable here without the
-        // panel having to know anything about digits.
-        restingIndex = if (cells.firstOrNull()?.second?.isFunction == true) 0 else -1
+        restingIndex = if (cells.isEmpty()) -1 else 0
     }
 
     /** Light up what a release without moving would choose. Called when the panel opens. */
@@ -168,28 +168,15 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
      * crossing the 10dp threshold teleported the selection: on `jkl` (`5 j k l`) a nudge
      * to the right went from `5` straight to `k`, skipping `j`.
      *
-     * With the digit first the anchor is the top-left cell, which is why the rest of the
-     * panel is now reached by moving right and **down**. That is the trade the user chose:
-     * a gesture that starts where the eye already is, rather than one that starts nearest
-     * the finger.
-     *
-     * The `.` panel has no preselected cell (no digit among the favourites), and there the
-     * old anchor is still the right one: nothing is selected, so the finger should point
-     * at the row closest to it.
+     * The first cell is the top-left one, which is why the rest of the panel is reached by
+     * moving right and **down**. That is the trade the user chose: a gesture that starts
+     * where the eye already is, rather than one that starts nearest the finger.
      */
     private fun anchorPoint(): PointF? {
+        val cell = cells.getOrNull(restingIndex)?.first ?: return null
         val location = IntArray(2)
-        cells.getOrNull(restingIndex)?.first?.let { cell ->
-            cell.getLocationOnScreen(location)
-            return PointF(location[0] + cell.width / 2f, location[1] + cell.height / 2f)
-        }
-
-        val bottomRow = cells.lastOrNull()?.first ?: return null
-        bottomRow.getLocationOnScreen(location)
-        val bottomRowCentreY = location[1] + bottomRow.height / 2f
-        // Rows are centred inside the panel, so the panel's own centre is every row's.
-        getLocationOnScreen(location)
-        return PointF(location[0] + width / 2f, bottomRowCentreY)
+        cell.getLocationOnScreen(location)
+        return PointF(location[0] + cell.width / 2f, location[1] + cell.height / 2f)
     }
 
     /**

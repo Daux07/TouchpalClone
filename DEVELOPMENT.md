@@ -28,7 +28,7 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** Step 1.12i — **il gesto parte dalla cella preselezionata**: risolto il salto della selezione al primo movimento. Prima: 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **Ultimo step completato:** Step 1.12j — **anche il popup del `.` preseleziona la prima cella**: una regola sola per tutti i pannelli. Prima: 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
 - **In attesa di riscontro dell'utente:** con il guadagno orizzontale dello Step 1.12f, le **5 celle su una riga** sono comode o vanno spezzate in 3+2? L'utente le preferirebbe su due righe, ma sospettava che il problema fosse la corsa richiesta — quindi prima si prova il guadagno. Se serve, basta `LongPressKeys.MAX_PER_ROW` = 3 (con `rows()` che bilancia già: 5 → 3+2).
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
 - **Prossimo step:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
@@ -383,6 +383,28 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-30 — Step 1.12j: anche il `.` preseleziona, niente eccezioni (scelta utente)
+**L'utente:** *"io adeguerei il `.` al resto dei popup per coerenza"*.
+
+**Fatto:** la preselezione non è più "la prima cella **se è una cifra**" ma **la prima cella**,
+punto. Tenere premuto `.` e rilasciare scrive il **primo preferito**.
+
+**Perché è meglio, e non solo più uniforme.** L'eccezione era difendibile — fra i preferiti
+nessuna cella è il default ovvio — ma costava una regola in più da ricordare proprio sul
+pannello che l'utente configura da sé. E il primo preferito *è* un default che l'utente ha già
+scelto: i preferiti sono ordinati e riordinabili, quindi chi vuole un altro simbolo in testa lo
+sposta lì.
+
+**Codice più corto, che è il segno che l'eccezione era di troppo:** `restingIndex` diventa
+`if (cells.isEmpty()) -1 else 0` e `anchorPoint()` perde il ramo di riserva "centro della riga
+in basso", che ora non ha più chiamanti.
+
+**File:** `ui/KeyPopupView.kt`.
+**Verificato su emulatore (Pixel 10 Pro, Android 17):** tenendo premuto `.` la cella `/` è
+evidenziata all'apertura e al rilascio senza muovere il dito il campo contiene `/` →
+`docs/screenshots/step-1.12j-punto-preselezione.png`,
+`step-1.12j-punto-preferito-inserito.png`.
 
 ### 2026-07-30 — Step 1.12i: il gesto parte dalla cella preselezionata (scelta utente)
 **Chiude il difetto** aperto dallo Step 1.12g e documentato nell'1.12h. L'utente: *"mi ero

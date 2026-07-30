@@ -10,7 +10,7 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.12i (Fase 1 completa).
+**Allineato a:** Step 1.12j (Fase 1 completa).
 
 ## Indice
 - [Panoramica architettura](#panoramica-architettura)
@@ -442,8 +442,7 @@ e si rilascia sulla scelta. Un tocco normale resta esattamente quello che era.
 **Il dito non copre mai il pannello.** Non si scorre *sopra* le alternative — la mano
 nasconderebbe proprio i caratteri fra cui si sta scegliendo. Il dito resta sulla tastiera e la
 selezione lo segue **più in alto**, come su Gboard: il punto usato per la scelta è la
-traduzione del dito dentro il pannello, che parte dalla **cella preselezionata** (vedi sotto;
-sul popup del `.`, che non ne ha una, dal centro della riga in basso).
+traduzione del dito dentro il pannello, che parte dalla **cella preselezionata** (vedi sotto).
 
 **Lo zero del gesto è il dito, non il tasto.** Lo spostamento si misura da dov'era il dito
 quando il pannello si è aperto: dove dentro il tasto è caduta la pressione non deve spostare
@@ -473,25 +472,28 @@ La geometria di partenza si ricava dal pannello reale (centro dell'ultima riga e
 pannello, misurati a schermo), quindi resta corretta anche quando il pannello viene rientrato
 perché non ci starebbe.
 
-Finché il dito non si è mosso davvero (10dp) è selezionata la **cifra**, cioè la prima cella:
-tenere premuto un tasto numerico e rilasciare **scrive il suo numero**, senza mirare — la via
-più corta che ci sia a una cifra su un tastierino che non ha tasti 0–9. Il pannello si apre
-con la cifra già evidenziata, quindi il comportamento si vede prima di produrlo.
+Finché il dito non si è mosso davvero (10dp) è selezionata **la prima cella, sempre**. Su un
+tasto numerico è la cifra: tenerlo premuto e rilasciare **scrive il suo numero**, senza mirare
+— la via più corta che ci sia a una cifra su un tastierino che non ha tasti 0–9. Il pannello
+si apre già evidenziato, quindi il comportamento si vede prima di produrlo.
 
-Sul popup del `.`, che è di soli preferiti, a riposo **non è selezionato nulla**: lì nessuna
-cella è il default ovvio e sceglierne una a caso la scriverebbe di sorpresa.
+**Nessuna eccezione, nemmeno il `.`.** Per un momento (Step 1.12g–i) il pannello dei preferiti
+non preselezionava niente, non avendo un default ovvio. Una regola sola batte un'eccezione
+difendibile: un pannello che si comporta come tutti gli altri non ha bisogno di spiegazioni, e
+il primo preferito è un default che l'utente ha già scelto, visto che i preferiti sono
+ordinati e configurabili.
 
 **Per annullare** si scorre via dal pannello e si rilascia dove non è selezionato niente. Fino
 allo Step 1.12f bastava rilasciare senza muoversi; è il prezzo della scorciatoia, pagato
 consapevolmente.
 
 **Il punto di partenza è la cella preselezionata**, non un punto qualsiasi del pannello: il
-primo movimento scorre via dalla cifra invece di saltare altrove. Fino allo Step 1.12h i due
+primo movimento scorre via da lì invece di saltare altrove. Fino allo Step 1.12h i due
 posti erano diversi (evidenziata la prima cella, ma il gesto partiva dal centro della riga in
 basso) e superare i 10dp teletrasportava la selezione — su `jkl` (`5 j k l`) un colpetto a
 destra andava da `5` direttamente a `k`, scavalcando `j`.
 
-Poiché la cifra è la prima cella, cioè **in alto a sinistra**, il resto del pannello si
+Poiché la cella preselezionata è la prima, cioè **in alto a sinistra**, il resto del pannello si
 raggiunge andando a destra e **in giù**. È il compromesso scelto: un gesto che parte da dove
 l'occhio già guarda, invece che dal punto più vicino al dito.
 
