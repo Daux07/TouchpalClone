@@ -32,7 +32,7 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
 - **Prossimo step:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
 - **Dopo:** **Fase 3** (impostazioni/ergonomia, dove rientrano la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente). Il test reale sullo smartphone continua in parallelo: `bash tools/dev.sh apk` → `app/build/outputs/apk/debug/app-debug.apk`.
-- 📝 **Appunti dell'utente dalla prova reale (30/07 sera) — da affrontare per primi nella prossima sessione.** Tre cose, tutte sull'apostrofo e sull'apprendimento; nessuna ancora riprodotta né corretta:
+- 📝 **Appunti dell'utente dalla prova reale (30/07 sera) — da affrontare per primi nella prossima sessione.** Quattro punti, nessuno ancora riprodotto né corretto. **Ordine deciso dall'utente: prima le tre segnalazioni (1, 2, 3), poi la vibrazione (4).**
 
   1. **La parola composta a mano non risulta imparata.** Serviva `farla`, che nel dizionario non c'è.
      **Riproduzione esatta, dettata dall'utente** — da eseguire *per prima cosa*, prima di toccare il codice:
