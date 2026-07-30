@@ -25,6 +25,20 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
     private val cells = mutableListOf<Pair<View, KeySpec>>()
     private var highlighted = -1
 
+    /**
+     * What is selected while the finger has not moved: the **digit**, when the panel opens
+     * with one, otherwise nothing.
+     *
+     * So holding a numbered key and letting go simply types its number — no aiming — which
+     * is the shortest path there is to a digit on a keypad that has no 0–9 keys. It costs
+     * the escape hatch of Step 1.12d (open the panel, release, nothing happens): to back
+     * out now you slide off the panel, where nothing is selected, and release there.
+     *
+     * On the `.` panel, which is favourites only, resting still selects nothing: no cell
+     * there is the obvious default, and picking one at random would type it by surprise.
+     */
+    private var restingIndex = -1
+
     /** Where the finger was when the panel opened (screen px): the zero of the gesture. */
     private var originX = 0f
     private var originY = 0f
@@ -61,7 +75,14 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
             }
             addView(rowView, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT))
         }
+        // The digit is the first cell (LongPressKeys) and the only one marked as a
+        // function key, which is exactly what makes it recognisable here without the
+        // panel having to know anything about digits.
+        restingIndex = if (cells.firstOrNull()?.second?.isFunction == true) 0 else -1
     }
+
+    /** Light up what a release without moving would choose. Called when the panel opens. */
+    fun highlightResting() = setHighlighted(restingIndex)
 
     private fun buildCell(spec: KeySpec): View = TextView(context).apply {
         text = spec.mainLabel
@@ -125,9 +146,8 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
      *   tracking from below exists to avoid. At double speed the whole panel is within a
      *   key's width of where the finger already is.
      *
-     * Returns null while the finger has not really moved, which keeps a long press that
-     * ends where it began from choosing anything: opening the panel and letting go must
-     * stay a way to change your mind.
+     * Returns null while the finger has not really moved, which hands the choice to
+     * [restingIndex] instead of to whatever cell happens to be nearest.
      */
     private fun pointerInPanel(rawX: Float, rawY: Float): PointF? {
         if (hypot(rawX - originX, rawY - originY) < dp(MOVE_THRESHOLD_DP)) return null
@@ -181,7 +201,7 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
      * back "nothing selected" instead of clinging to the nearest edge.
      */
     private fun indexAt(rawX: Float, rawY: Float): Int {
-        val pointer = pointerInPanel(rawX, rawY) ?: return -1
+        val pointer = pointerInPanel(rawX, rawY) ?: return restingIndex
         val location = IntArray(2)
         var nearest = -1
         var nearestDistance = Float.MAX_VALUE

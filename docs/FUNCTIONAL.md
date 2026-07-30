@@ -10,7 +10,7 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.12f (Fase 1 completa).
+**Allineato a:** Step 1.12g (Fase 1 completa).
 
 ## Indice
 - [Panoramica architettura](#panoramica-architettura)
@@ -442,14 +442,13 @@ e si rilascia sulla scelta. Un tocco normale resta esattamente quello che era.
 **Il dito non copre mai il pannello.** Non si scorre *sopra* le alternative — la mano
 nasconderebbe proprio i caratteri fra cui si sta scegliendo. Il dito resta sulla tastiera e la
 selezione lo segue **più in alto**, come su Gboard: il punto usato per la scelta è la
-traduzione del dito dentro il pannello, che a dito fermo punta al **centro della riga in
-basso**.
+traduzione del dito dentro il pannello, che parte dal **centro della riga in basso**.
 
 **Lo zero del gesto è il dito, non il tasto.** Lo spostamento si misura da dov'era il dito
-quando il pannello si è aperto: dove dentro il tasto è caduta la pressione non deve decidere
-cosa parte selezionato, e così "non mi sono mosso" significa "centro della riga in basso"
-sempre. Rende anche il gesto identico per un tasto di bordo, il cui pannello viene rientrato
-nello schermo e quindi non è più centrato sopra di lui.
+quando il pannello si è aperto: dove dentro il tasto è caduta la pressione non deve spostare
+il punto di partenza, che è il centro della riga in basso sempre. Rende anche il gesto
+identico per un tasto di bordo, il cui pannello viene rientrato nello schermo e quindi non è
+più centrato sopra di lui.
 
 **Il movimento è amplificato ×2 su entrambi gli assi** (`KeyPopupView.POINTER_GAIN`). Con un
 inseguimento 1:1 il pannello andava attraversato alla sua misura reale: la riga sopra costava
@@ -462,9 +461,17 @@ La geometria di partenza si ricava dal pannello reale (centro dell'ultima riga e
 pannello, misurati a schermo), quindi resta corretta anche quando il pannello viene rientrato
 perché non ci starebbe.
 
-Finché il dito non si è mosso davvero (10dp) **non è selezionato nulla**: aprire il pannello e
-rilasciare senza spostarsi è un modo per cambiare idea, non per scrivere il carattere che
-capita sopra al dito.
+Finché il dito non si è mosso davvero (10dp) è selezionata la **cifra**, cioè la prima cella:
+tenere premuto un tasto numerico e rilasciare **scrive il suo numero**, senza mirare — la via
+più corta che ci sia a una cifra su un tastierino che non ha tasti 0–9. Il pannello si apre
+con la cifra già evidenziata, quindi il comportamento si vede prima di produrlo.
+
+Sul popup del `.`, che è di soli preferiti, a riposo **non è selezionato nulla**: lì nessuna
+cella è il default ovvio e sceglierne una a caso la scriverebbe di sorpresa.
+
+**Per annullare** si scorre via dal pannello e si rilascia dove non è selezionato niente. Fino
+allo Step 1.12f bastava rilasciare senza muoversi; è il prezzo della scorciatoia, pagato
+consapevolmente.
 
 ### Cosa offre ciascun tasto
 
@@ -508,6 +515,10 @@ scrivere solo passando da `12#`.
 **Prima e non ultima** (scelta dell'utente, Step 1.12f): un pannello può stare su una riga o
 su due, e solo la cella d'apertura significa la stessa cosa in entrambi i casi — l'ultima
 passa da "fine della riga" a "in basso a destra" appena la lista va a capo.
+
+Ed essendo la prima è anche quella **preselezionata all'apertura** (Step 1.12g): tenere
+premuto un tasto numerico e rilasciare scrive il suo numero, che è il percorso più corto
+possibile. Vedi sopra, "il dito non copre mai il pannello".
 
 Lo `0` sta sul popup della **virgola**, che infatti ora mostra `0` nell'angolo. In ITU-T E.161
 la sua casa sarebbe la barra spazio, ma quel long-press è **riservato allo scorrimento del

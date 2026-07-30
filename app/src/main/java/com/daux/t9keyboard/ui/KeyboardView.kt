@@ -176,6 +176,7 @@ class KeyboardView(
         val rect = Rect(0, 0, anchor.width, anchor.height)
         offsetDescendantRectToMyCoords(anchor, rect)
 
+        val opening = popup.visibility != View.VISIBLE
         val maxX = (width - popup.width).coerceAtLeast(0)
         val x = (rect.centerX() - popup.width / 2).coerceIn(0, maxX)
         val y = (rect.top - popup.height - dp(2)).coerceAtLeast(0)
@@ -188,6 +189,10 @@ class KeyboardView(
         // The panel tracks the finger from above, measuring from where the finger was when
         // the panel opened — the geometry it needs on top of that it reads off itself.
         popup.setTracking(popupOrigin.x, popupOrigin.y)
+
+        // Only as it appears: a later re-layout must not throw away a choice the finger
+        // has meanwhile slid onto.
+        if (opening) popup.highlightResting()
     }
 
     // --- Insets & sizing ------------------------------------------------------

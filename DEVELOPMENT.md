@@ -28,7 +28,7 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** Step 1.12f — **popup: guadagno anche in orizzontale e cifra in testa**. Prima: 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **Ultimo step completato:** Step 1.12g — **la cifra è preselezionata all'apertura del popup**: tenere premuto un tasto numerico e rilasciare scrive il suo numero. Prima: 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
 - **In attesa di riscontro dell'utente:** con il guadagno orizzontale dello Step 1.12f, le **5 celle su una riga** sono comode o vanno spezzate in 3+2? L'utente le preferirebbe su due righe, ma sospettava che il problema fosse la corsa richiesta — quindi prima si prova il guadagno. Se serve, basta `LongPressKeys.MAX_PER_ROW` = 3 (con `rows()` che bilancia già: 5 → 3+2).
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
 - **Prossimo step:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
@@ -383,6 +383,37 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-30 — Step 1.12g: la cifra è preselezionata all'apertura (richiesta utente)
+**Richiesta:** "avendo messo all'inizio il numero vorrei che appena aperto il popup il cursore
+sia già sul numero, così se non sposto viene inserito direttamente il numero".
+
+**Fatto:** a dito fermo la selezione non è più "niente" ma la **prima cella**, quando è la
+cifra. Tenere premuto un tasto numerico e rilasciare **scrive il suo numero**, senza mirare —
+il percorso più corto possibile su un tastierino che non ha tasti 0–9. Il pannello si apre già
+con la cifra evidenziata, quindi il comportamento si vede *prima* di produrlo.
+
+**Ribalta una decisione dello Step 1.12d**, e va detto: lì "a dito immobile nessuna cella è
+selezionata" era la via d'uscita — apri il pannello, ci ripensi, rilasci. Ora per annullare si
+scorre via dal pannello e si rilascia dove non è selezionato nulla. È il prezzo della
+scorciatoia, pagato consapevolmente; la documentazione lo dice invece di far finta di niente.
+
+**L'eccezione:** il popup del `.` è di soli **preferiti**, senza cifra. Lì a riposo resta
+selezionato **niente**: nessuna cella è il default ovvio e sceglierne una a caso la
+scriverebbe di sorpresa. Il pannello riconosce la cella cifra da `isFunction`, che già la
+marcava per colorarla di teal — nessun concetto nuovo, e `KeyPopupView` continua a non sapere
+cosa sia una cifra.
+
+**Un dettaglio:** l'evidenziazione iniziale si applica **solo quando il pannello compare**
+(`opening` in `positionPopup`), non a ogni layout: un re-layout a metà gesto butterebbe via la
+cella su cui il dito è nel frattempo scivolato.
+
+**File:** `ui/KeyPopupView.kt` (`restingIndex`, `highlightResting`), `ui/KeyboardView.kt`.
+**Verificato su emulatore (Pixel 10 Pro, Android 17):** pressione prolungata su `def` senza
+muovere il dito → `3` evidenziato all'apertura e **`3` scritto nel campo** al rilascio; sul
+popup del `.` a dito fermo nessuna cella evidenziata →
+`docs/screenshots/step-1.12g-cifra-preselezionata.png`,
+`step-1.12g-cifra-inserita-senza-mirare.png`, `step-1.12g-preferiti-nessuna-preselezione.png`.
 
 ### 2026-07-30 — Step 1.12f: guadagno anche in orizzontale, cifra in testa (feedback utente)
 **Tre punti dell'utente**, uno dei quali volutamente **non** implementato.
