@@ -10,7 +10,7 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.12g (Fase 1 completa).
+**Allineato a:** Step 1.12h (Fase 1 completa).
 
 ## Indice
 - [Panoramica architettura](#panoramica-architettura)
@@ -450,12 +450,24 @@ il punto di partenza, che è il centro della riga in basso sempre. Rende anche i
 identico per un tasto di bordo, il cui pannello viene rientrato nello schermo e quindi non è
 più centrato sopra di lui.
 
-**Il movimento è amplificato ×2 su entrambi gli assi** (`KeyPopupView.POINTER_GAIN`). Con un
-inseguimento 1:1 il pannello andava attraversato alla sua misura reale: la riga sopra costava
-un passo di riga (l'altezza di un tasto) e l'estremità di una riga da 5 due larghezze di
-cella. In entrambi i casi bisognava portare il dito sul pannello, cioè proprio ciò che
-l'inseguimento dal basso esiste per evitare. A velocità doppia tutto il pannello sta dentro
-una larghezza di tasto: riga sopra ~25dp, estremità della riga ~44dp.
+**Il movimento è amplificato**, ma **non allo stesso modo sui due assi**:
+`HORIZONTAL_GAIN` ×1.5, `VERTICAL_GAIN` ×2.5. Con un inseguimento 1:1 il pannello andava
+attraversato alla sua misura reale — la riga sopra costava un passo di riga (l'altezza di un
+tasto) e l'estremità di una riga da 5 due larghezze di cella — cioè bisognava portare il dito
+sul pannello, proprio ciò che l'inseguimento dal basso esiste per evitare.
+
+I due assi hanno guadagni diversi perché hanno problemi diversi: **di lato** le distanze sono
+brevi (una cella) e troppo guadagno rende l'evidenziazione nervosa; **in su** il dito deve
+coprire un passo di riga *e* restare fuori da un pannello che gli sta appena sopra. Valori
+tarati a mano, prima sull'emulatore e poi sul telefono (2/2 risultava troppo veloce di lato e
+ancora insufficiente in su). Oggi: riga sopra ~20dp, estremità di una riga da 5 ~59dp.
+
+**Il pannello si stacca dal tasto di `POPUP_GAP_DP` (10dp)**, che è spazio sottratto alla
+mano. Non serve però alla **prima fila di tasti**: lì il pannello è già appoggiato al bordo
+superiore della tastiera e non può salire oltre — la finestra dell'IME è tutto lo spazio che
+c'è, e un pannello a due righe (~108dp) non entra sopra un tasto che dista 61dp dal bordo. Su
+quella fila il dito finisce comunque sotto al pannello, ed è il guadagno verticale a
+compensare.
 
 La geometria di partenza si ricava dal pannello reale (centro dell'ultima riga e centro del
 pannello, misurati a schermo), quindi resta corretta anche quando il pannello viene rientrato
@@ -472,6 +484,12 @@ cella è il default ovvio e sceglierne una a caso la scriverebbe di sorpresa.
 **Per annullare** si scorre via dal pannello e si rilascia dove non è selezionato niente. Fino
 allo Step 1.12f bastava rilasciare senza muoversi; è il prezzo della scorciatoia, pagato
 consapevolmente.
+
+⚠️ **Discontinuità nota** (aperta dallo Step 1.12g). La preselezione è la **prima cella**, ma
+il punto di partenza geometrico resta il **centro della riga in basso**: sono due posti
+diversi, quindi al primo movimento oltre i 10dp la selezione non scorre dalla cifra, **salta**
+al centro della riga. Su `jkl` (`5 j k l`) 17dp verso destra portano da `5` a `k`, scavalcando
+`j`. Da risolvere facendo coincidere i due punti; vedi `DEVELOPMENT.md`.
 
 ### Cosa offre ciascun tasto
 

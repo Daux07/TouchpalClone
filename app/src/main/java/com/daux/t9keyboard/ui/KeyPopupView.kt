@@ -139,7 +139,8 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
      *   makes "hasn't moved" mean "middle of the bottom row" every time. It also makes
      *   the gesture identical for a key at the edge of the keyboard, whose panel gets
      *   nudged back inside the screen and so no longer sits centred over it.
-     * - **The movement is amplified by [POINTER_GAIN].** One-to-one tracking meant the
+     * - **The movement is amplified**, more upwards than sideways ([VERTICAL_GAIN],
+     *   [HORIZONTAL_GAIN]). One-to-one tracking meant the
      *   panel had to be crossed at its real size: the row above cost a whole row pitch of
      *   travel (about the height of a key) and the far end of a five-cell row two cell
      *   widths. Reaching either meant walking the finger onto the panel, the very thing
@@ -161,8 +162,8 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
         val centreX = location[0] + width / 2f
 
         return PointF(
-            centreX + (rawX - originX) * POINTER_GAIN,
-            bottomRowCentreY + (rawY - originY) * POINTER_GAIN
+            centreX + (rawX - originX) * HORIZONTAL_GAIN,
+            bottomRowCentreY + (rawY - originY) * VERTICAL_GAIN
         )
     }
 
@@ -251,12 +252,19 @@ class KeyPopupView(context: Context) : LinearLayout(context) {
         const val REACH_Y_DP = 30
 
         /**
-         * How much panel movement one unit of finger movement buys, on both axes. At 2
-         * the row above is ~25dp of travel away and the end of a five-cell row ~44dp —
-         * roughly one key — instead of double that, so the panel is swept with the
-         * fingertip while the hand stays on the keys.
+         * How much panel movement one unit of finger movement buys. The two axes are
+         * **not** the same, because the two problems are not the same: sideways the
+         * distances are short (one cell) and too much gain makes the highlight skittish,
+         * while upwards the finger must cover a whole row pitch *and* stay off a panel
+         * that sits right above it, so it needs more help.
+         *
+         * Tuned by hand on the emulator and then on the phone: 2/2 was reported as too
+         * fast sideways and still not enough upwards.
          */
-        const val POINTER_GAIN = 2f
+        const val HORIZONTAL_GAIN = 1.5f
+
+        /** See [HORIZONTAL_GAIN]: the row above is ~20dp of travel away. */
+        const val VERTICAL_GAIN = 2.5f
 
         /** Below this the finger counts as still, and nothing is selected yet. */
         const val MOVE_THRESHOLD_DP = 10

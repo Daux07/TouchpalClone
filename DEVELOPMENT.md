@@ -28,7 +28,8 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** Step 1.12g — **la cifra è preselezionata all'apertura del popup**: tenere premuto un tasto numerico e rilasciare scrive il suo numero. Prima: 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **Ultimo step completato:** Step 1.12h — **taratura del gesto sul popup**: guadagni separati per asse (orizzontale ×1.5, verticale ×2.5) e pannello staccato di 10dp dal tasto. Prima: 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- 🐞 **Difetto aperto (introdotto dallo Step 1.12g, trovato verificando l'1.12h):** la preselezione è la **prima cella**, ma il punto di partenza geometrico è il **centro della riga in basso**. Sono due posti diversi, quindi al primo movimento la selezione **salta** invece di scorrere: su `jkl` (`5 j k l`) 17dp a destra portano da `5` a `k`, scavalcando `j` (`docs/screenshots/step-1.12h-salto-dalla-preselezione.png`). Vanno fatti coincidere, e sono due strade opposte: **(a)** l'origine mappa sulla cella preselezionata — niente salto, ma con la cifra in alto a sinistra le altre celle si raggiungono andando a destra e **in giù**, invertendo il senso attuale; **(b)** l'origine resta il centro della riga in basso e la preselezione diventa quella cella — coerente col gesto ma **perde la scorciatoia** dello Step 1.12g. Decisione dell'utente.
 - **In attesa di riscontro dell'utente:** con il guadagno orizzontale dello Step 1.12f, le **5 celle su una riga** sono comode o vanno spezzate in 3+2? L'utente le preferirebbe su due righe, ma sospettava che il problema fosse la corsa richiesta — quindi prima si prova il guadagno. Se serve, basta `LongPressKeys.MAX_PER_ROW` = 3 (con `rows()` che bilancia già: 5 → 3+2).
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
 - **Prossimo step:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
@@ -383,6 +384,43 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-30 — Step 1.12h: taratura del gesto sul popup (feedback utente)
+**Segnalazione:** "il movimento lungo l'asse orizzontale ora è troppo accentuato, mentre
+sull'asse verticale il dito è ancora troppo sopra il popup". Chiesto chiarimento sul secondo
+punto, perché ammetteva letture opposte; risposta: *"sposta il pannello leggermente più sopra
+e aumenta un po' il guadagno senza esagerare"*.
+
+**Fatto — 1. guadagni separati per asse.** `POINTER_GAIN` si spacca in `HORIZONTAL_GAIN`
+**1.5** e `VERTICAL_GAIN` **2.5**. Un valore solo era una semplificazione sbagliata: i due
+assi hanno problemi diversi. Di lato le distanze sono brevi (una cella) e troppo guadagno
+rende l'evidenziazione nervosa; in su il dito deve coprire un passo di riga **e** restare
+fuori da un pannello che gli sta appena sopra. Riga sopra ~20dp, estremità di una riga da 5
+~59dp.
+
+**2. Il pannello si stacca dal tasto di 10dp** (`POPUP_GAP_DP`, era 2): ogni dp è spazio
+sottratto alla mano.
+
+**Il limite da sapere, perché non è aggirabile con una costante:** sulla **prima fila di
+tasti** il pannello **non può salire**. È già appoggiato al bordo superiore della tastiera —
+la finestra dell'IME è tutto lo spazio disponibile, e un pannello a due righe (~108dp) non
+entra sopra un tasto che dista 61dp dal bordo. Su quella fila (`abc`, `def`) il dito resta
+sotto al pannello comunque, e a compensare è solo il guadagno verticale. Alzarlo davvero
+richiederebbe un `PopupWindow` che esce dalla finestra dell'IME, cioè disfare la scelta
+architetturale dello Step 1.12 (nessun token di finestra, niente che sopravviva alla tastiera).
+
+**3. Difetto trovato verificando, non segnalato dall'utente.** Vedi il punto 🐞 in STATO
+CORRENTE: preselezione e origine geometrica sono in due posti diversi, quindi il primo
+movimento fa **saltare** la selezione. Non l'ho risolto qui perché le due soluzioni possibili
+si escludono a vicenda e una delle due rinuncia alla scorciatoia appena chiesta: è una
+decisione, non un dettaglio implementativo.
+
+**File:** `ui/KeyPopupView.kt`, `ui/KeyboardView.kt`.
+**Verificato su emulatore (Pixel 10 Pro, Android 17):** **16dp** in su bastano ora per la riga
+sopra (`d` evidenziata); il pannello di `jkl` mostra lo stacco dal tasto →
+`docs/screenshots/step-1.12h-verticale-16dp.png`, `step-1.12h-stacco-dal-tasto.png`.
+**Da tarare sul telefono:** i due guadagni sono stimati sulla geometria dell'emulatore; sono
+due costanti in `KeyPopupView`, indipendenti fra loro.
 
 ### 2026-07-30 — Step 1.12g: la cifra è preselezionata all'apertura (richiesta utente)
 **Richiesta:** "avendo messo all'inizio il numero vorrei che appena aperto il popup il cursore

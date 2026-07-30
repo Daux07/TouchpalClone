@@ -168,6 +168,14 @@ class KeyboardView(
      * Centre the panel over its key and lift it clear of the finger, kept inside the
      * keyboard: keys in the first and last columns would otherwise push a panel wider
      * than themselves off the screen.
+     *
+     * The gap above the key is [POPUP_GAP_DP], deliberately more than the hairline it
+     * started as: every dp of it is a dp the hand does not cover. It buys nothing for the
+     * **top row of keys**, though, where the panel is already pinned to the top of the
+     * keyboard — the IME window is all the room there is, and a panel two rows tall does
+     * not fit between the top of the keyboard and a key 61dp below it. There the finger
+     * ends up under the panel no matter what, which is why the vertical gain carries more
+     * of the work than the horizontal one.
      */
     private fun positionPopup() {
         val anchor = popupAnchor ?: return
@@ -179,7 +187,7 @@ class KeyboardView(
         val opening = popup.visibility != View.VISIBLE
         val maxX = (width - popup.width).coerceAtLeast(0)
         val x = (rect.centerX() - popup.width / 2).coerceIn(0, maxX)
-        val y = (rect.top - popup.height - dp(2)).coerceAtLeast(0)
+        val y = (rect.top - popup.height - dp(POPUP_GAP_DP)).coerceAtLeast(0)
 
         // Translation is relative to where the layout put it, not to the origin.
         popup.translationX = (x - popup.left).toFloat()
@@ -224,5 +232,8 @@ class KeyboardView(
         // Tall enough to leave the candidates room to breathe at DEFAULT_TEXT_SP.
         private const val BAR_DP = 56
         private const val BODY_HEIGHT_FRACTION = 0.34f // less tall; keys wider than tall
+
+        /** Clearance between the popup and the key that opened it. See [positionPopup]. */
+        private const val POPUP_GAP_DP = 10
     }
 }
