@@ -24,4 +24,9 @@ class RoomLearnedWordsStore(context: Context) : LearnedWordsEngine.Store {
     override fun save(word: String, sequence: String, uses: Long, lastUsed: Long) {
         writer.execute { dao.upsert(LearnedWord(word, sequence, uses, lastUsed)) }
     }
+
+    /** Queued like a write, for the same reason: nothing on the key path waits on disk. */
+    override fun delete(word: String) {
+        writer.execute { dao.delete(word) }
+    }
 }

@@ -73,4 +73,24 @@ class SingleLetterEngineTest {
         val learned = fakeEngine("è" to 1_000_000L, "e" to 48146L, "d" to 37L, "f" to 9L)
         assertEquals("e", words(learned, "3").first())
     }
+
+    /**
+     * Key 2 with the real corpus figures — the case the user reported as proposing `b`
+     * before `a`.
+     *
+     * With corpus weights alone the order is right, and always was: `a` is a word (15038)
+     * and the rest are residue. What broke it was a **learned** `b`, which outranks the
+     * whole corpus by design — and against which this class has no defence, because `a`
+     * and `b` are both plain letters and the comparison falls through to the weight.
+     *
+     * The rule that a single letter is never learned lives with the data
+     * ([LearnedWordsEngine.isLearnable]), and the tests that a stale one is swept out live
+     * there too. Duplicating it here would be a second answer to the same question.
+     */
+    @Test
+    fun `key 2 reads as the keypad does`() {
+        val key2 = fakeEngine("a" to 15038L, "c" to 38L, "b" to 34L)
+
+        assertEquals(listOf("a", "b", "c", "à"), words(key2, "2"))
+    }
 }

@@ -24,18 +24,31 @@ class LearnedWordsEngine(private val store: Store) : DictionaryEngine {
     interface Store {
         fun loadAll(): List<Entry>
         fun save(word: String, sequence: String, uses: Long, lastUsed: Long)
+        fun delete(word: String)
     }
 
     data class Entry(val word: String, val sequence: String, val uses: Long)
 
-    /** Reads the whole personal dictionary into RAM. Call off the main thread. */
+    /**
+     * Reads the whole personal dictionary into RAM. Call off the main thread.
+     *
+     * Single letters stored by an older build are **thrown away here, and deleted**.
+     * The rule that they are never learned ([isLearnable]) arrived in Phase 1.14 and only
+     * stops new ones: an `a` or a `b` written once before that is still on file, and a
+     * learned word outranks the entire corpus — so key 2 proposed `b` ahead of `a`, one
+     * of the commonest words in the language, and went on doing it forever. A rule that
+     * only applies to the future leaves the damage in place.
+     */
     fun load() {
         val entries = store.loadAll()
+        val stale = entries.filterNot { isLearnable(it.word) }
         synchronized(this) {
             for (entry in entries) {
+                if (!isLearnable(entry.word)) continue
                 index.getOrPut(entry.sequence) { HashMap() }[entry.word] = entry.uses
             }
         }
+        for (entry in stale) store.delete(entry.word)
     }
 
     override fun lookup(sequence: String): List<Candidate> {
@@ -73,7 +86,7 @@ class LearnedWordsEngine(private val store: Store) : DictionaryEngine {
      */
     fun learn(word: String, now: Long): Boolean {
         val normalized = word.trim().lowercase()
-        if (normalized.isEmpty()) return false
+        if (!isLearnable(normalized)) return false
         val sequence = T9Keypad.sequenceFor(normalized) ?: return false
 
         val uses = synchronized(this) {
@@ -87,6 +100,20 @@ class LearnedWordsEngine(private val store: Store) : DictionaryEngine {
     }
 
     companion object {
+        /**
+         * What may enter the personal dictionary at all.
+         *
+         * **Never a single letter.** A learned word outranks the whole corpus, so one
+         * letter stored once sits on top of its key for good: writing `b` by accident
+         * demotes `a` — a word people write constantly — permanently. What a lone key
+         * offers is decided by `SingleLetterEngine` from the keypad, not by history.
+         *
+         * The rule lives here, with the data, rather than in the caller that happened to
+         * need it first: that is exactly how single letters got in before Phase 1.14, and
+         * why they had to be swept out again in [load].
+         */
+        fun isLearnable(word: String): Boolean = word.length >= 2
+
         /**
          * Above the highest frequency of the Leipzig corpus (~75k for "di"), so a
          * learned word always outranks corpus words for the same sequence.

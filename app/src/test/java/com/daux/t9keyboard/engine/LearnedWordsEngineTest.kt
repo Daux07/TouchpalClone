@@ -26,6 +26,41 @@ class LearnedWordsEngineTest {
         override fun save(word: String, sequence: String, uses: Long, lastUsed: Long) {
             saved[word] = LearnedWordsEngine.Entry(word, sequence, uses)
         }
+
+        override fun delete(word: String) {
+            saved.remove(word)
+        }
+    }
+
+    // --- Single letters: never in, and swept out if already there -----------------
+
+    @Test
+    fun `a single letter is never learned`() {
+        val engine = LearnedWordsEngine(FakeStore())
+
+        assertFalse(engine.learn("b", 1L))
+        assertTrue(engine.lookup("2").isEmpty())
+    }
+
+    @Test
+    fun `a single letter stored by an older build is dropped on load`() {
+        // Exactly the user's phone: `b` learned before the rule existed, outranking the
+        // whole corpus on key 2 ever since — and `a` is one of the commonest words there is.
+        val store = FakeStore(
+            listOf(
+                LearnedWordsEngine.Entry("b", "2", 4L),
+                LearnedWordsEngine.Entry("bau", "228", 3L)
+            )
+        )
+        val engine = LearnedWordsEngine(store)
+
+        engine.load()
+
+        assertTrue("the stale letter must not be proposed", engine.lookup("2").isEmpty())
+        // …and it must be gone for good, not merely ignored until the next load.
+        assertFalse("the stale letter must be deleted", store.saved.containsKey("b"))
+        // Everything else survives untouched.
+        assertEquals(listOf("bau"), engine.lookup("228").map { it.word })
     }
 
     @Test

@@ -812,11 +812,9 @@ class T9ImeService : InputMethodService() {
      * Cheap: in-RAM bump plus a queued database write.
      */
     private fun learn(word: String) {
-        // Single letters are never learned. A learned word outranks the whole corpus, so
-        // writing "è" once would demote "e" for good on the most common keypress there
-        // is — a permanent cost for a keystroke that carries no information anyway. What
-        // a lone key offers is decided by SingleLetterEngine, not by history.
-        if (word.length < 2) return
+        // What may be learned at all is decided by the dictionary itself
+        // (LearnedWordsEngine.isLearnable) — notably never a single letter. The rule used
+        // to live here, and a caller that forgot it was exactly how single letters got in.
         learned.learn(word, System.currentTimeMillis())
     }
 

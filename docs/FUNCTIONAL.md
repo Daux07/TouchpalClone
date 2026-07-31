@@ -14,9 +14,9 @@
 
 **Versione visibile.** `versionName` **è** il numero dello step di `DEVELOPMENT.md`, e da lì
 derivano (via `resValue` in `app/build.gradle.kts`) il nome dell'app e l'etichetta della
-tastiera: nel selettore si legge **"T9 2.1"**. Provando sul telefono si sa sempre a che punto
+tastiera: nel selettore si legge **"T9 2.2"**. Provando sul telefono si sa sempre a che punto
 del log corrisponde ciò che si ha in mano — e `bash tools/dev.sh apk` produce anche un file
-con la versione nel nome (`t9-2.1-debug.apk`), così gli APK non si confondono fra loro. Le
+con la versione nel nome (`t9-2.2-debug.apk`), così gli APK non si confondono fra loro. Le
 due stringhe non stanno più in `strings.xml`: scritte a mano resterebbero indietro.
 
 ## Indice
@@ -603,10 +603,21 @@ punteggiatura, o scegliendo un suggerimento — finisce nel dizionario personale
   garantito dall'executor a thread singolo.
 - Le parole sono memorizzate **minuscole**: "Casa" e "casa" sono la stessa parola per lookup
   e apprendimento.
-- **Le lettere singole non si imparano.** Una parola imparata batte l'intero corpus, quindi
-  scrivere `è` una volta demoterebbe `e` per sempre sulla pressione di tasto più comune che
-  esista: un danno permanente per un tasto che non porta informazione utile. Cosa offre un
-  tasto solo lo decide `SingleLetterEngine`, non la cronologia.
+- **Le lettere singole non si imparano** (`LearnedWordsEngine.isLearnable`). Una parola
+  imparata batte l'intero corpus, quindi una lettera finita lì dentro **una volta** siede in
+  cima al suo tasto per sempre: scrivere `b` per sbaglio demote `a` — una delle parole più
+  frequenti che esistano — in modo permanente. Cosa offre un tasto solo lo decide
+  `SingleLetterEngine` dal tastierino, non la cronologia.
+
+  **La regola sta con i dati, non con il chiamante.** Fino alla 2.2 viveva nel servizio, e
+  un chiamante che se ne dimenticasse la aggirava: è esattamente così che le lettere singole
+  erano entrate prima della Fase 1.14.
+
+- **Le lettere singole già memorizzate vengono buttate al caricamento, e cancellate**
+  (`load()`). Una regola che vale solo per il futuro lascia il danno dov'è: chi aveva una `b`
+  in archivio da una build vecchia se la sarebbe tenuta per sempre. Verificato sul dispositivo
+  riproducendo lo stato — imparata una `b`, il tasto `2` proponeva `b a c à`; installata la
+  build con la bonifica, **lo stesso database** legge `a b c à`.
 
 ### Elisioni
 
@@ -1044,7 +1055,7 @@ Unit test JVM (nessun emulatore necessario): `./gradlew :app:testDebugUnitTest`.
 | `CorpusDictionaryEngineTest` | Costruzione indice, ordinamento per peso, ricerca per prefisso (fra cui il caso `contempora` → `contemporaneamente`), e che **una lettera sola non sia mai un nome proprio** |
 | `MergingDictionaryEngineTest` | Fusione, deduplica per parola |
 | `LanguagePriorityEngineTest` | 9 casi: che ogni parola italiana preceda ogni inglese (anche quando l'inglese pesa di più), che una parola comune a entrambe sia tenuta una volta sola, che l'inglese risponda da solo dove l'italiano tace, che una **terza lingua** si accodi alla seconda, e che senza secondarie resti esattamente la tastiera v1 |
-| `LearnedWordsEngineTest` | Pesi, incremento usi, caricamento dallo store |
+| `LearnedWordsEngineTest` | Pesi, incremento usi, caricamento dallo store; e le lettere singole: **mai imparate**, e **cancellate** dall'archivio se ve le aveva messe una build vecchia |
 | `FuzzyDictionaryEngineTest` | 14 casi: cancellazione/sostituzione/inserimento, **inversione di due tasti**, **due tasti sbagliati** (e che non si cerchino su parole corte né quando qualcosa già corrisponde), marcatura, tetto |
 | `FuzzyCostTest` | Guardia sul costo: la ricerca profonda sul corpus vero (50k parole) resta abbondantemente dentro il tempo di una pressione |
 | `CompletingDictionaryEngineTest` | 7 casi: che i tasti che non scrivono nulla offrano comunque la parola lunga, l'ordine **esatte → completamenti → refusi**, niente doppioni, la soglia delle 4 cifre e il tetto |
