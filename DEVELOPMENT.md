@@ -28,10 +28,10 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** Step 1.22 — **completamento di parola**: dopo le parole che i tasti scrivono esattamente, la barra offre quelle di cui i tasti sono l'inizio (dieci tasti per `contemporaneamente`). Prima: 1.21 (la tastiera vibra sotto il dito, con durata regolabile — `KeyboardSettings.hapticMs`, default 18 ms), 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **Ultimo step completato:** Step 1.24 — **resilienza ai refusi doppi**: due tasti invertiti (che prima sfuggivano del tutto) e, come ultima risorsa sulle parole lunghe, due tasti sbagliati. Prima: 1.23 (anteprima leggibile: senza corrispondenze esatte il campo mostra la migliore offerta invece delle lettere di default), 1.22 — **completamento di parola**: dopo le parole che i tasti scrivono esattamente, la barra offre quelle di cui i tasti sono l'inizio (dieci tasti per `contemporaneamente`). Prima: 1.21 (la tastiera vibra sotto il dito, con durata regolabile — `KeyboardSettings.hapticMs`, default 18 ms), 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
 - **Prossimo step:** **Fase 2 — bilingue IT+EN**. Gli appunti della prova reale sono esauriti.
-- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce (vedi sopra); va riprovato sul telefono con l'APK aggiornato (`t9-1.22-debug.apk`).
+- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce (vedi sopra); va riprovato sul telefono con l'APK aggiornato (`t9-1.24-debug.apk`).
 - **Dopo i punti degli appunti:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
 - **Dopo:** **Fase 3** (impostazioni/ergonomia, dove rientrano la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente). Il test reale sullo smartphone continua in parallelo: `bash tools/dev.sh apk` → `app/build/outputs/apk/debug/app-debug.apk`.
 - 📝 **Appunti dell'utente dalla prova reale (30/07 sera).** **Ordine deciso dall'utente: prima le tre segnalazioni (1, 2, 3), poi la vibrazione (4).** Il punto 1 è **chiuso** (Step 1.18, 31/07); restano 2, 3 e 4.
@@ -451,6 +451,65 @@ esistente.
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
 
+### 2026-07-31 — Step 1.24: due tasti invertiti, e due tasti sbagliati
+**Richiesta dell'utente:** *"è facile invertire due tasti mentre scrivi, quindi se non rilevi
+niente si potrebbero comunque suggerire i candidati più vicini anche su due caratteri
+sbagliati o invertiti."*
+
+**Il dettaglio che rende la richiesta ancora più giusta di come è stata posta:** l'inversione
+di due tasti **non era coperta affatto**. Nella metrica cancellazione/inserzione/sostituzione
+uno scambio vale *due* modifiche, quindi cadeva fuori dalla distanza 1 — lo sbaglio più comune
+che esista, assente per una definizione e non per un prezzo. Costa `n-1` varianti in più.
+
+**Fatto:** l'inversione entra fra le scivolate singole (quindi è offerta *sempre*, non solo
+quando la barra sarebbe vuota); i **due tasti sbagliati** sono un'ultima risorsa, cercati solo
+quando non c'è né una corrispondenza esatta né una a una scivolata, e solo da 6 cifre in su.
+
+**Due limiti deliberati, entrambi sul costo e sul rumore:**
+- **Solo sostituzioni doppie**, non tutta la distanza 2: quest'ultima sarebbe ogni variante di
+  ogni variante, decine di migliaia di stringhe costruite su una pressione di tasto.
+- **Da 6 cifre in su**: su una parola corta due errori lasciano troppo poco di giusto — metà
+  di `casa` sbagliata non è un refuso, è un'altra parola.
+
+**Misurato, non supposto:** `FuzzyCostTest` (nuovo) esegue il caso peggiore sul corpus vero —
+otto tasti che non somigliano a niente, dove ogni stadio gira fino in fondo prima di
+arrendersi: **0,6 ms per pressione** su JVM desktop, quindi pochi millisecondi su telefono. È
+un test permanente, così un cambiamento che lo rende costoso si rompe da solo.
+
+**Una costante tolta invece che aggiunta:** avevo introdotto `DEEP_PENALTY` per pesare i
+risultati profondi sotto quelli vicini. Un test l'ha smentita: i due insiemi non finiscono
+**mai** nella stessa lista (i profondi si cercano solo quando i vicini sono zero), quindi
+esprimeva una distinzione che nulla può osservare. Rimossa.
+
+**File modificati:** `engine/FuzzyDictionaryEngine.kt` (inversione, `twoWrongKeys`, varianti
+come `Sequence` pigra così la ricerca profonda non alloca finché non serve), test
+`FuzzyDictionaryEngineTest` (+5 casi) e `FuzzyCostTest` (nuovo).
+
+**Verificato (2026-07-31):** 139 test verdi. Su emulatore, `problema` (`77625362`) digitato con
+il `2` e il `5` invertiti (`77652362`): la barra offre **`problema`**, che prima non trovava
+nulla. Screenshot: `docs/screenshots/step-1.24-tasti-invertiti.png`.
+
+### 2026-07-31 — Step 1.23: anteprima leggibile quando niente corrisponde
+**Coda dello Step 1.22, sollevata dall'utente:** *"meglio della roba illeggibile."* Digitando
+i dieci tasti di `contemporaneamente` la barra aveva già la parola giusta, ma il campo
+mostrava `ammtdmpmpa` — le lettere di default.
+
+**Fatto:** in assenza di corrispondenze esatte l'anteprima mostra la **migliore offerta**
+(completamento o parola vicina); le lettere di default restano solo quando non c'è nemmeno
+quella.
+
+**Il ragionamento, perché contraddice in apparenza la regola "offerte, mai assunzioni":** la
+regola serve a non far scavalcare da un'ipotesi ciò che l'utente ha scritto davvero. Qui non
+c'è nulla da scavalcare — l'alternativa sono lettere di default che nessuno vorrebbe
+confermare comunque. Fra due tentativi vince quello che è una parola vera, e la colonna lo
+scavalca con un tocco. **Mentre si sta forzando la regola resta intatta**: le lettere forzate
+sono una decisione esplicita e nessuna offerta le sostituisce.
+
+**File modificati:** `service/T9ImeService.kt` (`previewWord` + `bestOffer`).
+
+**Verificato (2026-07-31):** su emulatore, i dieci tasti di `contempora` ora scrivono
+`contemporaneamente` nell'anteprima. Letto con `uiautomator dump`, non dai pixel.
+
 ### 2026-07-31 — Step 1.22: completamento di parola
 **Mancanza notata dall'utente, mai pianificata.** *"Usiamo i tasti premuti per determinare
 una parola ma non facciamo delle previsioni predittive su parole più lunghe: se scrivo i
@@ -554,7 +613,7 @@ d'occhio.
 - `res/values/strings.xml` — le due stringhe **tolte**: scritte a mano si sarebbero
   disallineate al primo step.
 - `tools/dev.sh` — `apk` stampa la versione e copia l'APK con la versione nel nome
-  (`t9-1.22-debug.apk`), così sul telefono non si confondono fra loro.
+  (`t9-1.24-debug.apk`), così sul telefono non si confondono fra loro.
 
 **Verificato (2026-07-31):** installato, `dumpsys package` riporta `versionName=1.21`, e nelle
 impostazioni Android la tastiera compare come **"T9 1.20"** (screenshot preso alla 1.20:

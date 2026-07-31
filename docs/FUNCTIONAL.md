@@ -10,13 +10,13 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.22 (Fase 1 completa).
+**Allineato a:** Step 1.24 (Fase 1 completa).
 
 **Versione visibile.** `versionName` **è** il numero dello step di `DEVELOPMENT.md`, e da lì
 derivano (via `resValue` in `app/build.gradle.kts`) il nome dell'app e l'etichetta della
-tastiera: nel selettore si legge **"T9 1.22"**. Provando sul telefono si sa sempre a che punto
+tastiera: nel selettore si legge **"T9 1.24"**. Provando sul telefono si sa sempre a che punto
 del log corrisponde ciò che si ha in mano — e `bash tools/dev.sh apk` produce anche un file
-con la versione nel nome (`t9-1.22-debug.apk`), così gli APK non si confondono fra loro. Le
+con la versione nel nome (`t9-1.24-debug.apk`), così gli APK non si confondono fra loro. Le
 due stringhe non stanno più in `strings.xml`: scritte a mano resterebbero indietro.
 
 ## Indice
@@ -235,10 +235,17 @@ Una posizione risolta `i` è la coppia `(digits[i], chosen[i])` — lo "stack di
 - Premi una cifra 2–9 → si aggiunge alla sequenza; la colonna mostra le lettere di quella
   posizione (dopo `2` → `A B C À`).
 - Tocchi una lettera → viene forzata, la colonna avanza alla posizione successiva.
-- **Anteprima nel campo:** la migliore predizione **esatta**; se la sequenza è sconosciuta,
-  le lettere già forzate seguite dalle **lettere di default** delle cifre ancora aperte
-  (`forcedPreview()`), o le sole lettere di default se non si sta forzando
-  (`defaultLetters()`) — **mai le cifre**.
+- **Anteprima nel campo**, in quest'ordine: la migliore predizione **esatta**; se non ce n'è
+  nessuna, la **migliore offerta** (completamento o parola vicina — vedi sotto); e solo se
+  manca anche quella, le **lettere di default** (`defaultLetters()`, o `forcedPreview()` se
+  si sta forzando) — **mai le cifre**.
+
+  L'offerta entra nell'anteprima **solo in assenza di corrispondenze esatte**, dove non c'è
+  nulla da scavalcare: l'alternativa sono le lettere di default, che su dieci tasti leggono
+  `ammtdmpmpa` — illeggibili, sbagliate allo stesso modo, e nemmeno una parola che qualcuno
+  vorrebbe confermare. Fra due tentativi, quello che è una parola vera è il migliore, e la
+  colonna lo scavalca con un tocco. **Mentre si sta forzando questo non vale**: le lettere
+  forzate sono una decisione esplicita dell'utente e nessuna offerta le sostituisce.
 - **Mentre si forza, i candidati sono filtrati** su ciò che è già stato forzato: chi ha
   compitato `far` non si vede proporre `dara`. La colonna esiste per scavalcare il ranking,
   e proporre parole che la contraddicono disferebbe il lavoro appena fatto. È anche ciò che
@@ -351,22 +358,44 @@ Serve oggi per personale+corpus e **servirà identico in Fase 2** per IT+EN.
 
 ### `FuzzyDictionaryEngine` — tolleranza ai refusi
 
-**Decora** un qualsiasi `DictionaryEngine` proponendo, dopo i match esatti, parole a
-**distanza di modifica 1** dalla sequenza digitata: cifra di troppo, cifra mancante, cifra
-sbagliata.
+**Decora** un qualsiasi `DictionaryEngine` proponendo, dopo i match esatti, parole a **una
+scivolata** dalla sequenza digitata: cifra di troppo, cifra mancante, cifra sbagliata, e
+**due cifre invertite**.
 
-**Come, senza costo:** non scandisce il dizionario — genera le **varianti della sequenza**
-(qualche decina di stringhe) e le cerca nell'indice esistente. Una manciata di lookup O(1)
-per pressione.
+L'inversione è stata aggiunta nello Step 1.24, ed è il caso più istruttivo: è lo sbaglio più
+comune che esista — le dita arrivano nell'ordine sbagliato — e prima **sfuggiva del tutto**,
+perché nella metrica cancellazione/inserzione/sostituzione uno scambio vale **due**
+modifiche. Costa `n-1` varianti in più: era assente per una definizione, non per un prezzo.
+
+**Due tasti sbagliati, come ultima risorsa.** Quando non c'è né una corrispondenza esatta né
+una a una scivolata, e la sequenza è lunga almeno 6 cifre, si cercano le sequenze con **due
+cifre sbagliate**. Due limiti deliberati:
+
+- **Solo sostituzioni doppie**, non tutta la distanza di modifica 2. Quest'ultima sarebbe
+  ogni variante di ogni variante — decine di migliaia di stringhe costruite su una pressione
+  di tasto. Due tasti sbagliati è il doppio errore che capita davvero su una parola lunga, e
+  costa un paio di migliaia di lookup.
+- **Solo da 6 cifre in su.** Su una parola corta due errori lasciano troppo poco di giusto:
+  metà di `casa` sbagliata non è un refuso, è un'altra parola.
+
+Il costo si paga **esattamente quando non ci sarebbe nulla da mostrare comunque**, mai
+mentre la digitazione normale funziona. Misurato sul corpus vero (50k parole) nel caso
+peggiore — otto tasti che non somigliano a niente, dove ogni stadio gira fino in fondo prima
+di arrendersi: **0,6 ms per pressione** su JVM desktop, quindi pochi millisecondi su
+telefono. `FuzzyCostTest` lo tiene sotto controllo a ogni build.
+
+**Come, senza costo nel caso normale:** non scandisce il dizionario — genera le **varianti
+della sequenza** e le cerca nell'indice esistente. Le varianti sono prodotte come `Sequence`
+pigra, così la ricerca profonda non alloca nulla finché non serve davvero.
 
 **Perché non disturba la digitazione normale:**
 - i candidati fuzzy sono marcati (`Candidate.fuzzy`), pesati / 1000, messi **dopo** tutti gli
   esatti, con un tetto di 6;
 - sequenze sotto le 3 cifre non vengono corrette (a 2 cifre tutto è a distanza 1 da tutto);
-- **soprattutto:** `currentPreview()` considera solo i candidati **esatti**. Un fuzzy è
-  un'offerta da toccare, mai qualcosa da confermare di nascosto — altrimenti scrivere una
-  parola sconosciuta al dizionario si trasformerebbe in una parola simile, cioè esattamente
-  ciò che la colonna serve a impedire;
+- **soprattutto:** un fuzzy non scavalca **mai** una corrispondenza esatta. Altrimenti
+  scrivere una parola sconosciuta al dizionario si trasformerebbe in una parola simile, cioè
+  esattamente ciò che la colonna serve a impedire. Entra nell'anteprima solo quando di esatte
+  non ce n'è nessuna (§4), dove l'alternativa sono lettere di default illeggibili;
 - nella barra sono resi in grigio.
 
 Sta **fuori** dal merge, quindi tollera i refusi anche sulle parole imparate e (Fase 2) su
@@ -382,8 +411,9 @@ esattamente dieci lettere scrive quella sequenza.
 
 **Un'offerta, mai un'assunzione.** I tasti digitati sono un *prefisso* del completamento,
 non una sua descrizione: il candidato è marcato (`Candidate.completion`), sta dietro a ogni
-corrispondenza esatta, e si inserisce **solo toccandolo**. L'anteprima nel campo continua a
-seguire una corrispondenza esatta (`Candidate.isExact`). Committare d'ufficio una parola da
+corrispondenza esatta, e non ne scavalca **mai** una (`Candidate.isExact`). Finisce
+nell'anteprima solo quando di esatte non ce n'è nessuna (§4). Committare al posto di una
+corrispondenza esatta una parola da
 diciotto lettere su dieci pressioni sarebbe esattamente il tirare a indovinare che la
 colonna di disambiguazione esiste per impedire.
 
@@ -893,7 +923,8 @@ Unit test JVM (nessun emulatore necessario): `./gradlew :app:testDebugUnitTest`.
 | `ItalianDictionaryEngineTest` | Costruzione indice, ordinamento per peso, ricerca per prefisso (fra cui il caso `contempora` → `contemporaneamente`) |
 | `MergingDictionaryEngineTest` | Fusione, deduplica per parola |
 | `LearnedWordsEngineTest` | Pesi, incremento usi, caricamento dallo store |
-| `FuzzyDictionaryEngineTest` | 9 casi: cancellazione/sostituzione/inserimento, marcatura, tetto |
+| `FuzzyDictionaryEngineTest` | 14 casi: cancellazione/sostituzione/inserimento, **inversione di due tasti**, **due tasti sbagliati** (e che non si cerchino su parole corte né quando qualcosa già corrisponde), marcatura, tetto |
+| `FuzzyCostTest` | Guardia sul costo: la ricerca profonda sul corpus vero (50k parole) resta abbondantemente dentro il tempo di una pressione |
 | `CompletingDictionaryEngineTest` | 7 casi: che i tasti che non scrivono nulla offrano comunque la parola lunga, l'ordine **esatte → completamenti → refusi**, niente doppioni, la soglia delle 4 cifre e il tetto |
 | `ComposeStateTest` | Forcing, avanzamento, pop-coppia, correzione, `defaultLetters`, accenti; e l'adozione di una parola scritta (`adopt`, anche accentata, con rifiuto di ciò che il tastierino non sa scrivere) più `forcedPreview`, che rende visibili le cifre premute dopo la forzatura |
 | `ShiftStateTest` | Ciclo, `apply`, `afterCommit`, `appliesToNext` |

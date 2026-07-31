@@ -33,18 +33,40 @@ class FuzzyDictionaryEngine(
         val seen = HashSet<String>()
         exact.forEach { seen.add(it.word) }
 
-        val fuzzy = ArrayList<Candidate>()
-        for (variant in variantsOf(sequence)) {
+        val near = collect(variantsOf(sequence), seen, PENALTY)
+        if (near.isNotEmpty()) return exact + near.take(maxCandidates)
+        if (exact.isNotEmpty()) return exact
+
+        // Nothing at all — not the typed keys, not one keypress away. Only now is it
+        // worth reaching for two wrong keys, and only on a word long enough that two
+        // errors still leave enough right to identify it. The cost is paid exactly
+        // when there is nothing to show anyway, never while normal typing works.
+        // Same penalty as a near miss, and not a heavier one: these results are only
+        // ever reached when the near list is empty, so the two never share a list and
+        // a second penalty would express a distinction nothing can observe.
+        if (sequence.length < DEEP_MIN_LENGTH) return exact
+        return collect(twoWrongKeys(sequence), seen, PENALTY).take(maxCandidates)
+    }
+
+    /**
+     * Look each variant up, keeping the first sighting of every word, weighted down by
+     * [penalty] and marked as a guess. Sorted best-first.
+     */
+    private fun collect(
+        variants: Sequence<String>,
+        seen: MutableSet<String>,
+        penalty: Long
+    ): List<Candidate> {
+        val found = ArrayList<Candidate>()
+        for (variant in variants) {
             for (candidate in delegate.lookup(variant)) {
                 if (seen.add(candidate.word)) {
-                    fuzzy += candidate.copy(weight = candidate.weight / PENALTY, fuzzy = true)
+                    found += candidate.copy(weight = candidate.weight / penalty, fuzzy = true)
                 }
             }
         }
-        if (fuzzy.isEmpty()) return exact
-
-        fuzzy.sortByDescending { it.weight }
-        return exact + fuzzy.take(maxCandidates)
+        found.sortByDescending { it.weight }
+        return found
     }
 
     /**
@@ -54,31 +76,58 @@ class FuzzyDictionaryEngine(
     override fun completions(prefix: String, limit: Int): List<Candidate> =
         delegate.completions(prefix, limit)
 
-    /** Every sequence at edit distance 1 from [sequence]. */
-    private fun variantsOf(sequence: String): List<String> {
-        val out = ArrayList<String>(
-            sequence.length + sequence.length * (DIGITS.length - 1) +
-                (sequence.length + 1) * DIGITS.length
-        )
+    /** Every sequence one slip away from [typed]. */
+    private fun variantsOf(typed: String): Sequence<String> = sequence {
         // One key too many: drop each position in turn.
-        for (i in sequence.indices) {
-            out += sequence.removeRange(i, i + 1)
+        for (i in typed.indices) {
+            yield(typed.removeRange(i, i + 1))
         }
         // Wrong key: replace each position with every other digit.
-        for (i in sequence.indices) {
+        for (i in typed.indices) {
             for (digit in DIGITS) {
-                if (digit != sequence[i]) {
-                    out += sequence.replaceRange(i, i + 1, digit.toString())
-                }
+                if (digit != typed[i]) yield(typed.replaceRange(i, i + 1, digit.toString()))
             }
         }
         // Missing key: insert every digit at every gap, ends included.
-        for (i in 0..sequence.length) {
+        for (i in 0..typed.length) {
             for (digit in DIGITS) {
-                out += sequence.substring(0, i) + digit + sequence.substring(i)
+                yield(typed.substring(0, i) + digit + typed.substring(i))
             }
         }
-        return out
+        // Two adjacent keys hit in the wrong order — the commonest slip of all, and
+        // the one this engine used to miss entirely: a swap is *two* edits in the
+        // deletion/insertion/substitution metric, so it fell outside distance one.
+        for (i in 0 until typed.length - 1) {
+            if (typed[i] == typed[i + 1]) continue // swapping equal digits changes nothing
+            val swapped = StringBuilder(typed)
+            swapped[i] = typed[i + 1]
+            swapped[i + 1] = typed[i]
+            yield(swapped.toString())
+        }
+    }
+
+    /**
+     * Sequences with **two wrong keys** — the same digit count, two positions hit
+     * wrong. Deliberately *not* the whole of edit distance 2: that would be every
+     * variant of every variant, tens of thousands of strings built on a keypress. Two
+     * wrong keys is the double slip that actually happens on a long word, and it costs
+     * a couple of thousand lookups.
+     */
+    private fun twoWrongKeys(typed: String): Sequence<String> = sequence {
+        for (i in typed.indices) {
+            for (j in i + 1 until typed.length) {
+                for (first in DIGITS) {
+                    if (first == typed[i]) continue
+                    for (second in DIGITS) {
+                        if (second == typed[j]) continue
+                        val out = StringBuilder(typed)
+                        out[i] = first
+                        out[j] = second
+                        yield(out.toString())
+                    }
+                }
+            }
+        }
     }
 
     companion object {
@@ -87,6 +136,13 @@ class FuzzyDictionaryEngine(
 
         /** Shortest typed sequence worth correcting. */
         const val MIN_LENGTH = 3
+
+        /**
+         * Shortest sequence worth reaching for **two** wrong keys. On a short word two
+         * errors leave too little that is right: half of `casa` misspelled is not a
+         * typo, it is a different word.
+         */
+        const val DEEP_MIN_LENGTH = 6
 
         /** How far a fuzzy candidate is pushed down the weight scale. */
         const val PENALTY = 1_000L

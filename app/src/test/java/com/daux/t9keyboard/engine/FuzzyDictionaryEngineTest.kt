@@ -79,4 +79,54 @@ class FuzzyDictionaryEngineTest {
     fun `a sequence with no match anywhere gives nothing`() {
         assertEquals(emptyList<Candidate>(), engine.lookup("55555"))
     }
+
+    // --- Two keys in the wrong order, and two keys wrong ----------------------
+
+    @Test
+    fun `two keys hit in the wrong order still find the word`() {
+        // "casta" is 22782 typed as 22872: the 7 and the 8 came out swapped. This is
+        // two edits in the deletion/insertion/substitution metric, which is exactly
+        // why it used to be missed.
+        assertTrue(words("22872").contains("casta"))
+    }
+
+    @Test
+    fun `a swap is treated as one slip, not as a last resort`() {
+        // It is found among the ordinary near misses — so it is offered even when other
+        // words already match, not only when the bar would otherwise be empty. "casta"
+        // is 5 digits, below DEEP_MIN_LENGTH, so the deep search cannot be what found it.
+        assertTrue("22872".length < FuzzyDictionaryEngine.DEEP_MIN_LENGTH)
+
+        val swapped = engine.lookup("22872").first { it.word == "casta" }
+        assertTrue(swapped.fuzzy)
+    }
+
+    @Test
+    fun `two wrong keys are found on a long enough word`() {
+        val long = ItalianDictionaryEngine.build(sequenceOf("problema 900"))
+        val engine = FuzzyDictionaryEngine(long)
+
+        // "problema" = 77625362, typed with the 6 and the 5 both wrong: 77623362.
+        assertTrue(engine.lookup("77623362").map { it.word }.contains("problema"))
+    }
+
+    @Test
+    fun `two wrong keys are not reached for on a short word`() {
+        // "casa" with two of its four keys wrong is not a typo, it is another word.
+        assertTrue(engine.lookup("3372").isEmpty())
+    }
+
+    @Test
+    fun `two wrong keys are a last resort, never a disturbance`() {
+        val long = ItalianDictionaryEngine.build(sequenceOf("problema 900", "problemi 800"))
+        val engine = FuzzyDictionaryEngine(long)
+
+        // Typed correctly, the exact match leads and nothing displaces it. ("problemi"
+        // still appears behind it: it is one wrong key away, which it always was — the
+        // near miss, not the deep search, is what offers it.)
+        val result = engine.lookup("77625362")
+        assertEquals("problema", result.first().word)
+        assertTrue(result.first().isExact)
+        assertTrue(result.drop(1).all { it.fuzzy })
+    }
 }
