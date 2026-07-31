@@ -28,9 +28,10 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** Step 1.18 — **la tastiera riprende la parola già scritta sotto il cursore** (`adopt`): sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato. Prima: 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **Ultimo step completato:** Step 1.19 — **l'apostrofo dell'elisione sta dentro la parola**: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere. Prima: 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
-- **Prossimo step:** **punto 2 degli appunti** — la maiuscola sbagliata dopo l'apostrofo (`l'Aveva`), da decidere insieme al punto 3 (elisioni come parola unica), perché entrambi dipendono dal considerare l'apostrofo interno alla parola. Tocca anche l'adozione dello Step 1.18, dove oggi l'apostrofo fa da confine. Poi il punto 4 (vibrazione).
+- **Prossimo step:** **punto 4 degli appunti — la vibrazione alla pressione dei tasti**, l'ultimo rimasto. Prima però serve la decisione su `performHapticFeedback` vs `Vibrator` (vedi la nota nel punto 4).
+- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce (vedi sopra); va riprovato sul telefono con l'APK aggiornato.
 - **Dopo i punti degli appunti:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
 - **Dopo:** **Fase 3** (impostazioni/ergonomia, dove rientrano la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente). Il test reale sullo smartphone continua in parallelo: `bash tools/dev.sh apk` → `app/build/outputs/apk/debug/app-debug.apk`.
 - 📝 **Appunti dell'utente dalla prova reale (30/07 sera).** **Ordine deciso dall'utente: prima le tre segnalazioni (1, 2, 3), poi la vibrazione (4).** Il punto 1 è **chiuso** (Step 1.18, 31/07); restano 2, 3 e 4.
@@ -64,8 +65,30 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
      **Nota per chi riprende:** il percorso di apprendimento **esiste già** — `onSpace()` → `commitCurrentWord()` → `learn(word)`, e `learn` scarta solo le parole di una lettera. Quindi non è una funzione mancante ma un motivo per cui in *quel* flusso non ha effetto. Piste: cosa restituisce `currentPreview()` dopo un backspace che ha fatto pop di una coppia (`state.isForcing()` o no), e se la parola imparata vinca poi il ranking sulla sua sequenza. La seconda richiesta tocca invece la costruzione della lista candidati: oggi la parola composta a mano si vede nel campo ma **non è una voce cliccabile** della barra.
 
      **Domanda dell'utente, verificata: cliccare un candidato non passa da `onSpace()`.** Sono due percorsi indipendenti — `onPickCandidate()` chiama `learn()` da sé e poi aggiunge lo spazio con `insertProvisionalSpace()` (spazio *provvisorio*, che viene ritirato se segue punteggiatura), mentre `onSpace()` impara via `commitCurrentWord()`. `learn()` ha quindi due chiamanti distinti. **Conseguenza pratica:** la seconda opzione è **autosufficiente** — se la voce aggiunta è un `Candidate` vero, cliccarla impara già di suo, quindi è una via d'uscita indipendente dalla correzione del difetto, non un'aggiunta che la aspetta.
-  2. **Maiuscola sbagliata dopo l'apostrofo:** scriveva `l'Aveva` invece di `l'aveva`. Da guardare `SentenceRules.OPENING`, che include `'` fra i segni di apertura (pensato per le virgolette), e il ricalcolo delle maiuscole dopo `onInsert` di un simbolo. Va distinta l'apostrofo **elisione** (dentro la parola) dall'apostrofo usato come virgoletta.
-  3. **Elisioni come parola unica:** `l'`, `un'`, `d'`… oggi non è verificato se `l'aveva` venga imparata come una parola sola o spezzata in due. *Opinione dell'utente:* dev'essere **una parola unica**. Da decidere insieme al punto 2, perché entrambi dipendono dal considerare l'apostrofo interno alla parola.
+  2. ⚠️ **NON RIPRODOTTO — Step 1.19.** *Maiuscola sbagliata dopo l'apostrofo: scriveva `l'Aveva` invece di `l'aveva`.*
+
+     Provato sull'emulatore in un campo di prosa vero (messaggi, con gli aiuti attivi):
+     esce **`J'aveva`, minuscolo**, e subito dopo l'apostrofo i tasti tornano minuscoli,
+     cioè `updateAutoShift` non arma nulla. Il motivo è strutturale: `afterOpeningAtSentenceStart`
+     guarda **cosa precede l'apostrofo** e con `l'` trova una lettera, non un fine frase.
+     Scatta solo se l'apostrofo segue un punto o apre il campo — il caso virgoletta, per cui
+     è stato scritto. Anche `getCursorCapsMode` di Android scavalca l'apostrofo e trova la
+     lettera. Nessuna delle due strade produce `l'Aveva`.
+
+     **Ipotesi: sul telefono c'era un APK vecchio** — questo file segnalava da sé che gli
+     Step 1.15 e 1.16, quelli che hanno riscritto le regole di maiuscole, non erano mai
+     stati provati sul telefono. **Da riverificare sull'APK aggiornato.** Nessuna correzione
+     scritta: sarebbe stata codice contro un difetto non osservato, col rischio di rompere
+     il caso virgoletta che funziona. Lo Step 1.19 rende comunque esplicita la regola.
+
+  3. ✅ **RISOLTO — Step 1.19.** *Elisioni come parola unica.*
+
+     Confermato nel database prima di correggere: scritto `j'aveva` + spazio, risultava
+     imparata **`aveva`** da sola e `j'aveva` no. Ora `Elision` distingue per posizione
+     l'apostrofo che unisce due parole da quello usato come virgoletta, e la parola viene
+     imparata **intera**. `sequenceFor` salta l'apostrofo dell'elisione, così `l'aveva` sta
+     nel dizionario personale sotto `528382` e alla seconda scrittura si ottiene digitando
+     **solo le lettere**, con l'apostrofo scritto dalla tastiera.
   4. **Manca il ritorno tattile: la tastiera non vibra sotto il dito.** L'utente: *"mi sta mancando tanto non sentire il tasto quando schiaccio"* — quindi **non** è una rifinitura da rimandare, va fatta presto; la durata **regolabile** arriverà con la schermata impostazioni.
      **Nota per chi riprende:** il posto giusto è `KeyViewFactory`, dove ogni tasto ha già il suo `ACTION_DOWN`: si scrive una volta sola e vale per tutte le superfici (T9, simboli, emoji, popup). Una decisione da prendere subito, perché cambia l'implementazione — `performHapticFeedback(KEYBOARD_TAP)` rispetta l'impostazione di sistema e il profilo del telefono ma **non** ha durata regolabile; il `Vibrator` con durata esplicita è calibrabile ma deve tacere da sé quando l'utente ha spento il feedback tattile di sistema. Da considerare anche la ripetizione del backspace tenuto premuto (non deve diventare un ronzio continuo) e l'apertura del popup, che di solito ha un colpo suo.
 
@@ -421,6 +444,42 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-31 — Step 1.19: l'apostrofo dell'elisione sta dentro la parola
+**Punti 2 e 3 degli appunti, affrontati insieme** perché dipendono dalla stessa distinzione,
+come l'appunto stesso prevedeva: l'apostrofo **elisione** contro l'apostrofo **virgoletta**.
+
+**Il punto 2 non si riproduce.** In un campo di prosa vero esce `J'aveva`, minuscolo. Il
+motivo è strutturale ed è documentato nella sezione appunti qui sopra. Non ho scritto una
+correzione: sarebbe codice contro un difetto non osservato, col rischio di rompere il caso
+virgoletta che oggi funziona. Da riverificare sul telefono con l'APK aggiornato.
+
+**Il punto 3 era reale**, confermato nel database prima di toccare il codice: scritto
+`j'aveva` + spazio, risultava imparata `aveva` da sola.
+
+**Fatto:** la parola elisa si impara **intera**, e alla seconda scrittura si ottiene
+digitando **solo le lettere** — l'apostrofo lo scrive la tastiera.
+
+**File creati/modificati:**
+- `input/Elision.kt` (nuovo) — la regola condivisa: lettera da entrambi i lati = elisione,
+  tutto il resto è virgoletta (compreso il troncamento `po'`, che non unisce niente).
+- `model/T9Keypad.kt` — `sequenceFor` **salta** l'apostrofo dell'elisione (`l'aveva` →
+  `528382`) e restituisce `null` per quello usato come virgoletta: non è una parola sola.
+- `service/T9ImeService.kt` — `commitCurrentWord` e `onPickCandidate` leggono cosa precede
+  la parola *prima* di scriverla, e imparano la forma elisa intera.
+- `input/SentenceRules.kt` — nessun codice nuovo: l'elisione non raggiunge già quel ramo.
+  Aggiunta solo la **ragione**, invece di codice morto che sembrasse una correzione.
+- Test: `input/ElisionTest.kt` (6 casi), più 2 in `model/T9KeypadTest.kt`.
+
+**Verificato (2026-07-31):** `:app:testDebugUnitTest` verde (122 test). Su emulatore, campo
+messaggi: scritto `j'aveva` + spazio → compare **come parola unica** in `learned_words.db`
+(prima no). Poi, digitando le sole lettere `5-2-8-3-8-2`, `j'aveva` è **il primo candidato**
+e il campo lo scrive con l'apostrofo. Screenshot: `docs/screenshots/step-1.19-*.png`.
+
+**Limite noto dichiarato:** l'adozione dello Step 1.18 si ferma ancora all'apostrofo
+(parcheggiando il cursore dopo `l'aveva` si adotta `aveva`). `ComposeState` associa una cifra
+a ogni lettera e non sa rappresentare un carattere che non si digita: superarlo è un cambio
+strutturale, e merita uno step suo invece di essere infilato qui.
 
 ### 2026-07-31 — Step 1.18: riprendere la parola già scritta sotto il cursore
 **Punto 1 degli appunti della prova reale.** Prima di toccare il codice, la riproduzione

@@ -25,7 +25,15 @@ object SentenceRules {
         "rag", "on", "gent", "spett", "egr"
     )
 
-    /** Characters that open a quotation or a bracket, and pass the capital through. */
+    /**
+     * Characters that open a quotation or a bracket, and pass the capital through.
+     *
+     * The apostrophe is here as a **quotation mark**, and only ever reaches this list as
+     * one: [afterOpeningAtSentenceStart] requires the opener to follow a full stop or to
+     * start the field, and an elision's apostrophe by definition follows a letter
+     * (`l'aveva`). So it never claims the capital of the word it is joined to — which is
+     * the same position rule [Elision] applies everywhere else.
+     */
     private const val OPENING = "\"«“([{'‘"
 
     /**

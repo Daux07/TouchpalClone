@@ -16,6 +16,7 @@ import com.daux.t9keyboard.R
 import com.daux.t9keyboard.input.AutoShift
 import com.daux.t9keyboard.input.AutoSpace
 import com.daux.t9keyboard.input.ComposeState
+import com.daux.t9keyboard.input.Elision
 import com.daux.t9keyboard.input.FieldRules
 import com.daux.t9keyboard.input.ProperNouns
 import com.daux.t9keyboard.input.SentenceRules
@@ -648,9 +649,11 @@ class T9ImeService : InputMethodService() {
     private fun onPickCandidate(candidate: Candidate) {
         selfEdit = true
         val ic = currentInputConnection ?: return
+        // What precedes, read before the pick replaces the composing text with the choice.
+        val precedes = textBeforeCursor().dropLast(currentPreview().length)
         ic.setComposingText(shift.apply(ProperNouns.display(candidate.word)), 1)
         ic.finishComposingText()
-        learn(candidate.word)
+        learn(Elision.join(precedes, candidate.word))
         setShift(shift.afterCommit())
         resetComposition()
         // Choosing a word is a finished word: the space that follows it is ours to add,
@@ -739,9 +742,12 @@ class T9ImeService : InputMethodService() {
         val ic = currentInputConnection ?: return
         val word = currentPreview()
         if (word.isNotEmpty()) {
+            // Read what precedes while the composing text is still exactly [word], so an
+            // elided head in front of it can be recognised and learned along with it.
+            val precedes = textBeforeCursor().dropLast(word.length)
             ic.setComposingText(word, 1)
             ic.finishComposingText()
-            learn(word) // stored lowercase: "Casa" and "casa" are the same word
+            learn(Elision.join(precedes, word)) // stored lowercase: "Casa" = "casa"
             setShift(shift.afterCommit())
         }
         resetComposition()

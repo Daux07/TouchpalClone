@@ -14,6 +14,22 @@ class T9KeypadTest {
     }
 
     @Test
+    fun sequenceFor_skipsTheApostropheOfAnElision() {
+        // `l'aveva` is one word typed as its letters: 5 then 2-8-3-8-2, with the
+        // apostrophe written back by the keyboard rather than keyed.
+        assertEquals("528382", T9Keypad.sequenceFor("l'aveva"))
+        assertEquals("8626422", T9Keypad.sequenceFor("un'amica"))
+        assertEquals(T9Keypad.sequenceFor("dellacqua"), T9Keypad.sequenceFor("dell’acqua"))
+    }
+
+    @Test
+    fun sequenceFor_refusesAnApostropheUsedAsAQuote() {
+        assertNull(T9Keypad.sequenceFor("'ciao"))
+        assertNull(T9Keypad.sequenceFor("ciao'"))
+        assertNull(T9Keypad.sequenceFor("po'")) // troncamento: non unisce due parole
+    }
+
+    @Test
     fun sequenceFor_isCaseInsensitive() {
         assertEquals(T9Keypad.sequenceFor("casa"), T9Keypad.sequenceFor("CaSa"))
     }

@@ -69,8 +69,19 @@ object T9Keypad {
      * contains a character with no digit mapping. Accents are folded first.
      */
     fun sequenceFor(word: String): String? {
-        val sb = StringBuilder(word.length)
-        for (raw in word.lowercase()) {
+        val lower = word.lowercase()
+        val sb = StringBuilder(lower.length)
+        for ((i, raw) in lower.withIndex()) {
+            // The apostrophe of an elision (`l'albero`) is part of the word but has no
+            // key of its own, so it is **skipped**: the word is found by typing its
+            // letters, and the keyboard writes the apostrophe back. Used as a quotation
+            // mark it joins nothing, and what it is attached to is not one word at all.
+            // (The same rule, in the shape the service needs it: `input/Elision`.)
+            if (raw == '\'' || raw == '’') {
+                val betweenLetters = lower.getOrNull(i - 1)?.isLetter() == true &&
+                    lower.getOrNull(i + 1)?.isLetter() == true
+                if (betweenLetters) continue else return null
+            }
             val c = accentFold[raw] ?: raw
             val digit = digitForChar[c] ?: return null
             sb.append(digit)

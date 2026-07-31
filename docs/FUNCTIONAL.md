@@ -10,7 +10,7 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.18 (Fase 1 completa).
+**Allineato a:** Step 1.19 (Fase 1 completa).
 
 ## Indice
 - [Panoramica architettura](#panoramica-architettura)
@@ -235,8 +235,9 @@ Le regole che la rendono sicura:
 - **Solo gli spostamenti dell'utente.** `onUpdateSelection` riceve anche le nostre modifiche;
   il flag `selfEdit`, alzato quando la tastiera agisce e abbassato dal cambio di selezione che
   ne consegue, distingue i due casi. Senza, la tastiera combatterebbe il proprio lavoro.
-- L'apostrofo fa da **confine di parola**: `l'aveva` adotta `aveva`. Le elisioni come parola
-  unica sono una decisione ancora aperta.
+- L'apostrofo fa da **confine di parola**: `l'aveva` adotta `aveva`. È un limite noto, non
+  la decisione sulle elisioni — quella è presa (§6, *Elisioni*): `ComposeState` associa una
+  cifra a ogni lettera e non sa ancora rappresentare un carattere che non si digita.
 
 ### Dimensionamento delle celle
 
@@ -355,6 +356,12 @@ Le sequenze più lunghe non vengono toccate: lì la frequenza è la risposta giu
 Parola → sequenza cifre, con **fold degli accenti** italiani (perché/perche stessa sequenza).
 Fonte di verità condivisa da corpus, apprendimento e test.
 
+**L'apostrofo dell'elisione viene saltato**: `l'aveva` → `528382`, cioè le sole lettere.
+Una parola elisa si digita quindi **senza apostrofo**, e la tastiera lo riscrive lei. Usato
+come virgoletta (`'ciao`, `po'`) l'apostrofo non unisce nulla e la funzione restituisce
+`null`: quella non è una parola sola, e non ha una sequenza. La distinzione è per posizione —
+lettera da entrambi i lati = elisione — ed è la stessa regola di [`Elision`](#elisioni).
+
 ---
 
 ## 6. Apprendimento persistente (dizionario personale)
@@ -380,6 +387,27 @@ punteggiatura, o scegliendo un suggerimento — finisce nel dizionario personale
   scrivere `è` una volta demoterebbe `e` per sempre sulla pressione di tasto più comune che
   esista: un danno permanente per un tasto che non porta informazione utile. Cosa offre un
   tasto solo lo decide `SingleLetterEngine`, non la cronologia.
+
+### Elisioni
+
+In italiano l'apostrofo dell'elisione **unisce due parole in una**: `l'albero`, `un'amica`,
+`quest'anno`. Non è punteggiatura fra parole, è parte della parola — e ciò che l'utente ha
+confermato scrivendo `l'aveva` è `l'aveva`, non `aveva`. Imparare la sola coda non è tanto
+sbagliato quanto **inutile**: memorizza la metà che il dizionario già conosceva.
+
+Al momento di confermare (spazio, invio, punteggiatura, o scegliendo un candidato) la
+tastiera guarda quindi cosa precede la parola: se è una **testa elisa**, le due metà vengono
+imparate insieme. `Elision` decide, per posizione, cosa è elisione e cosa virgoletta —
+lettera da entrambi i lati è elisione, tutto il resto no, compreso il troncamento `po'`, che
+non unisce niente.
+
+Il guadagno si vede alla seconda scrittura: siccome `sequenceFor` salta l'apostrofo,
+`l'aveva` sta nel dizionario personale sotto `528382` e si ottiene **digitando solo le
+lettere**, con l'apostrofo scritto dalla tastiera.
+
+**Limite noto:** l'adozione di una parola sotto il cursore (§4) si ferma ancora
+all'apostrofo, perché `ComposeState` associa una cifra a ogni lettera e non sa rappresentare
+un carattere che non si digita. Parcheggiando il cursore dopo `l'aveva` si adotta `aveva`.
 
 ---
 
@@ -783,7 +811,8 @@ Unit test JVM (nessun emulatore necessario): `./gradlew :app:testDebugUnitTest`.
 
 | Test | Copre |
 |------|-------|
-| `T9KeypadTest` | `sequenceFor`, fold accenti |
+| `T9KeypadTest` | `sequenceFor`, fold accenti, e l'apostrofo: saltato nell'elisione (`l'aveva` → `528382`), rifiutato come virgoletta (`po'`, `'ciao`) |
+| `ElisionTest` | La distinzione per posizione fra elisione e virgoletta, e che la parola imparata sia quella intera (`l'aveva`, non `aveva`) |
 | `ItalianDictionaryEngineTest` | Costruzione indice, ordinamento per peso |
 | `MergingDictionaryEngineTest` | Fusione, deduplica per parola |
 | `LearnedWordsEngineTest` | Pesi, incremento usi, caricamento dallo store |
