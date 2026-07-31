@@ -63,6 +63,51 @@ class ComposeState {
     /** The forced letters chosen so far (the word being built via the column). */
     fun forcedText(): String = chosen.toString()
 
+    /**
+     * The word as it currently reads while forcing: the letters resolved so far,
+     * then the default letter of every digit still unresolved.
+     *
+     * Without that tail a digit pressed after forcing would be **invisible** — the
+     * preview would keep showing only the resolved part, and the key would look
+     * dead until its letter was picked from the column.
+     */
+    fun forcedPreview(): String {
+        val sb = StringBuilder(chosen)
+        for (i in chosen.length until digits.size) {
+            sb.append(T9Keypad.letters[digits[i]]?.firstOrNull() ?: ' ')
+        }
+        return sb.toString()
+    }
+
+    /**
+     * Take over a word already written in the field, so composing continues on it
+     * instead of starting a new one (the user moved the cursor to the end of a word
+     * and kept typing).
+     *
+     * The letters are adopted as **forced**, not re-predicted: what is written must
+     * stay written. Adopting "dar" as a bare sequence would let the more frequent
+     * "far" win the lookup and silently rewrite the user's text.
+     *
+     * Returns false, leaving the state untouched, when [word] has no digit sequence
+     * (it contains a character outside the keypad).
+     */
+    fun adopt(word: String): Boolean {
+        val sequence = T9Keypad.sequenceFor(word) ?: return false
+        val letters = word.lowercase()
+        // Lowercasing is per-character for the alphabets we map, but a locale that
+        // grows a character would desync the two lists; refuse rather than guess.
+        if (letters.length != sequence.length) return false
+        reset()
+        for (i in sequence.indices) {
+            digits.add(sequence[i] - '0')
+            if (!chooseLetter(letters[i])) {
+                reset()
+                return false
+            }
+        }
+        return true
+    }
+
     /** The full digit sequence pressed (e.g. "2272"), for dictionary lookup. */
     fun sequenceString(): String = digits.joinToString("")
 

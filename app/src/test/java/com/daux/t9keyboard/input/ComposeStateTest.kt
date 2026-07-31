@@ -11,6 +11,65 @@ class ComposeStateTest {
     private val state = ComposeState()
 
     @Test
+    fun adopt_takesOverAWrittenWordAsForcedLetters() {
+        assertTrue(state.adopt("far"))
+
+        assertEquals("327", state.sequenceString())
+        // Forced, not merely typed: the letters must survive the ranking.
+        assertEquals("far", state.forcedText())
+        assertTrue(state.isForcing())
+        assertNull(state.activeColumnDigit())
+    }
+
+    @Test
+    fun adopt_keepsTheCaseOutOfTheStateButNotTheLetters() {
+        assertTrue(state.adopt("Farla"))
+        assertEquals("farla", state.forcedText())
+        assertEquals("32752", state.sequenceString())
+    }
+
+    @Test
+    fun adopt_readsAccentsBackToTheirKey() {
+        assertTrue(state.adopt("farà"))
+        assertEquals("3272", state.sequenceString())
+        assertEquals("farà", state.forcedText())
+    }
+
+    @Test
+    fun adopt_refusesWhatTheKeypadCannotWrite() {
+        assertFalse(state.adopt("far.")) // punctuation has no digit
+        assertTrue(state.isEmpty())      // and the state is left untouched
+    }
+
+    @Test
+    fun adoptedWordThenDigits_showsTheWholeWordNotJustTheForcedPart() {
+        // The user parks the cursor after "far" and types l-a to reach "farla".
+        assertTrue(state.adopt("far"))
+        state.pressDigit(5)
+        state.pressDigit(2)
+
+        assertEquals("32752", state.sequenceString())
+        // The forced prefix is kept and the new keys are visible — as their *default*
+        // letters, which is all this class can know: "farja", not "farla". Turning that
+        // tail into the real word is the dictionary's job (the service looks 32752 up
+        // and keeps only the candidates starting with "far"). What matters here is that
+        // the two keys are not invisible, which is what forcedText() alone would give.
+        assertEquals("farja", state.forcedPreview())
+        assertEquals("far", state.forcedText())
+    }
+
+    @Test
+    fun forcedPreview_fillsUnresolvedDigitsWithTheirDefaultLetter() {
+        state.pressDigit(2)
+        assertTrue(state.chooseLetter('c'))
+        state.pressDigit(2) // unresolved → its default letter 'a'
+        state.pressDigit(7) // unresolved → its default letter 'p'
+
+        assertEquals("cap", state.forcedPreview())
+        assertEquals("c", state.forcedText()) // the forced part is unchanged
+    }
+
+    @Test
     fun forcingLetterByLetter_buildsWordAndAdvancesColumn() {
         // Type 2-2-7-2, force "cara".
         state.pressDigit(2)

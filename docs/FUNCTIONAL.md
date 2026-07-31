@@ -10,7 +10,7 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.12k (Fase 1 completa).
+**Allineato a:** Step 1.18 (Fase 1 completa).
 
 ## Indice
 - [Panoramica architettura](#panoramica-architettura)
@@ -195,15 +195,48 @@ Una posizione risolta `i` è la coppia `(digits[i], chosen[i])` — lo "stack di
 - Premi una cifra 2–9 → si aggiunge alla sequenza; la colonna mostra le lettere di quella
   posizione (dopo `2` → `A B C À`).
 - Tocchi una lettera → viene forzata, la colonna avanza alla posizione successiva.
-- **Anteprima nel campo:** se stai forzando (`isForcing`) il campo mostra la parola forzata;
-  altrimenti la migliore predizione **esatta**; se la sequenza è sconosciuta, le **lettere di
-  default** (prima lettera di ogni tasto) — **mai le cifre** (`defaultLetters()`).
+- **Anteprima nel campo:** la migliore predizione **esatta**; se la sequenza è sconosciuta,
+  le lettere già forzate seguite dalle **lettere di default** delle cifre ancora aperte
+  (`forcedPreview()`), o le sole lettere di default se non si sta forzando
+  (`defaultLetters()`) — **mai le cifre**.
+- **Mentre si forza, i candidati sono filtrati** su ciò che è già stato forzato: chi ha
+  compitato `far` non si vede proporre `dara`. La colonna esiste per scavalcare il ranking,
+  e proporre parole che la contraddicono disferebbe il lavoro appena fatto. È anche ciò che
+  permette all'anteprima di fidarsi del dizionario anche a metà forzatura: forzato `far` e
+  premuti `5`-`2`, il campo legge `farla` e non le lettere di default `farja`.
 - **`⌫` = pop dell'intera coppia** (cifra + lettera insieme), mai solo il carattere: evita
   cifre "orfane" (piano §3.6). Se la coda ha una cifra non ancora risolta, rimuove quella.
 - **Estendere** una parola e **correggere** l'ultima lettera sono la **stessa identica
   operazione** (backspace + ripressione + scelta): nessuna distinzione di codice.
 - **Limite noto:** nessun editing in-place a metà parola; si cancella dalla coda e si
   ridigita (piano §3.9).
+
+### Riprendere una parola già scritta (`adopt`)
+
+Spostando il cursore **con il dito** alla fine di una parola già nel campo, la tastiera la
+**adotta**: ne ricostruisce la sequenza di cifre (`T9Keypad.sequenceFor`) e riprende a
+comporre su di essa, invece di iniziare una parola nuova. Parcheggia il cursore dopo `far`,
+premi `5`-`2` e ottieni `farla`, che lo spazio (o il tocco su un candidato) **impara** —
+mentre prima la tastiera avrebbe composto una parola separata `la`, lasciando `farla`
+sconosciuta al dizionario personale.
+
+Le regole che la rendono sicura:
+
+- **Le lettere sono adottate come forzate**, non ridigitate: ciò che è scritto deve restare
+  scritto. Adottare `dar` come sequenza nuda lascerebbe vincere il più frequente `far`, che
+  riscriverebbe il testo dell'utente.
+- **L'adozione non cambia mai il testo.** Se l'anteprima che ne risulterebbe differisce anche
+  solo per una maiuscola da ciò che è già nel campo, la parola viene lasciata stare e la
+  tastiera riparte da zero. Un tocco per spostare il cursore non deve riscrivere nulla.
+- **Solo a fine parola.** Con lettere ancora a destra il cursore è *dentro* la parola, e
+  proseguirla inserirebbe in mezzo a ciò che è scritto.
+- **La maiuscola è riletta dal testo** (`Far` → `ShiftState.ONCE`, `FAR` → `LOCK`): è un fatto
+  sulla parola a schermo, non una regola che la tastiera stia applicando adesso.
+- **Solo gli spostamenti dell'utente.** `onUpdateSelection` riceve anche le nostre modifiche;
+  il flag `selfEdit`, alzato quando la tastiera agisce e abbassato dal cambio di selezione che
+  ne consegue, distingue i due casi. Senza, la tastiera combatterebbe il proprio lavoro.
+- L'apostrofo fa da **confine di parola**: `l'aveva` adotta `aveva`. Le elisioni come parola
+  unica sono una decisione ancora aperta.
 
 ### Dimensionamento delle celle
 
@@ -755,7 +788,7 @@ Unit test JVM (nessun emulatore necessario): `./gradlew :app:testDebugUnitTest`.
 | `MergingDictionaryEngineTest` | Fusione, deduplica per parola |
 | `LearnedWordsEngineTest` | Pesi, incremento usi, caricamento dallo store |
 | `FuzzyDictionaryEngineTest` | 9 casi: cancellazione/sostituzione/inserimento, marcatura, tetto |
-| `ComposeStateTest` | Forcing, avanzamento, pop-coppia, correzione, `defaultLetters`, accenti |
+| `ComposeStateTest` | Forcing, avanzamento, pop-coppia, correzione, `defaultLetters`, accenti; e l'adozione di una parola scritta (`adopt`, anche accentata, con rifiuto di ciò che il tastierino non sa scrivere) più `forcedPreview`, che rende visibili le cifre premute dopo la forzatura |
 | `ShiftStateTest` | Ciclo, `apply`, `afterCommit`, `appliesToNext` |
 | `FavouriteSymbolsTest` | Normalizzazione, sostituzione, scambio, "ogni default è raggiungibile" |
 | `SymbolLayoutTest` | Fra cui "un tasto inserisce esattamente ciò che mostra" |

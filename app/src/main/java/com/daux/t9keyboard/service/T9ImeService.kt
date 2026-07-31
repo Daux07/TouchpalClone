@@ -84,6 +84,13 @@ class T9ImeService : InputMethodService() {
     /** True while the last space was added by the keyboard, so it may still be taken back. */
     private var provisionalSpace = false
 
+    /**
+     * Set the moment the keyboard acts, cleared by the selection change that acting
+     * causes. It is how [onUpdateSelection] tells our own edits from the user moving
+     * the cursor with their finger — only the latter changes where composing happens.
+     */
+    private var selfEdit = false
+
     /** Email/URL field: the `1` key's popup offers address parts instead of symbols. */
     private var emailField = false
 
@@ -159,10 +166,68 @@ class T9ImeService : InputMethodService() {
         super.onUpdateSelection(
             oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd
         )
+        if (newSelStart == oldSelStart && newSelEnd == oldSelEnd) return
+
+        // Our own edits land here too. Only a move the *user* made says anything about
+        // where composing should now happen; reacting to ours would fight our own work.
+        if (selfEdit) {
+            selfEdit = false
+        } else {
+            adoptWordAtCursor(newSelStart, newSelEnd)
+        }
         // Deliberately does *not* clear the provisional space: our own edits arrive here
         // too, and dropping the flag on them would undo the feature a moment after it
         // acted. What protects a stale flag is the check in consumedByProvisionalSpace.
-        if (newSelStart != oldSelStart || newSelEnd != oldSelEnd) updateAutoShift()
+        updateAutoShift()
+    }
+
+    /**
+     * The user has moved the cursor by hand. Whatever was being composed belongs to
+     * where the cursor *was*, so it is let go — and if the cursor has landed at the end
+     * of a word, that word is taken over so typing continues it.
+     *
+     * This is what makes editing a written word possible: park the cursor after "far",
+     * press 5-2, and the keyboard proposes "farla" and learns it on space — rather than
+     * starting a separate word "la" and leaving "farla" unknown.
+     *
+     * The adoption is **required not to change the text**: if what would be rendered
+     * differs by so much as a capital from what is already there, the word is left alone
+     * and the keyboard simply starts fresh. A cursor tap must never rewrite the field.
+     */
+    private fun adoptWordAtCursor(selStart: Int, selEnd: Int) {
+        val ic = currentInputConnection ?: return
+        ic.finishComposingText()
+        resetComposition()
+        provisionalSpace = false
+
+        if (selStart != selEnd) return // a selection, not a caret: nothing to continue
+
+        // Only at the *end* of a word. With letters still to the right the cursor sits
+        // inside it, and extending it would insert in the middle of what is written.
+        if (ic.getTextAfterCursor(1, 0)?.firstOrNull()?.isLetter() == true) return
+
+        val before = ic.getTextBeforeCursor(WORD_SCAN_CHARS, 0) ?: return
+        var start = before.length
+        while (start > 0 && before[start - 1].isLetter()) start--
+        val word = before.substring(start)
+        if (word.length < 2 || !state.adopt(word)) return
+
+        // The capital is read back from the text, so the preview reproduces it: it is a
+        // fact about the word on screen, not a rule the keyboard is applying now.
+        val restored = when {
+            word.length > 1 && word.all { it.isUpperCase() } -> ShiftState.LOCK
+            word.first().isUpperCase() -> ShiftState.ONCE
+            else -> ShiftState.OFF
+        }
+        shiftIsAutomatic = false
+        setShift(restored)
+
+        if (currentPreview() != word) { // would rewrite the user's text: hands off
+            resetComposition()
+            return
+        }
+        ic.setComposingRegion(selStart - word.length, selStart)
+        render()
     }
 
     override fun onFinishInput() {
@@ -250,6 +315,7 @@ class T9ImeService : InputMethodService() {
     // --- Key handling ---------------------------------------------------------
 
     private fun onKey(action: KeyAction) {
+        selfEdit = true
         if (consumedByFavouritePick(action)) return
         when (action) {
             is KeyAction.Digit -> onDigit(action.n)
@@ -391,6 +457,7 @@ class T9ImeService : InputMethodService() {
      * ending earn a space after.
      */
     private fun onInsert(rawText: String) {
+        selfEdit = true // also reached straight from the symbol pages, not only via onKey
         val ic = currentInputConnection ?: return
         if (!state.isEmpty()) commitCurrentWord()
 
@@ -508,6 +575,7 @@ class T9ImeService : InputMethodService() {
 
     /** Tap on a letter in the disambiguation column: force it into the word. */
     private fun onPickLetter(letter: Char) {
+        selfEdit = true
         if (state.chooseLetter(letter)) render()
     }
 
@@ -578,6 +646,7 @@ class T9ImeService : InputMethodService() {
     }
 
     private fun onPickCandidate(candidate: Candidate) {
+        selfEdit = true
         val ic = currentInputConnection ?: return
         ic.setComposingText(shift.apply(ProperNouns.display(candidate.word)), 1)
         ic.finishComposingText()
@@ -600,8 +669,14 @@ class T9ImeService : InputMethodService() {
     private fun render() {
         val ic = currentInputConnection ?: return
 
+        // While forcing, only the words that agree with the letters already forced are
+        // offered: the column exists precisely to overrule the ranking, so proposing
+        // "dara" to someone who has just spelled out "far" would undo their work.
         candidates = if (state.isEmpty()) emptyList()
-        else engine?.lookup(state.sequenceString()).orEmpty()
+        else engine?.lookup(state.sequenceString()).orEmpty().let { found ->
+            val forced = state.forcedText()
+            if (forced.isEmpty()) found else found.filter { it.word.startsWith(forced) }
+        }
 
         // Composing → letters to force; at rest → the favourite symbols.
         val columnDigit = state.activeColumnDigit()
@@ -648,11 +723,12 @@ class T9ImeService : InputMethodService() {
      * of where the cursor happens to be.
      */
     private fun previewWord(): String {
-        val word = when {
-            state.isForcing() -> state.forcedText()
-            else -> candidates.firstOrNull { !it.fuzzy }?.word
-                ?: state.defaultLetters() // letters, never raw digits
-        }
+        // A candidate is preferred even while forcing, because the filter above has
+        // already discarded the ones that contradict the forced letters: spelling out
+        // "far" and pressing 5-2 should read "farla", not the bare default letters.
+        val word = candidates.firstOrNull { !it.fuzzy }?.word
+            ?: if (state.isForcing()) state.forcedPreview()
+            else state.defaultLetters() // letters, never raw digits
         return if (properNounsActive()) ProperNouns.display(word) else word
     }
 

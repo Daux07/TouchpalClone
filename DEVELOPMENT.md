@@ -28,13 +28,32 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** Step 1.12k — **i popup da 5 celle vanno su due righe (3+2)**, il che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`. Prima: 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **Ultimo step completato:** Step 1.18 — **la tastiera riprende la parola già scritta sotto il cursore** (`adopt`): sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato. Prima: 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
-- **Prossimo step:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
+- **Prossimo step:** **punto 2 degli appunti** — la maiuscola sbagliata dopo l'apostrofo (`l'Aveva`), da decidere insieme al punto 3 (elisioni come parola unica), perché entrambi dipendono dal considerare l'apostrofo interno alla parola. Tocca anche l'adozione dello Step 1.18, dove oggi l'apostrofo fa da confine. Poi il punto 4 (vibrazione).
+- **Dopo i punti degli appunti:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
 - **Dopo:** **Fase 3** (impostazioni/ergonomia, dove rientrano la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente). Il test reale sullo smartphone continua in parallelo: `bash tools/dev.sh apk` → `app/build/outputs/apk/debug/app-debug.apk`.
-- 📝 **Appunti dell'utente dalla prova reale (30/07 sera) — da affrontare per primi nella prossima sessione.** Quattro punti, nessuno ancora riprodotto né corretto. **Ordine deciso dall'utente: prima le tre segnalazioni (1, 2, 3), poi la vibrazione (4).**
+- 📝 **Appunti dell'utente dalla prova reale (30/07 sera).** **Ordine deciso dall'utente: prima le tre segnalazioni (1, 2, 3), poi la vibrazione (4).** Il punto 1 è **chiuso** (Step 1.18, 31/07); restano 2, 3 e 4.
 
-  1. **La parola composta a mano non risulta imparata.** Serviva `farla`, che nel dizionario non c'è.
+  1. ✅ **RISOLTO — Step 1.18.** *La parola composta a mano non risulta imparata.*
+
+     **La premessa dell'appunto era sbagliata, e questo ha cambiato la diagnosi.** `farla`
+     **è** nel dizionario (`it.txt` riga 1534, peso 61) ed è il **primo candidato** della sua
+     sequenza `32752`, davanti a `darla` (4): non andava composta a mano affatto. `farà`
+     invece **non c'è** — c'è solo `fara` (76), quindi al primo passo lo schermo mostrava
+     `fara`. Seguendo i passi dettati alla lettera l'apprendimento funzionava già.
+
+     Il difetto vero stava nel passo **«tornare sulla fine della parola»**: l'utente ha
+     confermato di aver **toccato il campo** per spostare il cursore. `onUpdateSelection`
+     non azzerava la composizione, così il buffer di cifre della tastiera e la regione in
+     composizione dell'editor restavano disallineati, e quel che si imparava era il
+     frammento sbagliato.
+
+     La correzione va oltre il reset, perché la dinamica che l'utente vuole è **riprendere
+     la parola già scritta**, nei due versi (da `farla` a `farà` e viceversa): vedi
+     `docs/FUNCTIONAL.md` §4, *Riprendere una parola già scritta*.
+
+  1. ~~La parola composta a mano non risulta imparata.~~ *(testo originale dell'appunto, tenuto per riferimento.)* Serviva `farla`, che nel dizionario non c'è.
      **Riproduzione esatta, dettata dall'utente** — da eseguire *per prima cosa*, prima di toccare il codice:
      1. digitare la sequenza che dà **`farà`** e lasciarla comparire;
      2. **cancellare la `à`** (backspace: fa pop della coppia cifra+lettera);
@@ -402,6 +421,53 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-31 — Step 1.18: riprendere la parola già scritta sotto il cursore
+**Punto 1 degli appunti della prova reale.** Prima di toccare il codice, la riproduzione
+dettata è stata tracciata contro il dizionario vero — e **la premessa non reggeva**:
+`farla` è nel dizionario (riga 1534, peso 61) ed è il primo candidato della sequenza
+`32752`, mentre `farà` non esiste (c'è `fara`, 76). Seguendo i passi alla lettera
+l'apprendimento funzionava già. Interpellato, l'utente ha confermato il passo mancante:
+al momento di «tornare sulla fine della parola» **aveva toccato il campo**. Da lì la
+richiesta vera, più larga della segnalazione: *"se voglio scrivere `farà` e parto da
+`farla`, cancello la `la`, torno indietro col cursore e scrivo `farà` usando il prefisso
+`far` già scritto, deve memorizzarla sullo spazio o sul candidato"*.
+
+**Fatto:** spostando il cursore **con il dito** a fine parola, la tastiera **adotta** la
+parola già scritta e continua a comporre su di essa, invece di iniziarne una nuova.
+
+**File modificati:**
+- `input/ComposeState.kt` — `adopt(word)` (ricostruisce la sequenza e adotta le lettere
+  come **forzate**, così il ranking non riscrive ciò che è scritto) e `forcedPreview()`.
+- `service/T9ImeService.kt` — `onUpdateSelection` ora distingue i propri edit da quelli
+  dell'utente (flag `selfEdit`) e chiama `adoptWordAtCursor()`; i candidati sono filtrati
+  sul prefisso forzato; `previewWord()` preferisce il candidato anche mentre si forza.
+- `input/ComposeStateTest.kt` — 6 test nuovi.
+
+**Due difetti emersi strada facendo, corretti qui:**
+- Mentre si forzava, l'anteprima era la sola `forcedText()`: le cifre premute dopo erano
+  **invisibili** finché non se ne sceglieva la lettera. Adottato `far`, premere `5` non
+  avrebbe mostrato nulla. Ora la coda non risolta compare con le lettere di default.
+- La barra proponeva candidati che **contraddicevano** le lettere forzate (`dara` a chi
+  aveva compitato `far`). Ora sono filtrati sul prefisso forzato — ed è ciò che permette
+  all'anteprima di leggere `farla` invece delle lettere di default `farja`.
+
+**Invariante di sicurezza:** l'adozione **non cambia mai il testo**. Se l'anteprima che ne
+risulterebbe differisce anche solo per una maiuscola da ciò che è nel campo, la parola è
+lasciata stare. Un tocco per spostare il cursore non deve riscrivere nulla.
+
+**Verificato (2026-07-31):** `:app:testDebugUnitTest` verde (114 test). Su emulatore
+Android 17: scritto `far` + spazio, toccato il campo dopo la `r` → la parola torna in
+composizione; `5`-`2` → il campo legge **`farla`**. Verso inverso: adottato `far`, premuto
+`2`, forzata `à` dalla colonna → **`farà`**. L'apprendimento è stato verificato **nel
+database**, non a occhio: composto `farz` (assente sia dal dizionario sia dalle parole
+imparate) partendo dal prefisso adottato, dopo lo spazio compare in `learned_words.db`
+(`adb exec-out run-as com.daux.t9keyboard cat databases/…`, poi ricerca nel file — sul
+device non c'è `sqlite3`). Screenshot: `docs/screenshots/step-1.18-*.png`.
+
+**Nota:** l'apostrofo fa da **confine di parola** (`l'aveva` adotta `aveva`). È deliberato:
+le elisioni come parola unica sono il punto 3 degli appunti e vanno decise lì, non di
+straforo. L'emulatore ha ora `farz` fra le parole imparate, residuo della verifica.
 
 ### 2026-07-30 — Step 1.12k: i popup da 5 vanno su due righe (3+2) — e i tasti di bordo
 **Due segnalazioni dell'utente, una causa sola.** *"3+2 secondo me meglio sull'orizzontale a
