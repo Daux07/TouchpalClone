@@ -16,5 +16,15 @@ data class Candidate(
     val word: String,
     val sequence: String,
     val weight: Long,
-    val fuzzy: Boolean = false
-)
+    val fuzzy: Boolean = false,
+    /**
+     * Marks a word **longer** than what was typed, offered as a completion of it
+     * (`contempora…` → `contemporaneamente`). Like [fuzzy] it is an offer: the typed
+     * keys are a prefix of it, not a description of it, so it is never what the
+     * preview commits — only what a tap accepts.
+     */
+    val completion: Boolean = false
+) {
+    /** True when the word is exactly what the typed keys spell: nothing assumed. */
+    val isExact: Boolean get() = !fuzzy && !completion
+}

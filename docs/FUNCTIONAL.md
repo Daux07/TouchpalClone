@@ -10,13 +10,13 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.21 (Fase 1 completa).
+**Allineato a:** Step 1.22 (Fase 1 completa).
 
 **Versione visibile.** `versionName` **è** il numero dello step di `DEVELOPMENT.md`, e da lì
 derivano (via `resValue` in `app/build.gradle.kts`) il nome dell'app e l'etichetta della
-tastiera: nel selettore si legge **"T9 1.21"**. Provando sul telefono si sa sempre a che punto
+tastiera: nel selettore si legge **"T9 1.22"**. Provando sul telefono si sa sempre a che punto
 del log corrisponde ciò che si ha in mano — e `bash tools/dev.sh apk` produce anche un file
-con la versione nel nome (`t9-1.21-debug.apk`), così gli APK non si confondono fra loro. Le
+con la versione nel nome (`t9-1.22-debug.apk`), così gli APK non si confondono fra loro. Le
 due stringhe non stanno più in `strings.xml`: scritte a mano resterebbero indietro.
 
 ## Indice
@@ -371,6 +371,43 @@ per pressione.
 
 Sta **fuori** dal merge, quindi tollera i refusi anche sulle parole imparate e (Fase 2) su
 entrambe le lingue.
+
+### `CompletingDictionaryEngine` — le parole più lunghe
+
+Dopo le parole che i tasti scrivono **esattamente**, offre quelle di cui i tasti sono
+**l'inizio**. È qui che una tastiera T9 si ripaga su una parola lunga: dieci tasti per
+`contemporaneamente`. Prima di questo, quei dieci tasti non corrispondevano **a nulla** —
+l'indice risponde solo a sequenze della stessa lunghezza, e nessuna parola italiana di
+esattamente dieci lettere scrive quella sequenza.
+
+**Un'offerta, mai un'assunzione.** I tasti digitati sono un *prefisso* del completamento,
+non una sua descrizione: il candidato è marcato (`Candidate.completion`), sta dietro a ogni
+corrispondenza esatta, e si inserisce **solo toccandolo**. L'anteprima nel campo continua a
+seguire una corrispondenza esatta (`Candidate.isExact`). Committare d'ufficio una parola da
+diciotto lettere su dieci pressioni sarebbe esattamente il tirare a indovinare che la
+colonna di disambiguazione esiste per impedire.
+
+**Da 4 cifre in su**, misurato sul corpus: con 2 cifre sotto il prefisso cadono ~3.700
+parole e con 3 ~2.000 — la barra smetterebbe di parlare di ciò che si sta scrivendo per
+diventare un elenco della lingua. Con 4 sono ~500 e la testa di quella lista è una
+previsione vera. Massimo 5 offerte.
+
+**Dove sta e perché.** Fuori da `FuzzyDictionaryEngine`, così i completamenti finiscono
+**fra** le corrispondenze esatte e i tentativi sui refusi: una parola più lunga che stai
+probabilmente scrivendo vale più di una parola che potresti aver sbagliato a scrivere.
+
+Chiede i completamenti attraverso `DictionaryEngine.completions(prefix, limit)` e **non**
+attraverso `lookup`, ed è una scelta di costo: il motore dei refusi cerca un centinaio di
+varianti della sequenza a ogni pressione, e completare ciascuna trasformerebbe una
+scansione per prefisso in cento. Il metodo ha implementazione vuota di default, così ogni
+decoratore che non lo inoltra semplicemente non ha completamenti da offrire.
+
+**Come si cerca un prefisso.** `ItalianDictionaryEngine` tiene le sequenze indicizzate anche
+**ordinate**: le corrispondenze di un prefisso sono sempre un tratto *contiguo* dell'ordine,
+quindi una ricerca binaria trova dove inizia e la scansione si ferma alla prima sequenza che
+non comincia più con esso — niente scansione delle 50.000. Il dizionario personale, che è di
+ordini di grandezza più piccolo, si scandisce e basta: un indice lì sarebbe macchinario da
+mantenere a ogni parola imparata per nulla.
 
 ### `SingleLetterEngine` — un tasto solo non è una parola
 
@@ -853,10 +890,11 @@ Unit test JVM (nessun emulatore necessario): `./gradlew :app:testDebugUnitTest`.
 |------|-------|
 | `T9KeypadTest` | `sequenceFor`, fold accenti, e l'apostrofo: saltato nell'elisione (`l'aveva` → `528382`), rifiutato come virgoletta (`po'`, `'ciao`) |
 | `ElisionTest` | La distinzione per posizione fra elisione e virgoletta, e che la parola imparata sia quella intera (`l'aveva`, non `aveva`) |
-| `ItalianDictionaryEngineTest` | Costruzione indice, ordinamento per peso |
+| `ItalianDictionaryEngineTest` | Costruzione indice, ordinamento per peso, ricerca per prefisso (fra cui il caso `contempora` → `contemporaneamente`) |
 | `MergingDictionaryEngineTest` | Fusione, deduplica per parola |
 | `LearnedWordsEngineTest` | Pesi, incremento usi, caricamento dallo store |
 | `FuzzyDictionaryEngineTest` | 9 casi: cancellazione/sostituzione/inserimento, marcatura, tetto |
+| `CompletingDictionaryEngineTest` | 7 casi: che i tasti che non scrivono nulla offrano comunque la parola lunga, l'ordine **esatte → completamenti → refusi**, niente doppioni, la soglia delle 4 cifre e il tetto |
 | `ComposeStateTest` | Forcing, avanzamento, pop-coppia, correzione, `defaultLetters`, accenti; e l'adozione di una parola scritta (`adopt`, anche accentata, con rifiuto di ciò che il tastierino non sa scrivere) più `forcedPreview`, che rende visibili le cifre premute dopo la forzatura |
 | `ShiftStateTest` | Ciclo, `apply`, `afterCommit`, `appliesToNext` |
 | `FavouriteSymbolsTest` | Normalizzazione, sostituzione, scambio, "ogni default è raggiungibile" |

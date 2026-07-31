@@ -34,4 +34,44 @@ class ItalianDictionaryEngineTest {
         assertEquals(listOf("come"), engine.lookup("2663").map { it.word })
         assertTrue(engine.lookup("2272").none { it.word == "come" })
     }
+
+    @Test
+    fun completions_findLongerWordsStartingWithTheSequence() {
+        val longer = ItalianDictionaryEngine.build(
+            sequenceOf(
+                "contemporaneamente 11",
+                "contemporanea 10",
+                "contemporaneo 4",
+                "casa 100" // a different prefix entirely
+            )
+        )
+
+        // The sequence of "contempora" — ten keys that spell no word by themselves.
+        val words = longer.completions("2668367672", 5).map { it.word }
+
+        assertEquals(listOf("contemporaneamente", "contemporanea", "contemporaneo"), words)
+        assertTrue(longer.completions("2668367672", 5).all { it.completion })
+    }
+
+    @Test
+    fun completions_excludeTheTypedWordItself() {
+        val words = ItalianDictionaryEngine.build(
+            sequenceOf("casa 100", "casale 3")
+        )
+        // "casa" is what was typed, not a completion of it.
+        assertEquals(listOf("casale"), words.completions("2272", 5).map { it.word })
+    }
+
+    @Test
+    fun completions_areEmptyWhenNothingContinuesTheSequence() {
+        assertTrue(engine.completions("99999", 5).isEmpty())
+    }
+
+    @Test
+    fun completions_respectTheLimit() {
+        val many = ItalianDictionaryEngine.build(
+            sequenceOf("casa 1", "casale 2", "casalinga 3", "casata 4", "casate 5")
+        )
+        assertEquals(2, many.completions("2272", 2).size)
+    }
 }

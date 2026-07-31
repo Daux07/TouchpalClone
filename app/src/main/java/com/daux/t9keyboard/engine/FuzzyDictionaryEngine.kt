@@ -47,6 +47,13 @@ class FuzzyDictionaryEngine(
         return exact + fuzzy.take(maxCandidates)
     }
 
+    /**
+     * Pass-through to the real index. Typo tolerance has nothing to add to a prefix —
+     * a misspelled prefix of an unfinished word is a guess on top of a guess.
+     */
+    override fun completions(prefix: String, limit: Int): List<Candidate> =
+        delegate.completions(prefix, limit)
+
     /** Every sequence at edit distance 1 from [sequence]. */
     private fun variantsOf(sequence: String): List<String> {
         val out = ArrayList<String>(

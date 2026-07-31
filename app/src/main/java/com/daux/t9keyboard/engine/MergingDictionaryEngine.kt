@@ -24,4 +24,22 @@ class MergingDictionaryEngine(private val sources: List<DictionaryEngine>) : Dic
         }
         return best.values.sortedByDescending { it.weight }
     }
+
+    /**
+     * Completions from every source, merged the same way. Each source is asked for the
+     * full [limit] before merging: a word offered by two sources must not eat two of
+     * the places, and a source that has nothing must not shrink the answer.
+     */
+    override fun completions(prefix: String, limit: Int): List<Candidate> {
+        val best = LinkedHashMap<String, Candidate>()
+        for (source in sources) {
+            for (candidate in source.completions(prefix, limit)) {
+                val current = best[candidate.word]
+                if (current == null || candidate.weight > current.weight) {
+                    best[candidate.word] = candidate
+                }
+            }
+        }
+        return best.values.sortedByDescending { it.weight }.take(limit)
+    }
 }

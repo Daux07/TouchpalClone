@@ -20,8 +20,36 @@ class ItalianDictionaryEngine private constructor(
     val properNouns: Set<String>
 ) : DictionaryEngine {
 
+    /**
+     * Every indexed sequence, sorted. Lets a prefix be found by binary search instead
+     * of scanning 50k entries: the matches of a prefix are always a **contiguous
+     * run** in sorted order, so one search finds where it starts and the scan stops
+     * at the first sequence that no longer begins with it.
+     */
+    private val sortedSequences: List<String> = index.keys.sorted()
+
     override fun lookup(sequence: String): List<Candidate> =
         index[sequence] ?: emptyList()
+
+    override fun completions(prefix: String, limit: Int): List<Candidate> {
+        if (prefix.isEmpty() || limit <= 0) return emptyList()
+
+        var i = sortedSequences.binarySearch(prefix).let { if (it < 0) -it - 1 else it }
+        val found = ArrayList<Candidate>()
+        while (i < sortedSequences.size) {
+            val sequence = sortedSequences[i]
+            if (!sequence.startsWith(prefix)) break // past the run: nothing else can match
+            i++
+            // The typed word itself is not a completion of itself.
+            if (sequence.length == prefix.length) continue
+            index[sequence]?.let { found += it }
+        }
+        // Sorting the whole run and taking the head is simpler than a bounded heap, and
+        // the run is small by the time completions are offered (a few hundred entries).
+        return found.sortedByDescending { it.weight }
+            .take(limit)
+            .map { it.copy(completion = true) }
+    }
 
     companion object {
 

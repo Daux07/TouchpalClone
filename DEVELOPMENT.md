@@ -28,10 +28,10 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** Step 1.21 — **la tastiera vibra sotto il dito**, con durata regolabile (`KeyboardSettings.hapticMs`, default 18 ms). Prima: 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **Ultimo step completato:** Step 1.22 — **completamento di parola**: dopo le parole che i tasti scrivono esattamente, la barra offre quelle di cui i tasti sono l'inizio (dieci tasti per `contemporaneamente`). Prima: 1.21 (la tastiera vibra sotto il dito, con durata regolabile — `KeyboardSettings.hapticMs`, default 18 ms), 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
 - **Prossimo step:** **Fase 2 — bilingue IT+EN**. Gli appunti della prova reale sono esauriti.
-- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce (vedi sopra); va riprovato sul telefono con l'APK aggiornato (`t9-1.21-debug.apk`).
+- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce (vedi sopra); va riprovato sul telefono con l'APK aggiornato (`t9-1.22-debug.apk`).
 - **Dopo i punti degli appunti:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
 - **Dopo:** **Fase 3** (impostazioni/ergonomia, dove rientrano la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente). Il test reale sullo smartphone continua in parallelo: `bash tools/dev.sh apk` → `app/build/outputs/apk/debug/app-debug.apk`.
 - 📝 **Appunti dell'utente dalla prova reale (30/07 sera).** **Ordine deciso dall'utente: prima le tre segnalazioni (1, 2, 3), poi la vibrazione (4).** Il punto 1 è **chiuso** (Step 1.18, 31/07); restano 2, 3 e 4.
@@ -451,6 +451,56 @@ esistente.
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
 
+### 2026-07-31 — Step 1.22: completamento di parola
+**Mancanza notata dall'utente, mai pianificata.** *"Usiamo i tasti premuti per determinare
+una parola ma non facciamo delle previsioni predittive su parole più lunghe: se scrivo i
+tasti per `contempora` mi potrebbe proporre `contemporaneamente`."*
+
+**Misurato prima di progettare**, e il caso era peggiore di come suonava: la sequenza di
+`contempora` (`2668367672`) oggi non restituiva **niente**, perché l'indice risponde solo a
+sequenze della stessa lunghezza e nessuna parola italiana di dieci lettere la scrive. Con il
+completamento dà sei parole, `contemporaneamente` in testa.
+
+**La soglia è misurata, non scelta a occhio.** Sotto un prefisso di 2 cifre cadono ~3.700
+parole del corpus, di 3 ~2.000, di 4 ~507. Il costo di scansione è irrilevante in tutti i
+casi; il **rumore** no. Da qui `MIN_LENGTH = 4`.
+
+**Fatto:** dopo le corrispondenze esatte, la barra offre le parole di cui i tasti sono
+l'inizio — al massimo 5.
+
+**File creati/modificati:**
+- `engine/CompletingDictionaryEngine.kt` (nuovo) — il decoratore, fuori da quello dei refusi,
+  così i completamenti finiscono **fra** le esatte e i tentativi sui refusi.
+- `engine/DictionaryEngine.kt` — `completions(prefix, limit)`, con implementazione vuota di
+  default. **Separato da `lookup` per costo**: il motore dei refusi cerca un centinaio di
+  varianti a ogni pressione, e completare ciascuna farebbe cento scansioni invece di una.
+- `engine/ItalianDictionaryEngine.kt` — sequenze anche **ordinate**: le corrispondenze di un
+  prefisso sono un tratto contiguo, quindi ricerca binaria e scansione che si ferma da sé.
+- `engine/LearnedWordsEngine.kt` — scansione semplice: il dizionario personale è di ordini di
+  grandezza più piccolo, e un indice lì sarebbe macchinario da mantenere per nulla.
+- `engine/MergingDictionaryEngine.kt`, `FuzzyDictionaryEngine.kt`, `SingleLetterEngine.kt` —
+  inoltro di `completions`.
+- `engine/Candidate.kt` — flag `completion` e `isExact`; `SuggestionBarView` e l'anteprima
+  ora ragionano su `isExact` anziché sul solo `fuzzy`.
+- Test: `engine/CompletingDictionaryEngineTest.kt` (7 casi) + 4 in `ItalianDictionaryEngineTest`.
+
+**La regola che governa tutto:** un completamento è **un'offerta, mai un'assunzione**. I tasti
+sono un *prefisso* della parola, non una sua descrizione, quindi il candidato è marcato, sta
+dietro alle esatte, e l'anteprima nel campo continua a seguire una corrispondenza esatta.
+Committere d'ufficio diciotto lettere su dieci pressioni sarebbe il tirare a indovinare che
+la colonna esiste per impedire.
+
+**Verificato (2026-07-31):** 133 test verdi. Su emulatore, digitati i dieci tasti di
+`contempora`: la barra offre `contemporaneamente` e `contemporanea` in grigio mentre il campo
+mostra le lettere di default (nessuna esatta), e toccando il candidato la parola viene
+inserita **e imparata** (controllato in `learned_words.db`).
+Screenshot: `docs/screenshots/step-1.22-*.png`.
+
+**Nota su una stranezza vista negli screenshot:** nel campo compariva una `a` di troppo dopo
+la parola. È un residuo di una prova precedente rimasto **a destra del cursore**, letto con
+`uiautomator dump` invece di indovinarlo dai pixel — non c'entra con la funzione, che ha
+lavorato su dieci cifre esatte.
+
 ### 2026-07-31 — Step 1.21: la tastiera vibra sotto il dito
 **Punto 4 degli appunti**, l'ultimo. *"Mi sta mancando tanto non sentire il tasto quando
 schiaccio."* **Decisione dell'utente: durata regolabile** — quindi il `Vibrator` con durata
@@ -504,7 +554,7 @@ d'occhio.
 - `res/values/strings.xml` — le due stringhe **tolte**: scritte a mano si sarebbero
   disallineate al primo step.
 - `tools/dev.sh` — `apk` stampa la versione e copia l'APK con la versione nel nome
-  (`t9-1.21-debug.apk`), così sul telefono non si confondono fra loro.
+  (`t9-1.22-debug.apk`), così sul telefono non si confondono fra loro.
 
 **Verificato (2026-07-31):** installato, `dumpsys package` riporta `versionName=1.21`, e nelle
 impostazioni Android la tastiera compare come **"T9 1.20"** (screenshot preso alla 1.20:

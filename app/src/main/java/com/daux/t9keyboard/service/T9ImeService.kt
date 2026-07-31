@@ -6,6 +6,7 @@ import android.text.TextUtils
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import com.daux.t9keyboard.engine.Candidate
+import com.daux.t9keyboard.engine.CompletingDictionaryEngine
 import com.daux.t9keyboard.engine.DictionaryEngine
 import com.daux.t9keyboard.engine.FuzzyDictionaryEngine
 import com.daux.t9keyboard.engine.ItalianDictionaryEngine
@@ -107,7 +108,7 @@ class T9ImeService : InputMethodService() {
         learned = learnedEngine
         // Single-letter ordering sits outermost: it has the last word on what a lone
         // keypress offers, whatever the corpus and the learned words make of it.
-        engine = SingleLetterEngine(FuzzyDictionaryEngine(learnedEngine))
+        engine = SingleLetterEngine(CompletingDictionaryEngine(FuzzyDictionaryEngine(learnedEngine)))
         // ~50k-word Italian dictionary: parse off the main thread so the keyboard
         // shows instantly (predictions appear once loading completes, ~a moment).
         Thread {
@@ -115,7 +116,9 @@ class T9ImeService : InputMethodService() {
             val corpus = ItalianDictionaryEngine.fromAssets(this, "dict/it.txt")
             ProperNouns.setKnown(corpus.properNouns)
             engine = SingleLetterEngine(
-                FuzzyDictionaryEngine(MergingDictionaryEngine(listOf(learnedEngine, corpus)))
+                CompletingDictionaryEngine(
+                    FuzzyDictionaryEngine(MergingDictionaryEngine(listOf(learnedEngine, corpus)))
+                )
             )
         }.apply { name = "dict-loader"; isDaemon = true }.start()
     }
@@ -729,7 +732,7 @@ class T9ImeService : InputMethodService() {
         // A candidate is preferred even while forcing, because the filter above has
         // already discarded the ones that contradict the forced letters: spelling out
         // "far" and pressing 5-2 should read "farla", not the bare default letters.
-        val word = candidates.firstOrNull { !it.fuzzy }?.word
+        val word = candidates.firstOrNull { it.isExact }?.word
             ?: if (state.isForcing()) state.forcedPreview()
             else state.defaultLetters() // letters, never raw digits
         return if (properNounsActive()) ProperNouns.display(word) else word

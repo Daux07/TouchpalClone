@@ -84,7 +84,7 @@ class SuggestionBarView(
             // Typo-tolerant candidates read as dimmer offers, exact ones as answers.
             setTextColor(
                 when {
-                    candidate.fuzzy -> KeyboardTheme.TEXT_DIM
+                    !candidate.isExact -> KeyboardTheme.TEXT_DIM
                     first -> KeyboardTheme.ACCENT
                     else -> KeyboardTheme.TEXT
                 }

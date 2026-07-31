@@ -45,6 +45,26 @@ class LearnedWordsEngine(private val store: Store) : DictionaryEngine {
     }
 
     /**
+     * Completions from the personal dictionary. A plain scan of the keys, with no
+     * sorted index behind it: this dictionary holds the words *one person* has
+     * confirmed, which is orders of magnitude smaller than the corpus — an index here
+     * would be machinery to maintain on every learned word for nothing.
+     */
+    override fun completions(prefix: String, limit: Int): List<Candidate> {
+        if (prefix.isEmpty() || limit <= 0) return emptyList()
+        val found = ArrayList<Candidate>()
+        synchronized(this) {
+            for ((sequence, words) in index) {
+                if (sequence.length == prefix.length || !sequence.startsWith(prefix)) continue
+                for ((word, uses) in words) {
+                    found += Candidate(word, sequence, weightFor(uses), completion = true)
+                }
+            }
+        }
+        return found.sortedByDescending { it.weight }.take(limit)
+    }
+
+    /**
      * Record that the user confirmed [word] (space, enter, punctuation, or picking a
      * suggestion). Bumps its use count and mirrors it to [store]. Words the keypad
      * cannot map back to a sequence (digits, symbols) are ignored.

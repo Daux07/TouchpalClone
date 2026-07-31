@@ -20,6 +20,10 @@ import com.daux.t9keyboard.model.T9Keypad
  */
 class SingleLetterEngine(private val delegate: DictionaryEngine) : DictionaryEngine {
 
+    /** Pass-through: a single letter's ordering says nothing about longer words. */
+    override fun completions(prefix: String, limit: Int): List<Candidate> =
+        delegate.completions(prefix, limit)
+
     override fun lookup(sequence: String): List<Candidate> {
         val candidates = delegate.lookup(sequence)
         if (sequence.length != 1) return candidates
