@@ -613,6 +613,20 @@ distribuzione reale — *più frequente 29.311 · 100ª 1.268 · 500ª 208 · 1.
 | 100 volte | 30.000 (tetto) | sopra tutto |
 | **appena usata** | **+50.000** | sopra tutto, per un'ora |
 
+**I pesi del corpus sono fissi, quelli personali no** — ed è ciò che impedisce a una parola
+rara di restare in coda per sempre. Scriverla *è* impararla, quindi il suo peso personale
+cresce mentre quello del corpus sta fermo, e il merge tiene il maggiore dei due. Misurato in
+`MergingDictionaryEngineTest`, su `2272` dove `bara` vale 50 contro i 900 di `casa`:
+
+| usi | ordine nella barra |
+|---|---|
+| 1 | casa · cara · **bara** |
+| 3 | casa · **bara** · cara |
+| 4 | **bara** · casa · cara |
+
+Quattro conferme e la parola guida la sua sequenza in modo stabile — senza contare l'ora
+successiva a ogni uso, in cui la spinta recente la mette prima comunque.
+
 **L'abitudine cresce con l'uso e ha un tetto.** La recenza è una spinta a parte, che svanisce
 a scalini — *adesso*, *oggi*, *questa settimana* — perché tre soglie dicibili a parole sono
 più facili da ragionare, testare e spiegare di una curva con un tempo di dimezzamento che
