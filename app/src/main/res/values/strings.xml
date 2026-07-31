@@ -4,4 +4,6 @@
          versione, e scriverle qui a mano le farebbe restare indietro. -->
     <string name="subtype_it">Italiano</string>
     <string name="pick_favourite_symbol">Scegli il simbolo per la posizione %1$d</string>
+    <string name="forgot_word">"%1$s" dimenticata</string>
+    <string name="not_a_learned_word">"%1$s" è del dizionario, non l\'hai imparata tu</string>
 </resources>

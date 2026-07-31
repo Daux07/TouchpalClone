@@ -131,11 +131,74 @@ class LearnedWordsEngineTest {
     }
 
     @Test
-    fun `learned weights outrank corpus frequencies`() {
+    fun `a word confirmed once weighs like a real word, not like a decree`() {
+        // The corpus, measured: most frequent 29.311 · 100th 1.268 · 500th 208 · median 2.
+        // One confirmation should read as "a word this person writes", not as the top of
+        // the language — which is what 1.000.000 used to say.
+        val weight = LearnedWordsEngine.weightFor(uses = 1, lastUsed = 0L, now = 0L)
+
+        assertTrue("must beat the long tail", weight > 100L)
+        assertTrue("must not beat the commonest words", weight < 1_000L)
+    }
+
+    @Test
+    fun `habit climbs above the corpus, but not by an order of magnitude`() {
+        val once = LearnedWordsEngine.weightFor(1, 0L, 0L)
+        val often = LearnedWordsEngine.weightFor(10, 0L, 0L)
+        val always = LearnedWordsEngine.weightFor(500, 0L, 0L)
+
+        assertTrue(often > once)
+        assertTrue("ten uses reach the top of the language", often > 2_000L)
+        assertEquals("and habit has a ceiling", LearnedWordsEngine.MAX_HABIT_WEIGHT, always)
+    }
+
+    @Test
+    fun `a word just used comes back to the top`() {
+        val now = 1_000_000_000L
+        val justNow = LearnedWordsEngine.weightFor(1, now, now)
+
+        // Above the whole corpus — deliberately, and briefly. It is what keeps a term
+        // repeated in one conversation at hand, and what brings a word learned by
+        // mistake back where it can be seen and forgotten.
+        assertTrue(justNow > 29_311L)
+    }
+
+    @Test
+    fun `the boost fades with time, leaving only the habit`() {
+        val now = 1_000_000_000L
+        val hour = 60L * 60 * 1000
+        val fresh = LearnedWordsEngine.weightFor(1, now, now)
+        val today = LearnedWordsEngine.weightFor(1, now - 2 * hour, now)
+        val lastWeek = LearnedWordsEngine.weightFor(1, now - 3 * 24 * hour, now)
+        val longAgo = LearnedWordsEngine.weightFor(1, now - 60 * 24 * hour, now)
+
+        assertTrue(fresh > today)
+        assertTrue(today > lastWeek)
+        assertTrue(lastWeek > longAgo)
+        assertEquals("what is left is the habit alone", LearnedWordsEngine.BASE_WEIGHT, longAgo)
+    }
+
+    // --- Forgetting ----------------------------------------------------------------
+
+    @Test
+    fun `a word learned by mistake can be forgotten, from RAM and from the store`() {
+        val store = FakeStore()
+        val engine = LearnedWordsEngine(store)
+        engine.learn("bau", 1L)
+
+        assertTrue(engine.forget("bau"))
+
+        assertTrue("must stop being proposed", engine.lookup("228").isEmpty())
+        assertFalse("and must be gone from the archive", store.saved.containsKey("bau"))
+    }
+
+    @Test
+    fun `forgetting something never learned changes nothing`() {
         val engine = LearnedWordsEngine(FakeStore())
         engine.learn("bau", 1L)
 
-        // "di", the most frequent Italian word in the corpus, weighs ~75k.
-        assertTrue(engine.lookup("228").first().weight > 100_000L)
+        // "casa" belongs to the corpus, which is not the user's to edit.
+        assertFalse(engine.forget("casa"))
+        assertEquals(listOf("bau"), engine.lookup("228").map { it.word })
     }
 }

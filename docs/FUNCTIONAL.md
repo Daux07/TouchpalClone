@@ -14,9 +14,9 @@
 
 **Versione visibile.** `versionName` **è** il numero dello step di `DEVELOPMENT.md`, e da lì
 derivano (via `resValue` in `app/build.gradle.kts`) il nome dell'app e l'etichetta della
-tastiera: nel selettore si legge **"T9 2.2"**. Provando sul telefono si sa sempre a che punto
+tastiera: nel selettore si legge **"T9 2.3"**. Provando sul telefono si sa sempre a che punto
 del log corrisponde ciò che si ha in mano — e `bash tools/dev.sh apk` produce anche un file
-con la versione nel nome (`t9-2.2-debug.apk`), così gli APK non si confondono fra loro. Le
+con la versione nel nome (`t9-2.3-debug.apk`), così gli APK non si confondono fra loro. Le
 due stringhe non stanno più in `strings.xml`: scritte a mano resterebbero indietro.
 
 ## Indice
@@ -592,11 +592,47 @@ punteggiatura, o scegliendo un suggerimento — finisce nel dizionario personale
 "a mano" **una sola volta**: dalla seconda in poi è la prima predizione della sua sequenza.
 
 - **`LearnedWordsEngine`** — il dizionario personale come `DictionaryEngine`. Indice in RAM
-  `sequenza → (parola → n. usi)`: durante la digitazione **non si tocca mai il database**.
-  Peso = `BASE_WEIGHT (1.000.000) + usi × 1.000`, sopra la frequenza massima del corpus
-  (~75k di "di"), così una parola imparata batte sempre le parole di dizionario con la stessa
-  sequenza, e le più usate salgono fra loro. Kotlin puro grazie al seam
-  `LearnedWordsEngine.Store`.
+  `sequenza → (parola → usi + ultimo uso)`: durante la digitazione **non si tocca mai il
+  database**. Kotlin puro grazie al seam `LearnedWordsEngine.Store`.
+
+### Quanto pesa una parola imparata
+
+**Compete con il corpus, non lo sostituisce.** Fino alla 2.2 ogni parola imparata pesava
+`1.000.000`: trentaquattro volte la parola più frequente dell'italiano. Non era una priorità,
+era un annullamento — una parola confermata per sbaglio **una volta** restava davanti a `casa`
+per il resto della vita del dizionario.
+
+I numeri sono nell'unità del corpus (occorrenze per milione), così si leggono contro la
+distribuzione reale — *più frequente 29.311 · 100ª 1.268 · 500ª 208 · 1.000ª 96 · mediana 2*:
+
+| | peso | posizione |
+|---|---|---|
+| confermata 1 volta | 200 | ~500ª parola |
+| 5 volte | 1.400 | ~90ª |
+| 10 volte | 2.900 | ~40ª |
+| 100 volte | 30.000 (tetto) | sopra tutto |
+| **appena usata** | **+50.000** | sopra tutto, per un'ora |
+
+**L'abitudine cresce con l'uso e ha un tetto.** La recenza è una spinta a parte, che svanisce
+a scalini — *adesso*, *oggi*, *questa settimana* — perché tre soglie dicibili a parole sono
+più facili da ragionare, testare e spiegare di una curva con un tempo di dimezzamento che
+nessuno riesce a immaginare.
+
+**Perché la spinta recente esiste**, oltre a tenere a portata un termine ripetuto nella stessa
+conversazione: fa **riemergere una parola imparata per sbaglio**, che altrimenti sprofonderebbe
+nell'archivio senza farsi notare e ci resterebbe a vita. È il motivo per cui è arrivata
+insieme al modo di dimenticare — senza quello sarebbe solo un modo di mostrare all'utente un
+errore che non può correggere.
+
+### Dimenticare una parola
+
+**Pressione prolungata su un candidato** = dimenticala. È l'unico posto in cui l'utente
+incontra una parola imparata faccia a faccia, quindi è lì che dev'essere possibile disfarla.
+Sparisce dalla RAM e dall'archivio.
+
+Si possono dimenticare **solo le parole personali**: il corpus non è dell'utente da modificare,
+e una pressione prolungata su `casa` che sembrasse cancellarla senza poi cambiare nulla sarebbe
+peggio di nessun gesto. La barra dice quale dei due casi è stato.
 - **Room** (`learning/`): entità `LearnedWord` (parola PK, sequenza, usi, ultimo uso),
   `LearnedWordDao`, `LearnedWordsDatabase`, `RoomLearnedWordsStore` che **scrive in coda su un
   thread singolo** — la pressione di un tasto non deve mai attendere il disco; l'ordine è
@@ -1055,7 +1091,7 @@ Unit test JVM (nessun emulatore necessario): `./gradlew :app:testDebugUnitTest`.
 | `CorpusDictionaryEngineTest` | Costruzione indice, ordinamento per peso, ricerca per prefisso (fra cui il caso `contempora` → `contemporaneamente`), e che **una lettera sola non sia mai un nome proprio** |
 | `MergingDictionaryEngineTest` | Fusione, deduplica per parola |
 | `LanguagePriorityEngineTest` | 9 casi: che ogni parola italiana preceda ogni inglese (anche quando l'inglese pesa di più), che una parola comune a entrambe sia tenuta una volta sola, che l'inglese risponda da solo dove l'italiano tace, che una **terza lingua** si accodi alla seconda, e che senza secondarie resti esattamente la tastiera v1 |
-| `LearnedWordsEngineTest` | Pesi, incremento usi, caricamento dallo store; e le lettere singole: **mai imparate**, e **cancellate** dall'archivio se ve le aveva messe una build vecchia |
+| `LearnedWordsEngineTest` | Pesi, incremento usi, caricamento dallo store; e le lettere singole: **mai imparate**, e **cancellate** dall'archivio se ve le aveva messe una build vecchia; la curva dei pesi (abitudine con tetto + spinta recente che svanisce) e il **dimenticare** una parola |
 | `FuzzyDictionaryEngineTest` | 14 casi: cancellazione/sostituzione/inserimento, **inversione di due tasti**, **due tasti sbagliati** (e che non si cerchino su parole corte né quando qualcosa già corrisponde), marcatura, tetto |
 | `FuzzyCostTest` | Guardia sul costo: la ricerca profonda sul corpus vero (50k parole) resta abbondantemente dentro il tempo di una pressione |
 | `CompletingDictionaryEngineTest` | 7 casi: che i tasti che non scrivono nulla offrano comunque la parola lunga, l'ordine **esatte → completamenti → refusi**, niente doppioni, la soglia delle 4 cifre e il tetto |

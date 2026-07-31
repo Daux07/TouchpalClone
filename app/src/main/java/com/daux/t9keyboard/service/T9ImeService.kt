@@ -158,6 +158,7 @@ class T9ImeService : InputMethodService() {
             context = this,
             onKey = ::onKey,
             onPickCandidate = ::onPickCandidate,
+            onForgetCandidate = ::onForgetCandidate,
             onPickLetter = ::onPickLetter,
             onPickSymbol = ::onInsert,
             onEditSymbol = ::onEditFavourite,
@@ -683,6 +684,25 @@ class T9ImeService : InputMethodService() {
         afterWordCommitted()
     }
 
+    /**
+     * Hold a suggestion to forget it — undoing a word learned by mistake.
+     *
+     * Only personal words can be forgotten: the corpus is not the user's to edit, and a
+     * long press on `casa` that appeared to delete it and then changed nothing would be
+     * worse than no gesture at all. When there is nothing to forget the bar says so.
+     */
+    private fun onForgetCandidate(candidate: Candidate) {
+        val forgotten = learned.forget(candidate.word)
+        keyboardView?.setHint(
+            if (forgotten) getString(R.string.forgot_word, candidate.word)
+            else getString(R.string.not_a_learned_word, candidate.word)
+        )
+        keyboardView?.postDelayed({
+            keyboardView?.setHint(null)
+            render()
+        }, HINT_MS)
+    }
+
     private fun onPickCandidate(candidate: Candidate) {
         selfEdit = true
         val ic = currentInputConnection ?: return
@@ -828,6 +848,9 @@ class T9ImeService : InputMethodService() {
     private companion object {
         /** How far back to look for the start of a word. Longer than any word. */
         const val WORD_SCAN_CHARS = 64
+
+        /** How long the bar says what a long press just did, before going back to words. */
+        const val HINT_MS = 1_500L
 
         /** Enough context to recognise an abbreviation or an ellipsis before the cursor. */
         const val CONTEXT_CHARS = 24

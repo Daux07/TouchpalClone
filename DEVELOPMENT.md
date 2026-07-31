@@ -28,10 +28,10 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** **Fase 2 completa** — bilingue IT+EN (versione **2.0**). Fase 1 completa, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** **2.2 — la `b` prima della `a`**: una lettera singola imparata da una build vecchia dominava il tasto 2; la regola scende nel dizionario e l'archivio viene bonificato al caricamento. Prima: **Fase 2.1 — il bilinguismo si accende e si spegne**: schermata impostazioni raggiungibile dal launcher, e la lingua è un elenco (`Language`) invece di un interruttore per l'inglese, così una terza costa un dizionario e una riga. Prima: **Fase 2 — bilingue IT+EN** (versione 2.0): italiano e inglese attivi insieme, senza cambio lingua; l'inglese non scavalca mai l'italiano, quindi nessuna sequenza che funzionava prima si ordina diversamente. Prima: Step 1.26 — **riga dello spazio uniformata** alle file di lettere (senza far ricrescere la tastiera) e **una lettera sola non è mai un nome proprio**: premendo `2` la barra offriva "a B C à". Prima: 1.25 — **tastiera più bassa**: barra candidati quasi dimezzata e tasti più larghi che alti; la tastiera passa dal 40% al 31% dello schermo. Prima: 1.24 — **resilienza ai refusi doppi**: due tasti invertiti (che prima sfuggivano del tutto) e, come ultima risorsa sulle parole lunghe, due tasti sbagliati. Prima: 1.23 (anteprima leggibile: senza corrispondenze esatte il campo mostra la migliore offerta invece delle lettere di default), 1.22 — **completamento di parola**: dopo le parole che i tasti scrivono esattamente, la barra offre quelle di cui i tasti sono l'inizio (dieci tasti per `contemporaneamente`). Prima: 1.21 (la tastiera vibra sotto il dito, con durata regolabile — `KeyboardSettings.hapticMs`, default 18 ms), 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **Ultimo step completato:** **2.3 — il peso delle parole imparate**: da 1.000.000 fisso a abitudine + spinta recente sulla scala del corpus, e la pressione prolungata su un candidato lo dimentica. Prima: **2.2 — la `b` prima della `a`**: una lettera singola imparata da una build vecchia dominava il tasto 2; la regola scende nel dizionario e l'archivio viene bonificato al caricamento. Prima: **Fase 2.1 — il bilinguismo si accende e si spegne**: schermata impostazioni raggiungibile dal launcher, e la lingua è un elenco (`Language`) invece di un interruttore per l'inglese, così una terza costa un dizionario e una riga. Prima: **Fase 2 — bilingue IT+EN** (versione 2.0): italiano e inglese attivi insieme, senza cambio lingua; l'inglese non scavalca mai l'italiano, quindi nessuna sequenza che funzionava prima si ordina diversamente. Prima: Step 1.26 — **riga dello spazio uniformata** alle file di lettere (senza far ricrescere la tastiera) e **una lettera sola non è mai un nome proprio**: premendo `2` la barra offriva "a B C à". Prima: 1.25 — **tastiera più bassa**: barra candidati quasi dimezzata e tasti più larghi che alti; la tastiera passa dal 40% al 31% dello schermo. Prima: 1.24 — **resilienza ai refusi doppi**: due tasti invertiti (che prima sfuggivano del tutto) e, come ultima risorsa sulle parole lunghe, due tasti sbagliati. Prima: 1.23 (anteprima leggibile: senza corrispondenze esatte il campo mostra la migliore offerta invece delle lettere di default), 1.22 — **completamento di parola**: dopo le parole che i tasti scrivono esattamente, la barra offre quelle di cui i tasti sono l'inizio (dieci tasti per `contemporaneamente`). Prima: 1.21 (la tastiera vibra sotto il dito, con durata regolabile — `KeyboardSettings.hapticMs`, default 18 ms), 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
 - **Prossimo step:** **Fase 3 — impostazioni ed ergonomia**. Le preferenze esistono già nel codice e aspettano solo la schermata: altezza tastiera, durata della vibrazione, dimensione del testo dei candidati, inglese on/off, lato della colonna. Vi rientrano anche la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente.
-- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce (vedi sopra); va riprovato sul telefono con l'APK aggiornato (`t9-2.2-debug.apk`).
+- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce (vedi sopra); va riprovato sul telefono con l'APK aggiornato (`t9-2.3-debug.apk`).
 - **Dopo:** altre lingue oltre IT/EN, e il dizionario binario indicizzato se il formato testo diventasse stretto.
 - 📝 **Appunti dell'utente dalla prova reale (30/07 sera).** **Ordine deciso dall'utente: prima le tre segnalazioni (1, 2, 3), poi la vibrazione (4).** **Tutti chiusi il 31/07**: 1 → Step 1.18, 3 → Step 1.19, 4 → Step 1.21. Il punto 2 **non si riproduce** e attende un riscontro sul telefono.
 
@@ -450,6 +450,49 @@ esistente.
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
 
+### 2026-07-31 — 2.3: il peso delle parole imparate, e il modo di dimenticarle
+**Domanda dell'utente:** *"Il peso delle parole imparate è forse esagerato? Non è detto che
+una parola imparata debba essere la prima opzione, se è rara."*
+
+**Misurata la distribuzione del corpus prima di rispondere** — più frequente 29.311 · 100ª
+1.268 · 500ª 208 · 1.000ª 96 · mediana 2. `BASE_WEIGHT` era **1.000.000**: trentaquattro volte
+la parola più frequente della lingua. Non una priorità, un annullamento.
+
+**Il vincolo da non rompere** era il criterio di accettazione della v1 («una parola forzata una
+volta è proposta per prima»). Regge lo stesso: per una parola che il corpus **non conosce**
+nessun'altra corrisponde esattamente a quella sequenza, quindi resta prima a qualunque peso.
+Cambia solo la parola rara *ma nota*, che è esattamente il caso di cui l'utente si lamentava.
+
+**La scelta dell'utente è stata la terza opzione — peso proporzionale più spinta recente — con
+una motivazione migliore della mia:** *"così ti accorgi se hai memorizzato una parola per
+sbaglio; se la usi una sola volta rimarrà nel vocabolario a vita e non la vedrai quasi mai
+più, essendo recente invece potrebbe comparire più facilmente permettendoti di cancellarla."*
+
+**Il buco che quella motivazione ha rivelato: non c'era modo di cancellare.** La spinta
+recente avrebbe fatto riemergere l'errore senza dare modo di correggerlo — un modo di mostrare
+all'utente un problema che non può risolvere. Quindi due cose insieme, e la seconda non era
+opzionale.
+
+**Fatto:**
+- **Peso** = abitudine + recenza. Abitudine `200 + 300 × (usi-1)`, tetto 30.000; recenza
+  `+50.000` entro l'ora, `/10` entro il giorno, `/100` entro la settimana, poi zero. Tutto
+  nell'unità del corpus, così i numeri si leggono contro la distribuzione vera. La decadenza è
+  a scalini e non una curva: tre soglie dicibili a parole si ragionano e si testano meglio di
+  un tempo di dimezzamento che nessuno riesce a immaginare.
+- **Dimenticare**: pressione prolungata su un candidato. Solo le parole personali — il corpus
+  non è dell'utente da modificare, e un gesto che sembra cancellare senza cambiare nulla è
+  peggio di nessun gesto. La barra dice quale dei due casi è stato.
+
+**File modificati:** `engine/LearnedWordsEngine.kt` (peso, `lastUsed` in RAM, `forget`, clock
+iniettabile per testare la decadenza senza aspettare giorni veri), `learning/RoomLearnedWordsStore.kt`,
+`ui/SuggestionBarView.kt` + `ui/KeyboardView.kt` (pressione prolungata), `service/T9ImeService.kt`,
+`res/values/strings.xml`. Test: `LearnedWordsEngineTest` +6.
+
+**Verificato (2026-07-31):** 158 test verdi. Su emulatore: imparata `cara` scegliendola dalla
+barra, la sequenza `2272` la propone **prima di `casa`** (spinta recente); tenuta premuta,
+`cara` rientra dietro `casa` — la voce personale è stata cancellata e l'ordine del corpus è
+tornato quello di prima.
+
 ### 2026-07-31 — 2.2: la `b` prima della `a` — una lettera imparata anni fa
 **Segnalazione dell'utente, ripetuta due volte:** premendo `2` la tastiera proponeva `B`/`b`
 come prima scelta. *"Questa cosa non deve esistere: `a` si scrive spessissimo."*
@@ -810,7 +853,7 @@ d'occhio.
 - `res/values/strings.xml` — le due stringhe **tolte**: scritte a mano si sarebbero
   disallineate al primo step.
 - `tools/dev.sh` — `apk` stampa la versione e copia l'APK con la versione nel nome
-  (`t9-2.2-debug.apk`), così sul telefono non si confondono fra loro.
+  (`t9-2.3-debug.apk`), così sul telefono non si confondono fra loro.
 
 **Verificato (2026-07-31):** installato, `dumpsys package` riporta `versionName=1.21`, e nelle
 impostazioni Android la tastiera compare come **"T9 1.20"** (screenshot preso alla 1.20:

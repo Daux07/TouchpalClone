@@ -30,6 +30,7 @@ class KeyboardView(
     context: Context,
     onKey: (KeyAction) -> Unit,
     onPickCandidate: (Candidate) -> Unit,
+    onForgetCandidate: (Candidate) -> Unit,
     onPickLetter: (Char) -> Unit,
     onPickSymbol: (String) -> Unit,
     onEditSymbol: (Int) -> Unit,
@@ -37,7 +38,7 @@ class KeyboardView(
 ) : FrameLayout(context), KeyViewFactory.PopupHost {
 
     private val keys = KeyViewFactory(context, onKey, this)
-    private val suggestionBar = SuggestionBarView(context, onPickCandidate)
+    private val suggestionBar = SuggestionBarView(context, onPickCandidate, onForgetCandidate)
     private val t9Body = T9BodyView(context, keys, onPickLetter, onPickSymbol, onEditSymbol)
     private val gridBody = GridKeyboardView(context, keys)
 

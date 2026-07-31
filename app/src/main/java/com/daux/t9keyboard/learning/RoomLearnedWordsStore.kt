@@ -19,7 +19,7 @@ class RoomLearnedWordsStore(context: Context) : LearnedWordsEngine.Store {
     }
 
     override fun loadAll(): List<LearnedWordsEngine.Entry> =
-        dao.all().map { LearnedWordsEngine.Entry(it.word, it.sequence, it.uses) }
+        dao.all().map { LearnedWordsEngine.Entry(it.word, it.sequence, it.uses, it.lastUsed) }
 
     override fun save(word: String, sequence: String, uses: Long, lastUsed: Long) {
         writer.execute { dao.upsert(LearnedWord(word, sequence, uses, lastUsed)) }

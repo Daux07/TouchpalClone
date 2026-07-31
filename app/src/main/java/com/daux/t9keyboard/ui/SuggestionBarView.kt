@@ -18,7 +18,9 @@ import com.daux.t9keyboard.engine.Candidate
 @SuppressLint("ViewConstructor")
 class SuggestionBarView(
     context: Context,
-    private val onPick: (Candidate) -> Unit
+    private val onPick: (Candidate) -> Unit,
+    /** Long-press on a chip: offer to forget the word, when it is one we learned. */
+    private val onForget: ((Candidate) -> Unit)? = null
 ) : HorizontalScrollView(context) {
 
     private val container = LinearLayout(context).apply {
@@ -97,6 +99,12 @@ class SuggestionBarView(
                 LinearLayout.LayoutParams.MATCH_PARENT
             )
             setOnClickListener { onPick(candidate) }
+            // Hold a suggestion to forget it. It is the only place the user meets a
+            // learned word face to face, so it is where they must be able to undo it.
+            setOnLongClickListener {
+                onForget?.invoke(candidate)
+                true
+            }
         }
     }
 

@@ -9,16 +9,25 @@ import com.daux.t9keyboard.model.T9Keypad
  * touches the database; persistence is a write-behind mirror handled by [store],
  * whose calls happen off the main thread (see [Store]).
  *
- * Weights start above the highest corpus frequency ([BASE_WEIGHT]) and grow with the
- * use count, so a word the user confirmed is proposed *before* any dictionary word
- * sharing its sequence, and words used often climb above words used once.
+ * **A learned word competes with the corpus, it does not replace it** ([weightFor]).
+ * Until version 2.3 every learned word weighed 1,000,000 — thirty-four times the most
+ * frequent word in Italian — so a word confirmed once by accident sat ahead of `casa`
+ * for the rest of the dictionary's life. The weight now grows with use and fades with
+ * time, on the corpus's own scale.
  *
- * Pure Kotlin (no Android): unit-testable with an in-memory [Store].
+ * Pure Kotlin (no Android): unit-testable with an in-memory [Store] and a fake clock.
  */
-class LearnedWordsEngine(private val store: Store) : DictionaryEngine {
+class LearnedWordsEngine(
+    private val store: Store,
+    /** Injected so the decay can be tested without waiting for real days to pass. */
+    private val clock: () -> Long = System::currentTimeMillis
+) : DictionaryEngine {
 
-    /** Sequence → (word → use count). Guarded by the instance lock. */
-    private val index = HashMap<String, HashMap<String, Long>>()
+    /** What is known about a word: how often, and when last. */
+    private data class Use(val count: Long, val lastUsed: Long)
+
+    /** Sequence → (word → use). Guarded by the instance lock. */
+    private val index = HashMap<String, HashMap<String, Use>>()
 
     /** Persistence seam; implemented on top of Room by the app, faked in tests. */
     interface Store {
@@ -27,7 +36,12 @@ class LearnedWordsEngine(private val store: Store) : DictionaryEngine {
         fun delete(word: String)
     }
 
-    data class Entry(val word: String, val sequence: String, val uses: Long)
+    data class Entry(
+        val word: String,
+        val sequence: String,
+        val uses: Long,
+        val lastUsed: Long = 0L
+    )
 
     /**
      * Reads the whole personal dictionary into RAM. Call off the main thread.
@@ -35,7 +49,7 @@ class LearnedWordsEngine(private val store: Store) : DictionaryEngine {
      * Single letters stored by an older build are **thrown away here, and deleted**.
      * The rule that they are never learned ([isLearnable]) arrived in Phase 1.14 and only
      * stops new ones: an `a` or a `b` written once before that is still on file, and a
-     * learned word outranks the entire corpus — so key 2 proposed `b` ahead of `a`, one
+     * learned word outranked the entire corpus — so key 2 proposed `b` ahead of `a`, one
      * of the commonest words in the language, and went on doing it forever. A rule that
      * only applies to the future leaves the damage in place.
      */
@@ -45,15 +59,17 @@ class LearnedWordsEngine(private val store: Store) : DictionaryEngine {
         synchronized(this) {
             for (entry in entries) {
                 if (!isLearnable(entry.word)) continue
-                index.getOrPut(entry.sequence) { HashMap() }[entry.word] = entry.uses
+                index.getOrPut(entry.sequence) { HashMap() }[entry.word] =
+                    Use(entry.uses, entry.lastUsed)
             }
         }
         for (entry in stale) store.delete(entry.word)
     }
 
     override fun lookup(sequence: String): List<Candidate> {
+        val now = clock()
         val words = synchronized(this) { index[sequence]?.toMap() } ?: return emptyList()
-        return words.map { (word, uses) -> Candidate(word, sequence, weightFor(uses)) }
+        return words.map { (word, use) -> Candidate(word, sequence, weightOf(use, now)) }
             .sortedByDescending { it.weight }
     }
 
@@ -65,12 +81,13 @@ class LearnedWordsEngine(private val store: Store) : DictionaryEngine {
      */
     override fun completions(prefix: String, limit: Int): List<Candidate> {
         if (prefix.isEmpty() || limit <= 0) return emptyList()
+        val now = clock()
         val found = ArrayList<Candidate>()
         synchronized(this) {
             for ((sequence, words) in index) {
                 if (sequence.length == prefix.length || !sequence.startsWith(prefix)) continue
-                for ((word, uses) in words) {
-                    found += Candidate(word, sequence, weightFor(uses), completion = true)
+                for ((word, use) in words) {
+                    found += Candidate(word, sequence, weightOf(use, now), completion = true)
                 }
             }
         }
@@ -91,22 +108,47 @@ class LearnedWordsEngine(private val store: Store) : DictionaryEngine {
 
         val uses = synchronized(this) {
             val bySequence = index.getOrPut(sequence) { HashMap() }
-            val next = (bySequence[normalized] ?: 0L) + 1L
-            bySequence[normalized] = next
+            val next = (bySequence[normalized]?.count ?: 0L) + 1L
+            bySequence[normalized] = Use(next, now)
             next
         }
         store.save(normalized, sequence, uses, now)
         return true
     }
 
+    /**
+     * Forget [word] entirely — from RAM and from the store.
+     *
+     * The counterpart of learning, and the reason the recency boost is worth having: a
+     * word confirmed by mistake comes back to the top of its sequence for a while, which
+     * is when it can be seen and thrown out. Without this, surfacing the mistake would
+     * only be a way of showing the user something they could not fix.
+     *
+     * Returns false when the word was not in the dictionary.
+     */
+    fun forget(word: String): Boolean {
+        val normalized = word.trim().lowercase()
+        val removed = synchronized(this) {
+            val sequence = T9Keypad.sequenceFor(normalized)
+            val bySequence = if (sequence == null) null else index[sequence]
+            val gone = bySequence?.remove(normalized) != null
+            if (gone && bySequence!!.isEmpty()) index.remove(sequence)
+            gone
+        }
+        if (removed) store.delete(normalized)
+        return removed
+    }
+
+    private fun weightOf(use: Use, now: Long): Long = weightFor(use.count, use.lastUsed, now)
+
     companion object {
         /**
          * What may enter the personal dictionary at all.
          *
-         * **Never a single letter.** A learned word outranks the whole corpus, so one
-         * letter stored once sits on top of its key for good: writing `b` by accident
-         * demotes `a` — a word people write constantly — permanently. What a lone key
-         * offers is decided by `SingleLetterEngine` from the keypad, not by history.
+         * **Never a single letter.** A learned word competes with the whole corpus, so
+         * one letter stored once sits near the top of its key: writing `b` by accident
+         * demotes `a` — a word people write constantly. What a lone key offers is decided
+         * by `SingleLetterEngine` from the keypad, not by history.
          *
          * The rule lives here, with the data, rather than in the caller that happened to
          * need it first: that is exactly how single letters got in before Phase 1.14, and
@@ -114,15 +156,55 @@ class LearnedWordsEngine(private val store: Store) : DictionaryEngine {
          */
         fun isLearnable(word: String): Boolean = word.length >= 2
 
+        // --- The weight of a personal word ---------------------------------------
+        //
+        // Everything below is in the corpus's own unit — occurrences per million — so
+        // the numbers can be read against the real distribution of Italian:
+        //
+        //   most frequent word 29.311 · 100th 1.268 · 500th 208 · 1.000th 96 · median 2
+
+        /** A word confirmed once: a real word, around the 500th most frequent. */
+        const val BASE_WEIGHT = 200L
+
+        /** Each further confirmation. Ten uses reach the top forty of the language. */
+        const val USE_WEIGHT = 300L
+
+        /** Habit has a ceiling: above the corpus, but not by an order of magnitude. */
+        const val MAX_HABIT_WEIGHT = 30_000L
+
         /**
-         * Above the highest frequency of the Leipzig corpus (~75k for "di"), so a
-         * learned word always outranks corpus words for the same sequence.
+         * What a word gets for having *just* been used, on top of its habit weight.
+         *
+         * Above the whole corpus on purpose, and for a short while only. Two things fall
+         * out of it: a word repeated inside one conversation stays at hand, and a word
+         * learned **by mistake** comes back where it can be seen — and forgotten
+         * ([forget]) — instead of sinking into the archive unnoticed and staying there.
          */
-        const val BASE_WEIGHT = 1_000_000L
+        const val RECENT_WEIGHT = 50_000L
 
-        /** Extra weight per confirmation, to order learned words among themselves. */
-        const val USE_WEIGHT = 1_000L
+        private const val HOUR = 60L * 60 * 1000
+        private const val DAY = 24 * HOUR
+        private const val WEEK = 7 * DAY
 
-        fun weightFor(uses: Long): Long = BASE_WEIGHT + uses * USE_WEIGHT
+        /**
+         * Habit plus recency.
+         *
+         * The decay is in steps rather than a curve: three thresholds that can be stated
+         * in words — *just now*, *today*, *this week* — are easier to reason about, to
+         * test, and to explain than a half-life nobody can picture.
+         */
+        fun weightFor(uses: Long, lastUsed: Long, now: Long): Long {
+            val habit = (BASE_WEIGHT + (uses - 1).coerceAtLeast(0) * USE_WEIGHT)
+                .coerceAtMost(MAX_HABIT_WEIGHT)
+            val age = now - lastUsed
+            val recency = when {
+                lastUsed <= 0L || age < 0 -> 0L // unknown or a clock that went backwards
+                age <= HOUR -> RECENT_WEIGHT
+                age <= DAY -> RECENT_WEIGHT / 10
+                age <= WEEK -> RECENT_WEIGHT / 100
+                else -> 0L
+            }
+            return habit + recency
+        }
     }
 }
