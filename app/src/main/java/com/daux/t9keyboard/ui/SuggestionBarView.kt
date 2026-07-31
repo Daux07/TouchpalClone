@@ -104,7 +104,11 @@ class SuggestionBarView(
         (resources.displayMetrics.density * value).toInt()
 
     companion object {
-        /** Comfortably readable at arm's length; adjustable from settings in Phase 3. */
-        const val DEFAULT_TEXT_SP = 22f
+        /**
+         * Readable at arm's length without paying for a tall bar; adjustable from
+         * settings in Phase 3. Lowered with `BAR_DP` in Step 1.25 — the two have to
+         * move together, or the words end up touching the edges of their strip.
+         */
+        const val DEFAULT_TEXT_SP = 17f
     }
 }

@@ -229,9 +229,26 @@ class KeyboardView(
         (resources.displayMetrics.density * value).toInt()
 
     companion object {
-        // Tall enough to leave the candidates room to breathe at DEFAULT_TEXT_SP.
-        private const val BAR_DP = 56
-        private const val BODY_HEIGHT_FRACTION = 0.34f // less tall; keys wider than tall
+        /**
+         * The candidate bar, nearly halved (Step 1.25). It was sized to let the text
+         * breathe; what it actually did was spend a strip of screen on air above and
+         * below a single line of words. The text shrank with it, so the words still
+         * have their margin — there is just far less of nothing around them.
+         */
+        private const val BAR_DP = 32
+
+        /**
+         * Height of the keypad as a share of the screen.
+         *
+         * Lowered from 0.34 (Step 1.25): the keys were coming out very nearly square,
+         * which reads as a numeric keypad rather than a keyboard and wastes height that
+         * the text above needs more. Wider-than-tall is also the shape a thumb actually
+         * hits — horizontal error is the common one, vertical is not.
+         *
+         * The whole keyboard is shorter as a result. Making the height adjustable is
+         * Phase 3's job: whoever wants it taller will be able to say so.
+         */
+        private const val BODY_HEIGHT_FRACTION = 0.28f
 
         /** Clearance between the popup and the key that opened it. See [positionPopup]. */
         private const val POPUP_GAP_DP = 10

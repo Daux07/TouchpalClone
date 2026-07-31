@@ -10,13 +10,13 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.24 (Fase 1 completa).
+**Allineato a:** Step 1.25 (Fase 1 completa).
 
 **Versione visibile.** `versionName` **è** il numero dello step di `DEVELOPMENT.md`, e da lì
 derivano (via `resValue` in `app/build.gradle.kts`) il nome dell'app e l'etichetta della
-tastiera: nel selettore si legge **"T9 1.24"**. Provando sul telefono si sa sempre a che punto
+tastiera: nel selettore si legge **"T9 1.25"**. Provando sul telefono si sa sempre a che punto
 del log corrisponde ciò che si ha in mano — e `bash tools/dev.sh apk` produce anche un file
-con la versione nel nome (`t9-1.24-debug.apk`), così gli APK non si confondono fra loro. Le
+con la versione nel nome (`t9-1.25-debug.apk`), così gli APK non si confondono fra loro. Le
 due stringhe non stanno più in `strings.xml`: scritte a mano resterebbero indietro.
 
 ## Indice
@@ -100,7 +100,29 @@ predefinita → abilita "T9 Keyboard"*, poi la si seleziona dal selettore tastie
 Ospita la **barra suggerimenti** in alto e sotto il **corpo della modalità corrente**.
 Possiede ciò che è comune a tutte le modalità: sfondo scuro, **inset della barra di
 navigazione** (targetSdk 35 è edge-to-edge, altrimenti i tasti finirebbero sotto la nav bar)
-e altezza complessiva (`BAR_DP` 56dp + 34% dell'altezza schermo).
+e altezza complessiva (`BAR_DP` **32dp** + **28%** dell'altezza schermo).
+
+**Le proporzioni, e perché sono queste (Step 1.25).** Misurato su schermo 1280×2856 a 480dpi:
+
+| | prima | dopo |
+|---|---|---|
+| barra candidati | 168 px | **96 px** |
+| corpo tastiera | 971 px | **799 px** |
+| totale | 1139 px (40% dello schermo) | **895 px (31%)** — taglio del 21% |
+| tasto lettere | 311×261 px, rapporto **1,19** | 311×214, rapporto **1,45** |
+
+Un rapporto di 1,19 è un tasto **quasi quadrato**: si legge come un tastierino numerico,
+non come una tastiera, e spende in altezza ciò di cui il testo sopra ha più bisogno.
+Più largo che alto è anche la forma che un pollice colpisce davvero — l'errore comune è
+orizzontale, non verticale.
+
+La barra è quasi dimezzata, con il testo dei candidati sceso di pari passo (22sp → 17sp):
+le due cose **devono** muoversi insieme, o le parole toccano i bordi della loro striscia. Il
+guadagno non è solo di spazio: nella barra ci stanno ora **sei** candidati dove ne entravano
+quattro. Il prezzo dichiarato è che 32dp sta sotto i 48dp raccomandati come area di tocco —
+accettabile per una striscia di scelta rapida sopra una tastiera, ma è un prezzo.
+
+**L'altezza regolabile è compito della Fase 3**: chi la vuole più alta potrà dirlo.
 
 Nelle modalità non-T9 la barra suggerimenti diventa **invisibile ma occupa il suo spazio**,
 così l'altezza della tastiera non salta cambiando superficie.
@@ -201,9 +223,10 @@ lista nella barra suggerimenti.
 | `12#` / `☺` | Cambia superficie |
 
 **Barra suggerimenti** (`SuggestionBarView`): riga orizzontale scrollabile di chip; il primo
-candidato è evidenziato in teal (è anche l'anteprima nel campo), i candidati fuzzy sono in
-grigio. Tap = conferma quel candidato. Testo a 22sp (`DEFAULT_TEXT_SP`), esposto come
-proprietà `textSizeSp` per essere pilotato dalle impostazioni in Fase 3.
+candidato è evidenziato in teal (è anche l'anteprima nel campo), le **offerte** — refusi e
+completamenti — sono in grigio. Tap = conferma quel candidato. Testo a **17sp**
+(`DEFAULT_TEXT_SP`), esposto come proprietà `textSizeSp` per essere pilotato dalle
+impostazioni in Fase 3; va tenuto in accordo con `BAR_DP` (§2).
 
 **Mapping lettere (`T9Keypad.letters`, ITU-T E.161):** 1=`. , ? ! '`, 2=abc, 3=def, 4=ghi,
 5=jkl, 6=mno, 7=pqrs, 8=tuv, 9=wxyz, 0=spazio. È la fonte di verità unica, riusata da

@@ -28,10 +28,10 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** Step 1.24 — **resilienza ai refusi doppi**: due tasti invertiti (che prima sfuggivano del tutto) e, come ultima risorsa sulle parole lunghe, due tasti sbagliati. Prima: 1.23 (anteprima leggibile: senza corrispondenze esatte il campo mostra la migliore offerta invece delle lettere di default), 1.22 — **completamento di parola**: dopo le parole che i tasti scrivono esattamente, la barra offre quelle di cui i tasti sono l'inizio (dieci tasti per `contemporaneamente`). Prima: 1.21 (la tastiera vibra sotto il dito, con durata regolabile — `KeyboardSettings.hapticMs`, default 18 ms), 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **Ultimo step completato:** Step 1.25 — **tastiera più bassa**: barra candidati quasi dimezzata e tasti più larghi che alti; la tastiera passa dal 40% al 31% dello schermo. Prima: 1.24 — **resilienza ai refusi doppi**: due tasti invertiti (che prima sfuggivano del tutto) e, come ultima risorsa sulle parole lunghe, due tasti sbagliati. Prima: 1.23 (anteprima leggibile: senza corrispondenze esatte il campo mostra la migliore offerta invece delle lettere di default), 1.22 — **completamento di parola**: dopo le parole che i tasti scrivono esattamente, la barra offre quelle di cui i tasti sono l'inizio (dieci tasti per `contemporaneamente`). Prima: 1.21 (la tastiera vibra sotto il dito, con durata regolabile — `KeyboardSettings.hapticMs`, default 18 ms), 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
 - **Prossimo step:** **Fase 2 — bilingue IT+EN**. Gli appunti della prova reale sono esauriti.
-- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce (vedi sopra); va riprovato sul telefono con l'APK aggiornato (`t9-1.24-debug.apk`).
+- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce (vedi sopra); va riprovato sul telefono con l'APK aggiornato (`t9-1.25-debug.apk`).
 - **Dopo i punti degli appunti:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
 - **Dopo:** **Fase 3** (impostazioni/ergonomia, dove rientrano la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente). Il test reale sullo smartphone continua in parallelo: `bash tools/dev.sh apk` → `app/build/outputs/apk/debug/app-debug.apk`.
 - 📝 **Appunti dell'utente dalla prova reale (30/07 sera).** **Ordine deciso dall'utente: prima le tre segnalazioni (1, 2, 3), poi la vibrazione (4).** Il punto 1 è **chiuso** (Step 1.18, 31/07); restano 2, 3 e 4.
@@ -451,6 +451,40 @@ esistente.
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
 
+### 2026-07-31 — Step 1.25: tastiera più bassa, tasti più larghi che alti
+**Aggiustamento grafico chiesto dall'utente:** barra candidati e le tre file di tasti troppo
+alte, tasti troppo quadrati, barra "quasi dimezzabile". La colonna era già tarata e non è
+stata toccata nella sua logica.
+
+**Misurato su schermo 1280×2856 a 480dpi**, prima → dopo:
+
+| | prima | dopo |
+|---|---|---|
+| barra candidati | 168 px | **96 px** |
+| corpo tastiera | 971 px | **799 px** |
+| totale | 1139 px (40% dello schermo) | **895 px (31%)** — taglio del 21% |
+| tasto lettere | 311×261, rapporto **1,19** | 311×214, rapporto **1,45** |
+
+1,19 era un tasto **quasi quadrato**: si legge come un tastierino numerico e spende in
+altezza ciò di cui il testo sopra ha più bisogno. Più largo che alto è anche la forma che un
+pollice colpisce davvero — l'errore comune è orizzontale, non verticale.
+
+**Tre costanti, non una:** `BAR_DP` 56→32, `BODY_HEIGHT_FRACTION` 0.34→0.28 e
+`DEFAULT_TEXT_SP` 22→17. Il testo **deve** scendere con la barra, o le parole toccano i bordi
+della striscia. Guadagno non previsto: nella barra ci stanno ora **sei** candidati dove ne
+entravano quattro.
+
+**Prezzo dichiarato:** 32dp sta sotto i 48dp raccomandati come area di tocco. Accettabile per
+una striscia di scelta rapida sopra una tastiera, ma è un prezzo, non un pasto gratis.
+L'altezza regolabile resta compito della Fase 3.
+
+**File modificati:** `ui/KeyboardView.kt`, `ui/SuggestionBarView.kt`.
+
+**Verificato (2026-07-31):** su emulatore, digitato `casa` → il campo scrive `Casa` e la barra
+mostra sei candidati. **Nota di metodo:** la prima prova dopo il cambio è fallita perché le
+coordinate dei tap erano tarate sulla vecchia posizione dei tasti, che ora sono più in alto —
+non era un difetto del codice ma del test. Screenshot: `docs/screenshots/step-1.25-*.png`.
+
 ### 2026-07-31 — Step 1.24: due tasti invertiti, e due tasti sbagliati
 **Richiesta dell'utente:** *"è facile invertire due tasti mentre scrivi, quindi se non rilevi
 niente si potrebbero comunque suggerire i candidati più vicini anche su due caratteri
@@ -613,7 +647,7 @@ d'occhio.
 - `res/values/strings.xml` — le due stringhe **tolte**: scritte a mano si sarebbero
   disallineate al primo step.
 - `tools/dev.sh` — `apk` stampa la versione e copia l'APK con la versione nel nome
-  (`t9-1.24-debug.apk`), così sul telefono non si confondono fra loro.
+  (`t9-1.25-debug.apk`), così sul telefono non si confondono fra loro.
 
 **Verificato (2026-07-31):** installato, `dumpsys package` riporta `versionName=1.21`, e nelle
 impostazioni Android la tastiera compare come **"T9 1.20"** (screenshot preso alla 1.20:
