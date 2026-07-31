@@ -125,6 +125,17 @@ class T9BodyView(
         private const val COLUMN_WEIGHT = 0.9f
         private const val LETTERS_WEIGHT = 5.4f
         private const val FUNC_COLUMN_WEIGHT = 1.1f
-        private const val BOTTOM_ROW_WEIGHT = 0.72f // thinner than the letter rows
+        /**
+         * Same height as a letter row (Step 1.26). It used to be 0.72 — deliberately
+         * thinner, since the space bar and its neighbours are not letters. That held
+         * while the keyboard was tall; once the whole thing came down (Step 1.25) the
+         * same fraction of a smaller number left a row too shallow to aim at, and the
+         * space bar is the most-pressed key there is.
+         *
+         * The keyboard does **not** grow back: the upper area keeps the height it has,
+         * so the four rows simply share it evenly. The letter keys end up marginally
+         * flatter, which is the direction Step 1.25 was already going.
+         */
+        private const val BOTTOM_ROW_WEIGHT = 1f
     }
 }

@@ -10,13 +10,13 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.25 (Fase 1 completa).
+**Allineato a:** Step 1.26 (Fase 1 completa).
 
 **Versione visibile.** `versionName` **è** il numero dello step di `DEVELOPMENT.md`, e da lì
 derivano (via `resValue` in `app/build.gradle.kts`) il nome dell'app e l'etichetta della
-tastiera: nel selettore si legge **"T9 1.25"**. Provando sul telefono si sa sempre a che punto
+tastiera: nel selettore si legge **"T9 1.26"**. Provando sul telefono si sa sempre a che punto
 del log corrisponde ciò che si ha in mano — e `bash tools/dev.sh apk` produce anche un file
-con la versione nel nome (`t9-1.25-debug.apk`), così gli APK non si confondono fra loro. Le
+con la versione nel nome (`t9-1.26-debug.apk`), così gli APK non si confondono fra loro. Le
 due stringhe non stanno più in `strings.xml`: scritte a mano resterebbero indietro.
 
 ## Indice
@@ -146,9 +146,16 @@ lascerebbe un composing text che nessun tasto potrebbe più chiudere.
 ```
 
 Colonna di disambiguazione a sinistra (peso 0.9, si ferma sopra la riga inferiore), griglia
-3×3 lettere al centro (5.4), colonna funzioni a destra (1.1), riga inferiore full-width e
-**più sottile** (0.72). Tutto a pesi: nessuna dimensione fissa, quindi la stessa UI si
-riproporziona fra S25 e S25 Ultra senza layout dedicati.
+3×3 lettere al centro (5.4), colonna funzioni a destra (1.1), riga inferiore full-width
+**della stessa altezza di una fila di lettere** (peso 1). Tutto a pesi: nessuna dimensione
+fissa, quindi la stessa UI si riproporziona fra S25 e S25 Ultra senza layout dedicati.
+
+La riga inferiore era più sottile (0.72), deliberatamente: barra spazio e vicini non sono
+lettere. Reggeva finché la tastiera era alta; abbassata tutta (Step 1.25), la stessa frazione
+di un numero più piccolo lasciava una riga troppo bassa da centrare — e la barra spazio è il
+tasto più premuto che ci sia. Uniformata nello Step 1.26 **senza far ricrescere la tastiera**:
+l'altezza complessiva è fissata da `KeyboardView`, quindi le quattro righe se la dividono in
+parti uguali e i tasti lettera diventano appena più piatti (rapporto 1,45 → **1,56**).
 
 ### `KeyGrid` + `GridKeyboardView` — la griglia riusabile
 
@@ -866,6 +873,14 @@ esattamente dove una lista sbaglierebbe:
 Le maiuscole di inizio frase, che gonfiano la statistica di ogni parola, arrivano al massimo
 intorno al 20% (`il` 18%, `quando` 19%): abbondantemente sotto la linea.
 
+**Una lettera sola non è mai un nome proprio**, qualunque cosa abbia misurato il corpus. Il
+corpus flagga davvero `b` e `c`: nella prosa giornalistica una lettera isolata è un'iniziale
+(`B. Rossi`) o un marcatore di elenco (`a) b) c)`), mai la lettera. Lasciato passare, premere
+`2` offriva **"a B C à"** — e le maiuscole si leggono come le opzioni importanti quando la
+risposta è la lettera semplice. Il flag viene quindi scartato in costruzione per le parole di
+un carattere. È lo stesso principio già applicato in `learn()` e in `SingleLetterEngine`: a un
+carattere il corpus smette di misurare ciò che gli stiamo chiedendo.
+
 L'insieme arriva **con il corpus**, sul thread di caricamento, un istante dopo la comparsa
 della tastiera; fino a quel momento nessuna parola viene capitalizzata da sola — il modo
 innocuo di sbagliare. E nei campi della blacklist i nomi propri restano minuscoli come tutto
@@ -943,7 +958,7 @@ Unit test JVM (nessun emulatore necessario): `./gradlew :app:testDebugUnitTest`.
 |------|-------|
 | `T9KeypadTest` | `sequenceFor`, fold accenti, e l'apostrofo: saltato nell'elisione (`l'aveva` → `528382`), rifiutato come virgoletta (`po'`, `'ciao`) |
 | `ElisionTest` | La distinzione per posizione fra elisione e virgoletta, e che la parola imparata sia quella intera (`l'aveva`, non `aveva`) |
-| `ItalianDictionaryEngineTest` | Costruzione indice, ordinamento per peso, ricerca per prefisso (fra cui il caso `contempora` → `contemporaneamente`) |
+| `ItalianDictionaryEngineTest` | Costruzione indice, ordinamento per peso, ricerca per prefisso (fra cui il caso `contempora` → `contemporaneamente`), e che **una lettera sola non sia mai un nome proprio** |
 | `MergingDictionaryEngineTest` | Fusione, deduplica per parola |
 | `LearnedWordsEngineTest` | Pesi, incremento usi, caricamento dallo store |
 | `FuzzyDictionaryEngineTest` | 14 casi: cancellazione/sostituzione/inserimento, **inversione di due tasti**, **due tasti sbagliati** (e che non si cerchino su parole corte né quando qualcosa già corrisponde), marcatura, tetto |

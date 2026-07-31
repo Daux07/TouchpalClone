@@ -72,7 +72,16 @@ class ItalianDictionaryEngine private constructor(
                 val word = parts[0]
                 val weight = parts.getOrNull(1)?.toLongOrNull() ?: 1L
                 val seq = T9Keypad.sequenceFor(word) ?: continue
-                if (parts.getOrNull(2) == PROPER_NOUN_FLAG) properNouns.add(word)
+                // A single letter is never a proper noun, whatever the corpus measured.
+                // `b` and `c` come out flagged because in news prose a lone letter is an
+                // initial (`B. Rossi`) or a list marker (`a) b) c)`) — never the letter
+                // itself. Left in, pressing `2` offers "a B C à", and the capitals read
+                // as the important options when the plain letter is the answer. Same
+                // principle as `learn()` and `SingleLetterEngine`: at one character the
+                // corpus stops measuring what we are asking it.
+                if (word.length > 1 && parts.getOrNull(2) == PROPER_NOUN_FLAG) {
+                    properNouns.add(word)
+                }
                 grouped.getOrPut(seq) { mutableListOf() }
                     .add(Candidate(word, seq, weight))
             }

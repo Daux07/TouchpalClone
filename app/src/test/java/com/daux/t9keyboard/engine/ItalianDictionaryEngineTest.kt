@@ -1,6 +1,7 @@
 package com.daux.t9keyboard.engine
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -33,6 +34,20 @@ class ItalianDictionaryEngineTest {
         // "come" is 2663, must not appear under 2272.
         assertEquals(listOf("come"), engine.lookup("2663").map { it.word })
         assertTrue(engine.lookup("2272").none { it.word == "come" })
+    }
+
+    @Test
+    fun aSingleLetterIsNeverAProperNoun() {
+        // The corpus really does flag `b` and `c`: in news prose a lone letter is an
+        // initial or a list marker, never the letter. Left in, pressing `2` offers
+        // "a B C à" and the capitals read as the important options.
+        val built = ItalianDictionaryEngine.build(
+            sequenceOf("b 34 P", "c 38 P", "roma 500 P", "casa 900")
+        )
+
+        assertTrue(built.properNouns.contains("roma")) // a real one still is
+        assertFalse(built.properNouns.contains("b"))
+        assertFalse(built.properNouns.contains("c"))
     }
 
     @Test
