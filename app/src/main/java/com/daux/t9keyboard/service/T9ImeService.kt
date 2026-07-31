@@ -733,10 +733,26 @@ class T9ImeService : InputMethodService() {
         // already discarded the ones that contradict the forced letters: spelling out
         // "far" and pressing 5-2 should read "farla", not the bare default letters.
         val word = candidates.firstOrNull { it.isExact }?.word
+            ?: bestOffer()
             ?: if (state.isForcing()) state.forcedPreview()
             else state.defaultLetters() // letters, never raw digits
         return if (properNounsActive()) ProperNouns.display(word) else word
     }
+
+    /**
+     * The best non-exact candidate, used in the preview **only when nothing matches
+     * exactly** — the candidates are already ordered completions before typo guesses,
+     * so this is the strongest offer there is.
+     *
+     * The rule elsewhere is that offers are never assumed. Here there is nothing to
+     * assume *over*: with no exact match the alternative is `defaultLetters()`, which
+     * for ten keys reads `ammtdmpmpa` — unreadable, equally wrong, and not a word
+     * anyone would want committed either. A real word is the better of two guesses,
+     * and the column still overrules it in one tap.
+     */
+    private fun bestOffer(): String? =
+        if (state.isForcing()) null // the forced letters are the user's own decision
+        else candidates.firstOrNull()?.word
 
     private fun properNounsActive(): Boolean =
         settings.autoCapitalise && fieldAllows.autoCapitalise
