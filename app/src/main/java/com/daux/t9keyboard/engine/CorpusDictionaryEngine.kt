@@ -10,7 +10,7 @@ import com.daux.t9keyboard.model.T9Keypad
  * Phase 1.2 loads a small test word list from assets. Phase 1.6 replaces the
  * source with the compiled Leipzig corpus (same in-RAM shape).
  */
-class ItalianDictionaryEngine private constructor(
+class CorpusDictionaryEngine private constructor(
     private val index: Map<String, List<Candidate>>,
     /**
      * Words the corpus writes with a capital nearly always — see the `P` flag in
@@ -54,7 +54,7 @@ class ItalianDictionaryEngine private constructor(
     companion object {
 
         /** Loads the word list from an assets file. */
-        fun fromAssets(context: Context, path: String): ItalianDictionaryEngine =
+        fun fromAssets(context: Context, path: String): CorpusDictionaryEngine =
             context.assets.open(path).bufferedReader().useLines { build(it) }
 
         /**
@@ -62,7 +62,7 @@ class ItalianDictionaryEngine private constructor(
          * per line; blank lines and `#` comments ignored). Pure — no Android deps —
          * so it is unit-testable without assets.
          */
-        fun build(lines: Sequence<String>): ItalianDictionaryEngine {
+        fun build(lines: Sequence<String>): CorpusDictionaryEngine {
             val grouped = HashMap<String, MutableList<Candidate>>()
             val properNouns = HashSet<String>()
             for (raw in lines) {
@@ -88,7 +88,7 @@ class ItalianDictionaryEngine private constructor(
             val index = grouped.mapValues { (_, list) ->
                 list.sortedByDescending { it.weight }
             }
-            return ItalianDictionaryEngine(index, properNouns)
+            return CorpusDictionaryEngine(index, properNouns)
         }
 
         private const val PROPER_NOUN_FLAG = "P"

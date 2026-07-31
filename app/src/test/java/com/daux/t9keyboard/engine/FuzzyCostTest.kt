@@ -18,7 +18,7 @@ class FuzzyCostTest {
     fun `the deep search stays fast enough for a keypress on the real corpus`() {
         if (!corpusFile.exists()) return // the corpus is not part of every checkout
         val engine = FuzzyDictionaryEngine(
-            corpusFile.bufferedReader().useLines { ItalianDictionaryEngine.build(it) }
+            corpusFile.bufferedReader().useLines { CorpusDictionaryEngine.build(it) }
         )
 
         // Eight keys that spell nothing and are nowhere near anything: the worst case,

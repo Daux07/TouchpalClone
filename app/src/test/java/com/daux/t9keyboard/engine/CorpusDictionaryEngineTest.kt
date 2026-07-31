@@ -5,9 +5,9 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class ItalianDictionaryEngineTest {
+class CorpusDictionaryEngineTest {
 
-    private val engine = ItalianDictionaryEngine.build(
+    private val engine = CorpusDictionaryEngine.build(
         sequenceOf(
             "# comment line, ignored",
             "",
@@ -41,7 +41,7 @@ class ItalianDictionaryEngineTest {
         // The corpus really does flag `b` and `c`: in news prose a lone letter is an
         // initial or a list marker, never the letter. Left in, pressing `2` offers
         // "a B C à" and the capitals read as the important options.
-        val built = ItalianDictionaryEngine.build(
+        val built = CorpusDictionaryEngine.build(
             sequenceOf("b 34 P", "c 38 P", "roma 500 P", "casa 900")
         )
 
@@ -52,7 +52,7 @@ class ItalianDictionaryEngineTest {
 
     @Test
     fun completions_findLongerWordsStartingWithTheSequence() {
-        val longer = ItalianDictionaryEngine.build(
+        val longer = CorpusDictionaryEngine.build(
             sequenceOf(
                 "contemporaneamente 11",
                 "contemporanea 10",
@@ -70,7 +70,7 @@ class ItalianDictionaryEngineTest {
 
     @Test
     fun completions_excludeTheTypedWordItself() {
-        val words = ItalianDictionaryEngine.build(
+        val words = CorpusDictionaryEngine.build(
             sequenceOf("casa 100", "casale 3")
         )
         // "casa" is what was typed, not a completion of it.
@@ -84,7 +84,7 @@ class ItalianDictionaryEngineTest {
 
     @Test
     fun completions_respectTheLimit() {
-        val many = ItalianDictionaryEngine.build(
+        val many = CorpusDictionaryEngine.build(
             sequenceOf("casa 1", "casale 2", "casalinga 3", "casata 4", "casate 5")
         )
         assertEquals(2, many.completions("2272", 2).size)

@@ -5,11 +5,12 @@ import android.text.InputType
 import android.text.TextUtils
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import com.daux.t9keyboard.engine.BilingualDictionaryEngine
 import com.daux.t9keyboard.engine.Candidate
 import com.daux.t9keyboard.engine.CompletingDictionaryEngine
 import com.daux.t9keyboard.engine.DictionaryEngine
 import com.daux.t9keyboard.engine.FuzzyDictionaryEngine
-import com.daux.t9keyboard.engine.ItalianDictionaryEngine
+import com.daux.t9keyboard.engine.CorpusDictionaryEngine
 import com.daux.t9keyboard.engine.LearnedWordsEngine
 import com.daux.t9keyboard.engine.MergingDictionaryEngine
 import com.daux.t9keyboard.engine.SingleLetterEngine
@@ -113,12 +114,23 @@ class T9ImeService : InputMethodService() {
         // shows instantly (predictions appear once loading completes, ~a moment).
         Thread {
             learnedEngine.load()
-            val corpus = ItalianDictionaryEngine.fromAssets(this, "dict/it.txt")
-            ProperNouns.setKnown(corpus.properNouns)
+            val italian = CorpusDictionaryEngine.fromAssets(this, "dict/it.txt")
+
+            // Italian first, and the personal dictionary above it: a word the user has
+            // confirmed wins whatever language it came from, which is why learning stays
+            // one mixed store with no `lang` column (plan §8).
+            var words: DictionaryEngine = MergingDictionaryEngine(listOf(learnedEngine, italian))
+            var properNouns = italian.properNouns
+
+            if (settings.englishEnabled) {
+                val english = CorpusDictionaryEngine.fromAssets(this, "dict/en.txt")
+                words = BilingualDictionaryEngine(primary = words, secondary = english)
+                properNouns = properNouns + english.properNouns
+            }
+            ProperNouns.setKnown(properNouns)
+
             engine = SingleLetterEngine(
-                CompletingDictionaryEngine(
-                    FuzzyDictionaryEngine(MergingDictionaryEngine(listOf(learnedEngine, corpus)))
-                )
+                CompletingDictionaryEngine(FuzzyDictionaryEngine(words))
             )
         }.apply { name = "dict-loader"; isDaemon = true }.start()
     }

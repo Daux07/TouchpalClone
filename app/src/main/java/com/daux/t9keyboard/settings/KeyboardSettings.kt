@@ -49,6 +49,16 @@ class KeyboardSettings(context: Context) {
         set(value) = prefs.edit().putBoolean(KEY_AUTO_SPACE, value).apply()
 
     /**
+     * Offer English words alongside Italian ones, without switching language by hand
+     * (plan §8). On by default — it is the point of Phase 2 — and behind a preference
+     * from the start, because a second language costs a little memory and a little
+     * noise in the bar, and someone who never writes English should be able to say so.
+     */
+    var englishEnabled: Boolean
+        get() = prefs.getBoolean(KEY_ENGLISH, true)
+        set(value) = prefs.edit().putBoolean(KEY_ENGLISH, value).apply()
+
+    /**
      * How long the tick under the finger lasts, in milliseconds; `0` switches it off.
      *
      * Stored as a duration rather than a boolean because the whole reason for driving
@@ -67,6 +77,7 @@ class KeyboardSettings(context: Context) {
 
         private const val FILE = "keyboard_settings"
         private const val KEY_HAPTIC_MS = "haptic_ms"
+        private const val KEY_ENGLISH = "english_enabled"
         private const val KEY_FAVOURITES = "favourite_symbols"
         private const val KEY_AUTO_CAPS = "auto_capitalise"
         private const val KEY_AUTO_SPACE = "auto_space"

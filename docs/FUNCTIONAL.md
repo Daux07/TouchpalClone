@@ -10,13 +10,13 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.26 (Fase 1 completa).
+**Allineato a:** Fase 2 — bilingue IT+EN (versione 2.0).
 
 **Versione visibile.** `versionName` **è** il numero dello step di `DEVELOPMENT.md`, e da lì
 derivano (via `resValue` in `app/build.gradle.kts`) il nome dell'app e l'etichetta della
-tastiera: nel selettore si legge **"T9 1.26"**. Provando sul telefono si sa sempre a che punto
+tastiera: nel selettore si legge **"T9 2.0"**. Provando sul telefono si sa sempre a che punto
 del log corrisponde ciò che si ha in mano — e `bash tools/dev.sh apk` produce anche un file
-con la versione nel nome (`t9-1.26-debug.apk`), così gli APK non si confondono fra loro. Le
+con la versione nel nome (`t9-2.0-debug.apk`), così gli APK non si confondono fra loro. Le
 due stringhe non stanno più in `strings.xml`: scritte a mano resterebbero indietro.
 
 ## Indice
@@ -343,15 +343,62 @@ SingleLetterEngine                  (ultima parola su cosa offre un tasto solo)
   └── FuzzyDictionaryEngine
         └── MergingDictionaryEngine
               ├── LearnedWordsEngine        (dizionario personale, pesi ≥ 1.000.000)
-              └── ItalianDictionaryEngine   (corpora fusi, 50k parole)
+              └── CorpusDictionaryEngine   (corpora fusi, 50k parole)
 ```
 
-### `ItalianDictionaryEngine` — il corpus
+### `BilingualDictionaryEngine` — italiano e inglese insieme (Fase 2)
+
+Due lingue senza cambiare lingua. Il tastierino è lo stesso in entrambe — `2`=ABC ovunque
+nello standard ITU-T E.161 — quindi **dell'input non c'è niente di bilingue**: lo è solo il
+ranking, ed è tutto ciò che questa classe fa. La colonna di disambiguazione resta unica,
+come previsto dal piano §8.
+
+**La lingua secondaria non scavalca mai la primaria.** Ogni parola italiana che i tasti
+scrivono esattamente viene prima, nel suo ordine; l'inglese segue, nel suo. Deliberatamente
+**non** una fusione per frequenza, benché i pesi lo permetterebbero: `CorpusDictionaryEngine`
+normalizza entrambi i corpora a **occorrenze per milione**, quindi le due scale sono davvero
+confrontabili — ed è proprio lì il pericolo. `the` sta a ~42.000 per milione e guiderebbe
+quasi ogni sequenza che tocca, spingendo giù le parole italiane sulla barra di una tastiera
+usata soprattutto in italiano.
+
+La scelta ha una proprietà che vale più della resa: **nessuna sequenza che funzionava prima
+può ordinarsi diversamente adesso**. L'inglese può comparire solo dove l'italiano ha finito.
+Verificato: digitando `2272` la barra legge `casa cara bara basa barb capa`, identica a prima
+dell'inglese; digitando la sequenza di `homework` — che in italiano non dà nulla — la barra
+la propone per prima.
+
+Una parola che entrambe le lingue conoscono (`bar`, `film`, `radio`) è tenuta **una volta
+sola**, dalla parte italiana: è la stessa parola, non due candidati.
+
+**L'apprendimento resta un dizionario misto unico**, come il piano consente: sta *sopra*
+questo motore, quindi una parola confermata vince qualunque lingua l'abbia proposta, e
+`learned_words` non ha bisogno di una colonna `lang`.
+
+Disattivabile da `KeyboardSettings.englishEnabled` (attivo di default; l'interruttore
+arriverà con la schermata impostazioni di Fase 3). A inglese spento il motore non viene
+nemmeno costruito e `en.txt` non viene letto.
+
+**Limite noto:** l'inglese `I` non viene reso maiuscolo. Il corpus lo marca correttamente
+come nome proprio, ma la regola "una lettera sola non è mai un nome proprio" (§7) lo scarta —
+regola voluta, perché in italiano `i` è l'articolo e deve restare minuscolo. Con l'italiano
+primario è il compromesso giusto.
+
+### `CorpusDictionaryEngine` — il corpus
 
 Indice in RAM `Map<sequenza, [Candidate ordinati]>`: il lookup durante la digitazione non fa
-I/O. Sorgente: `assets/dict/it.txt`, **50.000 parole** costruite da `tools/BuildDictionary.java`
-fondendo **due corpora**, perché nessuno dei due da solo descrive la lingua che si scrive al
-telefono:
+I/O.
+
+**Non ha niente di italiano dentro** — si chiamava `ItalianDictionaryEngine` fino alla Fase 2,
+e il nome era l'unica cosa legata alla lingua. Legge un file `parola peso [P]` e basta, quindi
+serve entrambe le lingue senza una riga di differenza:
+
+| File | Parole | Fonte |
+|---|---|---|
+| `assets/dict/it.txt` | 50.000 | OpenSubtitles `it` + Leipzig `ita_news_2022_100K` |
+| `assets/dict/en.txt` | 36.560 | OpenSubtitles `en` + Leipzig `eng_news_2020_100K` |
+
+Entrambi costruiti da `tools/BuildDictionary.java` fondendo **due corpora**, perché nessuno
+dei due da solo descrive la lingua che si scrive al telefono:
 
 | Corpus | Peso | Cosa porta |
 |--------|------|------------|
@@ -378,13 +425,34 @@ curl -sL -o corpus.tar.gz \
   "https://downloads.wortschatz-leipzig.de/corpora/ita_news_2022_100K.tar.gz"
 tar -xzf corpus.tar.gz
 "$JAVA" tools/BuildDictionary.java subs_it.txt <path/...-words.txt> \
-  app/src/main/assets/dict/it.txt 50000
+  app/src/main/assets/dict/it.txt 50000 it
+
+# Inglese: stesse fonti, stesso strumento, quinto argomento diverso
+curl -sL -o subs_en.txt \
+  "https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/en/en_full.txt"
+curl -sL -o eng.tar.gz \
+  "https://downloads.wortschatz-leipzig.de/corpora/eng_news_2020_100K.tar.gz"
+tar -xzf eng.tar.gz
+"$JAVA" tools/BuildDictionary.java subs_en.txt <path/...-words.txt> \
+  app/src/main/assets/dict/en.txt 50000 en
 ```
+
+Il quinto argomento (`it` per difetto) decide **solo** quali caratteri contano come parola:
+l'italiano tiene le vocali accentate, l'inglese è a-z puro. Fusione, normalizzazione per
+milione e misura dei nomi propri sono neutre rispetto alla lingua — per questo l'inglese ha
+richiesto un parametro e non un secondo strumento.
 
 ### `MergingDictionaryEngine` — l'unione
 
 Fonde più dizionari dietro l'unica `lookup`, deduplicando per parola (tiene il peso più alto).
-Serve oggi per personale+corpus e **servirà identico in Fase 2** per IT+EN.
+Serve per **personale + corpus italiano**, dove la fusione per peso è quella giusta: una
+parola imparata pesa da `BASE_WEIGHT` in su e vince sempre.
+
+Per IT+EN si è rivelato **lo strumento sbagliato**, ed è la scoperta interessante della Fase 2:
+la fusione per peso funziona quando le fonti sono commensurabili *e si vuole* che competano.
+Fra due lingue i pesi sono commensurabili — entrambi per milione — ma la competizione è
+proprio ciò che non si vuole. Da lì `BilingualDictionaryEngine`, che concatena invece di
+fondere.
 
 ### `FuzzyDictionaryEngine` — tolleranza ai refusi
 
@@ -462,7 +530,7 @@ varianti della sequenza a ogni pressione, e completare ciascuna trasformerebbe u
 scansione per prefisso in cento. Il metodo ha implementazione vuota di default, così ogni
 decoratore che non lo inoltra semplicemente non ha completamenti da offrire.
 
-**Come si cerca un prefisso.** `ItalianDictionaryEngine` tiene le sequenze indicizzate anche
+**Come si cerca un prefisso.** `CorpusDictionaryEngine` tiene le sequenze indicizzate anche
 **ordinate**: le corrispondenze di un prefisso sono sempre un tratto *contiguo* dell'ordine,
 quindi una ricerca binaria trova dove inizia e la scansione si ferma alla prima sequenza che
 non comincia più con esso — niente scansione delle 50.000. Il dizionario personale, che è di
@@ -958,8 +1026,9 @@ Unit test JVM (nessun emulatore necessario): `./gradlew :app:testDebugUnitTest`.
 |------|-------|
 | `T9KeypadTest` | `sequenceFor`, fold accenti, e l'apostrofo: saltato nell'elisione (`l'aveva` → `528382`), rifiutato come virgoletta (`po'`, `'ciao`) |
 | `ElisionTest` | La distinzione per posizione fra elisione e virgoletta, e che la parola imparata sia quella intera (`l'aveva`, non `aveva`) |
-| `ItalianDictionaryEngineTest` | Costruzione indice, ordinamento per peso, ricerca per prefisso (fra cui il caso `contempora` → `contemporaneamente`), e che **una lettera sola non sia mai un nome proprio** |
+| `CorpusDictionaryEngineTest` | Costruzione indice, ordinamento per peso, ricerca per prefisso (fra cui il caso `contempora` → `contemporaneamente`), e che **una lettera sola non sia mai un nome proprio** |
 | `MergingDictionaryEngineTest` | Fusione, deduplica per parola |
+| `BilingualDictionaryEngineTest` | 7 casi: che ogni parola italiana preceda ogni inglese (anche quando l'inglese pesa di più), che una parola comune a entrambe sia tenuta una volta sola, e che l'inglese risponda da solo dove l'italiano tace |
 | `LearnedWordsEngineTest` | Pesi, incremento usi, caricamento dallo store |
 | `FuzzyDictionaryEngineTest` | 14 casi: cancellazione/sostituzione/inserimento, **inversione di due tasti**, **due tasti sbagliati** (e che non si cerchino su parole corte né quando qualcosa già corrisponde), marcatura, tetto |
 | `FuzzyCostTest` | Guardia sul costo: la ricerca profonda sul corpus vero (50k parole) resta abbondantemente dentro il tempo di una pressione |

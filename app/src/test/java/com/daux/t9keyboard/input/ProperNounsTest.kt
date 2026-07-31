@@ -1,6 +1,6 @@
 package com.daux.t9keyboard.input
 
-import com.daux.t9keyboard.engine.ItalianDictionaryEngine
+import com.daux.t9keyboard.engine.CorpusDictionaryEngine
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -17,7 +17,7 @@ class ProperNounsTest {
      * corpus converter writes — including the real capitalisation verdicts.
      */
     private fun loadCorpus(vararg lines: String) {
-        val engine = ItalianDictionaryEngine.build(lines.asSequence())
+        val engine = CorpusDictionaryEngine.build(lines.asSequence())
         ProperNouns.setKnown(engine.properNouns)
     }
 

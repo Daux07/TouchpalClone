@@ -27,14 +27,13 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
-- **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** Step 1.26 — **riga dello spazio uniformata** alle file di lettere (senza far ricrescere la tastiera) e **una lettera sola non è mai un nome proprio**: premendo `2` la barra offriva "a B C à". Prima: 1.25 — **tastiera più bassa**: barra candidati quasi dimezzata e tasti più larghi che alti; la tastiera passa dal 40% al 31% dello schermo. Prima: 1.24 — **resilienza ai refusi doppi**: due tasti invertiti (che prima sfuggivano del tutto) e, come ultima risorsa sulle parole lunghe, due tasti sbagliati. Prima: 1.23 (anteprima leggibile: senza corrispondenze esatte il campo mostra la migliore offerta invece delle lettere di default), 1.22 — **completamento di parola**: dopo le parole che i tasti scrivono esattamente, la barra offre quelle di cui i tasti sono l'inizio (dieci tasti per `contemporaneamente`). Prima: 1.21 (la tastiera vibra sotto il dito, con durata regolabile — `KeyboardSettings.hapticMs`, default 18 ms), 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **Fase in corso:** **Fase 2 completa** — bilingue IT+EN (versione **2.0**). Fase 1 completa, con gli step aggiuntivi nati dalla prova reale.
+- **Ultimo step completato:** **Fase 2 — bilingue IT+EN** (versione 2.0): italiano e inglese attivi insieme, senza cambio lingua; l'inglese non scavalca mai l'italiano, quindi nessuna sequenza che funzionava prima si ordina diversamente. Prima: Step 1.26 — **riga dello spazio uniformata** alle file di lettere (senza far ricrescere la tastiera) e **una lettera sola non è mai un nome proprio**: premendo `2` la barra offriva "a B C à". Prima: 1.25 — **tastiera più bassa**: barra candidati quasi dimezzata e tasti più larghi che alti; la tastiera passa dal 40% al 31% dello schermo. Prima: 1.24 — **resilienza ai refusi doppi**: due tasti invertiti (che prima sfuggivano del tutto) e, come ultima risorsa sulle parole lunghe, due tasti sbagliati. Prima: 1.23 (anteprima leggibile: senza corrispondenze esatte il campo mostra la migliore offerta invece delle lettere di default), 1.22 — **completamento di parola**: dopo le parole che i tasti scrivono esattamente, la barra offre quelle di cui i tasti sono l'inizio (dieci tasti per `contemporaneamente`). Prima: 1.21 (la tastiera vibra sotto il dito, con durata regolabile — `KeyboardSettings.hapticMs`, default 18 ms), 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
-- **Prossimo step:** **Fase 2 — bilingue IT+EN**. Gli appunti della prova reale sono esauriti.
-- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce (vedi sopra); va riprovato sul telefono con l'APK aggiornato (`t9-1.26-debug.apk`).
-- **Dopo i punti degli appunti:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
-- **Dopo:** **Fase 3** (impostazioni/ergonomia, dove rientrano la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente). Il test reale sullo smartphone continua in parallelo: `bash tools/dev.sh apk` → `app/build/outputs/apk/debug/app-debug.apk`.
-- 📝 **Appunti dell'utente dalla prova reale (30/07 sera).** **Ordine deciso dall'utente: prima le tre segnalazioni (1, 2, 3), poi la vibrazione (4).** Il punto 1 è **chiuso** (Step 1.18, 31/07); restano 2, 3 e 4.
+- **Prossimo step:** **Fase 3 — impostazioni ed ergonomia**. Le preferenze esistono già nel codice e aspettano solo la schermata: altezza tastiera, durata della vibrazione, dimensione del testo dei candidati, inglese on/off, lato della colonna. Vi rientrano anche la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente.
+- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce (vedi sopra); va riprovato sul telefono con l'APK aggiornato (`t9-2.0-debug.apk`).
+- **Dopo:** altre lingue oltre IT/EN, e il dizionario binario indicizzato se il formato testo diventasse stretto.
+- 📝 **Appunti dell'utente dalla prova reale (30/07 sera).** **Ordine deciso dall'utente: prima le tre segnalazioni (1, 2, 3), poi la vibrazione (4).** **Tutti chiusi il 31/07**: 1 → Step 1.18, 3 → Step 1.19, 4 → Step 1.21. Il punto 2 **non si riproduce** e attende un riscontro sul telefono.
 
   1. ✅ **RISOLTO — Step 1.18.** *La parola composta a mano non risulta imparata.*
 
@@ -162,7 +161,7 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
       → griglia responsive 4×3 fatta (`T9KeyboardView`); tasti funzione minimi (⌫, 0=spazio, ⏎).
         Shift, `*`, `#`, mode-switch arriveranno in Fase 3.
 - [x] Inserimento multi-tap (trampolino Step 1.1) — rimpiazzato dal predittivo in 1.2
-- [x] `DictionaryEngine` (interfaccia) + `ItalianDictionaryEngine` da asset di test
+- [x] `DictionaryEngine` (interfaccia) + `CorpusDictionaryEngine` da asset di test
 - [x] Modalità predittiva T9 + barra suggerimenti orizzontale
 - [x] **Colonna di disambiguazione manuale posizionale** (stack di coppie cifra/lettera) — `ComposeState` + `DisambiguationColumnView`
 - [x] Backspace = pop della coppia (cifra+lettera insieme)
@@ -171,7 +170,7 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 - [x] Integrazione corpus Leipzig italiano (50k parole, `assets/dict/it.txt`, caricato in background)
       → per ora **testo**, non binario: a 50k parole il parse in background è rapido; il formato
         binario indicizzato resta un'ottimizzazione futura (non necessaria a questa dimensione).
-- [x] Test unitari: `T9Keypad.sequenceFor`, `ItalianDictionaryEngine`, `ComposeState`,
+- [x] Test unitari: `T9Keypad.sequenceFor`, `CorpusDictionaryEngine`, `ComposeState`,
       `LearnedWordsEngine`, `MergingDictionaryEngine`, `FuzzyDictionaryEngine`, `SymbolLayout`
 - [x] **Step 1.12 — popup long-press sul tasto** (accentate, simboli e cifre, stile Gboard)
       — decisioni e razionale nella sezione "Step 1.12 — piano" più sopra
@@ -188,9 +187,9 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 
 ## Fase 2 — Bilingue IT+EN
 
-- [ ] `EnglishDictionaryEngine` + `BilingualDictionaryEngine` (merge candidati)
-- [ ] Corpus inglese affiancato al corpus italiano
-- [ ] Criteri di accettazione Fase 2 (nessuna regressione sulla v1)
+- [x] `BilingualDictionaryEngine` (concatenazione IT→EN; `CorpusDictionaryEngine` serve entrambe le lingue, quindi nessun `EnglishDictionaryEngine` separato)
+- [x] Corpus inglese affiancato al corpus italiano (`assets/dict/en.txt`, 36.560 parole)
+- [x] Criteri di accettazione Fase 2: **nessuna regressione sulla v1** — verificato, `2272` dà la lista identica a prima dell'inglese
 
 ## Fase 3 — Impostazioni, ergonomia, rifiniture
 
@@ -451,6 +450,56 @@ esistente.
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
 
+### 2026-07-31 — Fase 2: bilingue IT+EN (versione 2.0)
+**Italiano e inglese attivi insieme, senza cambio lingua** — il piano §8. Il tastierino è lo
+stesso in entrambe (`2`=ABC ovunque nello standard E.161), quindi dell'input non c'è niente di
+bilingue: lo è solo il ranking. La colonna resta unica, come il piano prevedeva.
+
+**La decisione dell'utente, e perché conta.** I pesi dei due corpora sono già in *occorrenze
+per milione* — cioè davvero confrontabili — quindi una fusione per frequenza era tecnicamente
+a portata. È proprio lì il pericolo: `the` sta a ~42.000 per milione e guiderebbe quasi ogni
+sequenza che tocca. Interpellato, l'utente ha scelto **italiano sempre prima**, ed è la scelta
+con la proprietà più forte: *nessuna sequenza che funzionava prima può ordinarsi diversamente
+adesso*. L'inglese compare solo dove l'italiano ha finito.
+
+**Una scoperta di architettura:** `MergingDictionaryEngine`, che il tracker dava per pronto
+allo scopo fin dallo Step 1.5, si è rivelato **lo strumento sbagliato**. Fonde per peso, il
+che è giusto per personale+corpus (dove si *vuole* che competano) ma è esattamente ciò che
+non si vuole fra due lingue. Da lì `BilingualDictionaryEngine`, che **concatena** invece di
+fondere.
+
+**Nessun `EnglishDictionaryEngine`**, contro quanto previsto dal tracker: aperto
+`ItalianDictionaryEngine` si è visto che di italiano aveva solo il nome — legge un file
+`parola peso [P]` e basta. Rinominato **`CorpusDictionaryEngine`** e riusato tale e quale;
+duplicarlo per cambiare il percorso di un asset sarebbe stato codice per finta.
+
+**File creati/modificati:**
+- `engine/BilingualDictionaryEngine.kt` (nuovo) + `BilingualDictionaryEngineTest` (7 casi).
+- `engine/ItalianDictionaryEngine.kt` → **`CorpusDictionaryEngine.kt`** (rinomina, nessun
+  cambiamento di comportamento).
+- `assets/dict/en.txt` (nuovo): **36.560 parole**, 368 KB, stesse fonti dell'italiano —
+  OpenSubtitles `en` (70%) + Leipzig `eng_news_2020_100K` (30%).
+- `tools/BuildDictionary.java` — quinto argomento opzionale per la lingua, che decide **solo**
+  quali caratteri contano come parola (l'italiano tiene gli accenti, l'inglese è a-z). Fusione,
+  normalizzazione per milione e misura dei nomi propri erano già neutre.
+- `settings/KeyboardSettings.kt` — `englishEnabled` (attivo di default). A inglese spento il
+  motore non viene nemmeno costruito e `en.txt` non viene letto.
+- `service/T9ImeService.kt` — il personale resta **sopra** entrambe le lingue, quindi
+  l'apprendimento resta un dizionario misto unico senza colonna `lang` (piano §8).
+
+**Verificato (2026-07-31):** 147 test verdi. Su emulatore: la sequenza di `homework` — che in
+italiano non dà nulla — propone **`homework`** per prima, con `woodwork` (refuso) e
+`homeworld` (completamento) dietro. E il criterio di accettazione della fase, **nessuna
+regressione**: `2272` dà `casa cara bara basa barb capa`, lista identica a prima dell'inglese.
+Screenshot: `docs/screenshots/fase2-*.png`.
+
+**Limite noto dichiarato:** l'inglese `I` non viene reso maiuscolo. Il corpus lo marca
+correttamente come nome proprio, ma la regola dello Step 1.26 ("una lettera sola non è mai un
+nome proprio") lo scarta — e quella regola è voluta, perché in italiano `i` è l'articolo. Con
+l'italiano primario è il compromesso giusto, ma è un compromesso.
+
+**Costo:** l'APK passa da ~2,2 a **2,6 MB**.
+
 ### 2026-07-31 — Step 1.26: riga dello spazio uniformata, e la `B` che non doveva esserci
 **Due segnalazioni dell'utente dopo lo Step 1.25.**
 
@@ -474,7 +523,7 @@ prosa giornalistica una lettera isolata è un'iniziale (`B. Rossi`) o un marcato
 (`a) b) c)`), mai la lettera. È misura, non errore di misura — ma è la misura di un'altra
 domanda.
 
-**Correzione alla radice:** `ItalianDictionaryEngine.build` scarta il flag `P` per le parole
+**Correzione alla radice:** `CorpusDictionaryEngine.build` scarta il flag `P` per le parole
 di un carattere. Non un caso speciale su `b` e `c`, e nemmeno un ritocco al dizionario: è lo
 stesso principio già scritto in `learn()` ("le lettere singole non si imparano") e in
 `SingleLetterEngine` — a un carattere il corpus smette di misurare ciò che gli chiediamo.
@@ -483,7 +532,7 @@ stesso principio già scritto in `learn()` ("le lettere singole non si imparano"
 proponga `b`». L'ordinamento in effetti già lo faceva — `a` pesa 15038 contro i 34 di `b` — e
 questo è il motivo per cui la correzione riguarda la **maiuscola** e non l'ordine.
 
-**File modificati:** `ui/T9BodyView.kt`, `engine/ItalianDictionaryEngine.kt`, test `+1`.
+**File modificati:** `ui/T9BodyView.kt`, `engine/CorpusDictionaryEngine.kt`, test `+1`.
 
 **Verificato (2026-07-31):** 140 test verdi. Su emulatore la barra legge ora **`a b c à`**,
 tutto minuscolo, e la riga dello spazio ha la stessa altezza delle file di lettere.
@@ -605,7 +654,7 @@ l'inizio — al massimo 5.
 - `engine/DictionaryEngine.kt` — `completions(prefix, limit)`, con implementazione vuota di
   default. **Separato da `lookup` per costo**: il motore dei refusi cerca un centinaio di
   varianti a ogni pressione, e completare ciascuna farebbe cento scansioni invece di una.
-- `engine/ItalianDictionaryEngine.kt` — sequenze anche **ordinate**: le corrispondenze di un
+- `engine/CorpusDictionaryEngine.kt` — sequenze anche **ordinate**: le corrispondenze di un
   prefisso sono un tratto contiguo, quindi ricerca binaria e scansione che si ferma da sé.
 - `engine/LearnedWordsEngine.kt` — scansione semplice: il dizionario personale è di ordini di
   grandezza più piccolo, e un indice lì sarebbe macchinario da mantenere per nulla.
@@ -613,7 +662,7 @@ l'inizio — al massimo 5.
   inoltro di `completions`.
 - `engine/Candidate.kt` — flag `completion` e `isExact`; `SuggestionBarView` e l'anteprima
   ora ragionano su `isExact` anziché sul solo `fuzzy`.
-- Test: `engine/CompletingDictionaryEngineTest.kt` (7 casi) + 4 in `ItalianDictionaryEngineTest`.
+- Test: `engine/CompletingDictionaryEngineTest.kt` (7 casi) + 4 in `CorpusDictionaryEngineTest`.
 
 **La regola che governa tutto:** un completamento è **un'offerta, mai un'assunzione**. I tasti
 sono un *prefisso* della parola, non una sua descrizione, quindi il candidato è marcato, sta
@@ -685,7 +734,7 @@ d'occhio.
 - `res/values/strings.xml` — le due stringhe **tolte**: scritte a mano si sarebbero
   disallineate al primo step.
 - `tools/dev.sh` — `apk` stampa la versione e copia l'APK con la versione nel nome
-  (`t9-1.26-debug.apk`), così sul telefono non si confondono fra loro.
+  (`t9-2.0-debug.apk`), così sul telefono non si confondono fra loro.
 
 **Verificato (2026-07-31):** installato, `dumpsys package` riporta `versionName=1.21`, e nelle
 impostazioni Android la tastiera compare come **"T9 1.20"** (screenshot preso alla 1.20:
@@ -1048,7 +1097,7 @@ Le maiuscole di inizio frase gonfiano ogni parola ma arrivano al massimo al ~20%
 nell'italiano di oggi la moneta e l'evangelista non competono più con i nomi.
 
 **File:** `tools/ConvertLeipzig.java` (conteggio maiuscole + flag `P`),
-`assets/dict/it.txt` (rigenerato, 564 KB), `engine/ItalianDictionaryEngine.kt`
+`assets/dict/it.txt` (rigenerato, 564 KB), `engine/CorpusDictionaryEngine.kt`
 (espone `properNouns`), `input/ProperNouns.kt` (lista scritta a mano **rimossa**),
 `service/T9ImeService.kt`; test `ProperNounsTest` riscritto sul formato del dizionario.
 **Verificato su emulatore:** nelle note `6-4-5-2-6-6` dà **"Milano"** maiuscolo nel campo e
@@ -1669,14 +1718,14 @@ ed esegue l'azione editor. Multi-tap rimosso.
 **File creati/modificati:**
 - `engine/Candidate.kt` — modello candidato (word, sequence, weight su scala confrontabile).
 - `engine/DictionaryEngine.kt` — interfaccia unica di lookup (seam per il bilingue Fase 2).
-- `engine/ItalianDictionaryEngine.kt` — indice in RAM `sequenza → [candidati]`; `fromAssets()`
+- `engine/CorpusDictionaryEngine.kt` — indice in RAM `sequenza → [candidati]`; `fromAssets()`
   + `build(lines)` puro e testabile.
 - `model/T9Keypad.kt` — aggiunto `sequenceFor(word)` (parola→cifre, con fold accenti IT).
 - `assets/dict/it_test.txt` — dizionario di test (~40 parole, con collisioni per il ranking).
 - `ui/SuggestionBarView.kt` — barra suggerimenti orizzontale scrollabile (chip tap-abili).
 - `ui/T9KeyboardView.kt` — ora contiene barra suggerimenti + griglia; `setSuggestions()`.
 - `service/T9ImeService.kt` — logica predittiva (buffer sequenza, anteprima, commit, pick).
-- Test JVM: `model/T9KeypadTest.kt`, `engine/ItalianDictionaryEngineTest.kt`.
+- Test JVM: `model/T9KeypadTest.kt`, `engine/CorpusDictionaryEngineTest.kt`.
 
 **Come verificare (Android Studio):**
 1. Test logici: esegui gli unit test (`app/src/test/...`) — devono passare senza emulatore.

@@ -47,16 +47,24 @@ public class BuildDictionary {
      */
     private static final long SUBTITLE_MIN_FREQUENCY = 5;
 
-    // a-z plus the Italian accented vowels the keypad folds for lookup.
-    private static boolean isItalianWord(String w) {
+    /**
+     * Which language is being built. The only thing that differs between the two is
+     * which characters count as a word: Italian keeps its accented vowels (the keypad
+     * folds them for lookup), English is plain a-z. Everything else — the blend, the
+     * per-million normalisation, the proper-noun measurement — is language-neutral,
+     * which is why English needs a flag here and not a second tool.
+     */
+    private static boolean accentsAllowed = true;
+
+    private static boolean isWord(String w) {
         if (w.isEmpty() || w.length() > 20) return false;
         for (int i = 0; i < w.length(); i++) {
             char c = w.charAt(i);
-            boolean ok = (c >= 'a' && c <= 'z')
-                    || c == 'à' || c == 'á' || c == 'è' || c == 'é'
+            boolean plain = c >= 'a' && c <= 'z';
+            boolean accented = c == 'à' || c == 'á' || c == 'è' || c == 'é'
                     || c == 'ì' || c == 'í' || c == 'ò' || c == 'ó'
                     || c == 'ù' || c == 'ú';
-            if (!ok) return false;
+            if (!(plain || (accentsAllowed && accented))) return false;
         }
         return true;
     }
@@ -70,7 +78,7 @@ public class BuildDictionary {
                 String[] p = line.trim().split("\\s+");
                 if (p.length < 2) continue;
                 String word = p[0].toLowerCase(Locale.ITALIAN);
-                if (!isItalianWord(word)) continue;
+                if (!isWord(word)) continue;
                 long f;
                 try { f = Long.parseLong(p[1]); } catch (NumberFormatException e) { continue; }
                 if (f < SUBTITLE_MIN_FREQUENCY) continue;
@@ -90,7 +98,7 @@ public class BuildDictionary {
                 if (p.length < 3) continue;
                 String raw = p[1];
                 String word = raw.toLowerCase(Locale.ITALIAN);
-                if (!isItalianWord(word)) continue;
+                if (!isWord(word)) continue;
                 long f;
                 try { f = Long.parseLong(p[2].trim()); } catch (NumberFormatException e) { continue; }
                 freq.merge(word, f, Long::sum);
@@ -110,6 +118,11 @@ public class BuildDictionary {
         Path leipzigPath = Paths.get(args[1]);
         Path out = Paths.get(args[2]);
         int topN = Integer.parseInt(args[3]);
+        // Optional 5th argument: the language tag written into the header, and the
+        // switch for accented characters. Defaults to Italian, so the command that
+        // built the existing dictionary still means what it meant.
+        String lang = args.length > 4 ? args[4] : "it";
+        accentsAllowed = lang.equals("it");
 
         Map<String, Long> subs = readSubtitles(subsPath);
         Map<String, Long> news = new HashMap<>();
@@ -140,9 +153,11 @@ public class BuildDictionary {
 
         int properNouns = 0;
         try (BufferedWriter w = Files.newBufferedWriter(out, StandardCharsets.UTF_8)) {
-            w.write("# Dizionario italiano per tastiera — due corpora fusi.\n");
+            String language = lang.equals("it") ? "italiano" : "inglese";
+            String leipzigName = lang.equals("it") ? "ita_news_2022_100K" : "eng_news_2020_100K";
+            w.write("# Dizionario " + language + " per tastiera — due corpora fusi.\n");
             w.write("# Dialoghi: OpenSubtitles via hermitdave/FrequencyWords (CC BY-SA 4.0), peso 70%.\n");
-            w.write("# Prosa: Leipzig ita_news_2022_100K (CC BY-4.0), peso 30% + maiuscole.\n");
+            w.write("# Prosa: Leipzig " + leipzigName + " (CC BY-4.0), peso 30% + maiuscole.\n");
             w.write("# Costruito da tools/BuildDictionary.java.\n");
             w.write("# Formato: parola peso(occorrenze per milione) [P], P = nome proprio.\n");
             for (Map.Entry<String, Long> e : sorted) {

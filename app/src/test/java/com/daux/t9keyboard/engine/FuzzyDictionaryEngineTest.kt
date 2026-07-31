@@ -8,7 +8,7 @@ import org.junit.Test
 class FuzzyDictionaryEngineTest {
 
     // "casa" = 2272, "cara" = 2272, "cast" = 2278, "casta" = 22782, "sano" = 7266.
-    private val dictionary = ItalianDictionaryEngine.build(
+    private val dictionary = CorpusDictionaryEngine.build(
         sequenceOf("casa 900", "cara 500", "casta 300", "sano 200")
     )
     private val engine = FuzzyDictionaryEngine(dictionary)
@@ -103,7 +103,7 @@ class FuzzyDictionaryEngineTest {
 
     @Test
     fun `two wrong keys are found on a long enough word`() {
-        val long = ItalianDictionaryEngine.build(sequenceOf("problema 900"))
+        val long = CorpusDictionaryEngine.build(sequenceOf("problema 900"))
         val engine = FuzzyDictionaryEngine(long)
 
         // "problema" = 77625362, typed with the 6 and the 5 both wrong: 77623362.
@@ -118,7 +118,7 @@ class FuzzyDictionaryEngineTest {
 
     @Test
     fun `two wrong keys are a last resort, never a disturbance`() {
-        val long = ItalianDictionaryEngine.build(sequenceOf("problema 900", "problemi 800"))
+        val long = CorpusDictionaryEngine.build(sequenceOf("problema 900", "problemi 800"))
         val engine = FuzzyDictionaryEngine(long)
 
         // Typed correctly, the exact match leads and nothing displaces it. ("problemi"
