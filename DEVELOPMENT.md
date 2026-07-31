@@ -28,10 +28,10 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** **Fase 2 completa** — bilingue IT+EN (versione **2.0**). Fase 1 completa, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** **Fase 2 — bilingue IT+EN** (versione 2.0): italiano e inglese attivi insieme, senza cambio lingua; l'inglese non scavalca mai l'italiano, quindi nessuna sequenza che funzionava prima si ordina diversamente. Prima: Step 1.26 — **riga dello spazio uniformata** alle file di lettere (senza far ricrescere la tastiera) e **una lettera sola non è mai un nome proprio**: premendo `2` la barra offriva "a B C à". Prima: 1.25 — **tastiera più bassa**: barra candidati quasi dimezzata e tasti più larghi che alti; la tastiera passa dal 40% al 31% dello schermo. Prima: 1.24 — **resilienza ai refusi doppi**: due tasti invertiti (che prima sfuggivano del tutto) e, come ultima risorsa sulle parole lunghe, due tasti sbagliati. Prima: 1.23 (anteprima leggibile: senza corrispondenze esatte il campo mostra la migliore offerta invece delle lettere di default), 1.22 — **completamento di parola**: dopo le parole che i tasti scrivono esattamente, la barra offre quelle di cui i tasti sono l'inizio (dieci tasti per `contemporaneamente`). Prima: 1.21 (la tastiera vibra sotto il dito, con durata regolabile — `KeyboardSettings.hapticMs`, default 18 ms), 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **Ultimo step completato:** **Fase 2.1 — il bilinguismo si accende e si spegne**: schermata impostazioni raggiungibile dal launcher, e la lingua è un elenco (`Language`) invece di un interruttore per l'inglese, così una terza costa un dizionario e una riga. Prima: **Fase 2 — bilingue IT+EN** (versione 2.0): italiano e inglese attivi insieme, senza cambio lingua; l'inglese non scavalca mai l'italiano, quindi nessuna sequenza che funzionava prima si ordina diversamente. Prima: Step 1.26 — **riga dello spazio uniformata** alle file di lettere (senza far ricrescere la tastiera) e **una lettera sola non è mai un nome proprio**: premendo `2` la barra offriva "a B C à". Prima: 1.25 — **tastiera più bassa**: barra candidati quasi dimezzata e tasti più larghi che alti; la tastiera passa dal 40% al 31% dello schermo. Prima: 1.24 — **resilienza ai refusi doppi**: due tasti invertiti (che prima sfuggivano del tutto) e, come ultima risorsa sulle parole lunghe, due tasti sbagliati. Prima: 1.23 (anteprima leggibile: senza corrispondenze esatte il campo mostra la migliore offerta invece delle lettere di default), 1.22 — **completamento di parola**: dopo le parole che i tasti scrivono esattamente, la barra offre quelle di cui i tasti sono l'inizio (dieci tasti per `contemporaneamente`). Prima: 1.21 (la tastiera vibra sotto il dito, con durata regolabile — `KeyboardSettings.hapticMs`, default 18 ms), 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
 - **Prossimo step:** **Fase 3 — impostazioni ed ergonomia**. Le preferenze esistono già nel codice e aspettano solo la schermata: altezza tastiera, durata della vibrazione, dimensione del testo dei candidati, inglese on/off, lato della colonna. Vi rientrano anche la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente.
-- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce (vedi sopra); va riprovato sul telefono con l'APK aggiornato (`t9-2.0-debug.apk`).
+- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce (vedi sopra); va riprovato sul telefono con l'APK aggiornato (`t9-2.1-debug.apk`).
 - **Dopo:** altre lingue oltre IT/EN, e il dizionario binario indicizzato se il formato testo diventasse stretto.
 - 📝 **Appunti dell'utente dalla prova reale (30/07 sera).** **Ordine deciso dall'utente: prima le tre segnalazioni (1, 2, 3), poi la vibrazione (4).** **Tutti chiusi il 31/07**: 1 → Step 1.18, 3 → Step 1.19, 4 → Step 1.21. Il punto 2 **non si riproduce** e attende un riscontro sul telefono.
 
@@ -450,6 +450,46 @@ esistente.
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
 
+### 2026-07-31 — Fase 2.1: il bilinguismo si accende e si spegne
+**Richiesta dell'utente:** *"renderei il bilinguismo attivabile e disattivabile in modo che se
+dà fastidio si può rendere inattivo, e magari si potrebbe predisporre in futuro per altre
+lingue se mai diventasse un progetto commerciale."*
+
+La preferenza esisteva già (`englishEnabled`, Fase 2) ma **nessuno poteva raggiungerla**, e
+una preferenza irraggiungibile non è una preferenza. Due cambiamenti, uno per richiesta.
+
+**1. Una schermata impostazioni** (`settings/SettingsActivity`), con l'icona nel launcher —
+la prima fetta di Fase 3, portata avanti perché serviva adesso. Contiene solo le lingue: il
+resto (altezza tastiera, durata vibrazione, testo candidati, lato colonna) esiste già in
+`KeyboardSettings` e la raggiungerà con la Fase 3 vera.
+
+**2. Un elenco di lingue, non un interruttore per l'inglese.** `model/Language` è l'unico
+posto dove una lingua si dichiara (codice, nome, asset), la preferenza è un **insieme di
+codici**, e `BilingualDictionaryEngine` è diventato **`LanguagePriorityEngine`** con una
+*lista* di secondarie. Aggiungere lo spagnolo costa un dizionario e una riga: manca il corpus,
+non il codice. C'è un test che lo verifica con tre lingue, invece di affermarlo.
+
+**Il dizionario si ricostruisce da solo** quando la scelta cambia: `onStartInputView`
+confronta le lingue attive con quelle caricate: è il momento in cui la tastiera rientra, e la
+ricostruzione va su un thread di fondo che l'utente non sta aspettando.
+
+**Due inciampi risolti sulla schermata, entrambi da `targetSdk 35`:**
+- Il contenuto veniva disegnato **sotto le barre di sistema** (edge-to-edge obbligatorio su
+  Android 15): il titolo finiva dietro la barra di stato. La tastiera gestiva già i propri
+  inset; la schermata no. Ora li applica anche lei.
+- La casella prendeva il fuoco all'apertura e lo `ScrollView` saltava a lei, aprendo la
+  pagina già oltre la propria intestazione.
+
+**Verificato (2026-07-31):** 149 test verdi. Sull'emulatore, il giro completo: spento
+l'inglese dalla schermata, la preferenza si svuota e la sequenza di `homework` non lo propone
+più — resta **`gonfiore`**, l'ipotesi italiana a due tasti sbagliati, che è anche una prova
+incidentale che lo Step 1.24 lavora. Riacceso, `homework` torna.
+Screenshot: `docs/screenshots/fase2.1-impostazioni.png`.
+
+**Nota di metodo:** dopo ogni reinstallazione l'emulatore perde la selezione dell'IME e
+mostra un pannello di ripiego. Non è un crash — verificato in `logcat` prima di ipotizzarlo —
+va solo rieseguito `bash tools/dev.sh ime`.
+
 ### 2026-07-31 — Fase 2: bilingue IT+EN (versione 2.0)
 **Italiano e inglese attivi insieme, senza cambio lingua** — il piano §8. Il tastierino è lo
 stesso in entrambe (`2`=ABC ovunque nello standard E.161), quindi dell'input non c'è niente di
@@ -734,7 +774,7 @@ d'occhio.
 - `res/values/strings.xml` — le due stringhe **tolte**: scritte a mano si sarebbero
   disallineate al primo step.
 - `tools/dev.sh` — `apk` stampa la versione e copia l'APK con la versione nel nome
-  (`t9-2.0-debug.apk`), così sul telefono non si confondono fra loro.
+  (`t9-2.1-debug.apk`), così sul telefono non si confondono fra loro.
 
 **Verificato (2026-07-31):** installato, `dumpsys package` riporta `versionName=1.21`, e nelle
 impostazioni Android la tastiera compare come **"T9 1.20"** (screenshot preso alla 1.20:

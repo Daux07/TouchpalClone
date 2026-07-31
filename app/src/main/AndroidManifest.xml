@@ -12,6 +12,17 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.T9Keyboard">
 
+        <!-- The settings screen, and the app's only activity: an IME needs none to
+             work, but a preference nobody can reach is not a preference. -->
+        <activity
+            android:name=".settings.SettingsActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <!-- The T9 Input Method Editor service. Requires the system-only
              BIND_INPUT_METHOD permission; no sensitive app permissions declared. -->
         <service

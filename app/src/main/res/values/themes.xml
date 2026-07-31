@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- No launcher Activity in v1; this base theme exists only to satisfy the
-         application element. A settings Activity theme is added in Phase 3. -->
+    <!-- No action bar: with targetSdk 35 the window is edge-to-edge, and a system title
+         bar over content that must handle its own insets is two things fighting for the
+         same strip. The settings screen draws its own heading (SettingsActivity). -->
     <style name="Theme.T9Keyboard" parent="@android:style/Theme.Material.Light.NoActionBar" />
 </resources>

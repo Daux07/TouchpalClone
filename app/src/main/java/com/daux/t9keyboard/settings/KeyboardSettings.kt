@@ -2,6 +2,7 @@ package com.daux.t9keyboard.settings
 
 import android.content.Context
 import com.daux.t9keyboard.model.FavouriteSymbols
+import com.daux.t9keyboard.model.Language
 
 /**
  * Small, local user preferences. Deliberately **not** Room: this is a handful of
@@ -49,14 +50,24 @@ class KeyboardSettings(context: Context) {
         set(value) = prefs.edit().putBoolean(KEY_AUTO_SPACE, value).apply()
 
     /**
-     * Offer English words alongside Italian ones, without switching language by hand
-     * (plan §8). On by default — it is the point of Phase 2 — and behind a preference
-     * from the start, because a second language costs a little memory and a little
-     * noise in the bar, and someone who never writes English should be able to say so.
+     * Which secondary dictionaries are loaded alongside the primary one, by code,
+     * without switching language by hand
+     * (plan §8). English is on by default — it is the point of Phase 2 — and the whole
+     * thing is a set rather than a flag so a third language costs an entry in
+     * [Language.SECONDARIES] and nothing here.
      */
-    var englishEnabled: Boolean
-        get() = prefs.getBoolean(KEY_ENGLISH, true)
-        set(value) = prefs.edit().putBoolean(KEY_ENGLISH, value).apply()
+    var secondaryLanguages: Set<String>
+        // Copied out: the set SharedPreferences hands back must not be modified, and a
+        // caller has no way of knowing that.
+        get() = prefs.getStringSet(KEY_LANGUAGES, null)?.toSet()
+            ?: Language.DEFAULT_SECONDARY_CODES
+        set(value) = prefs.edit().putStringSet(KEY_LANGUAGES, value).apply()
+
+    /** The declared languages that are switched on, in the order they are offered. */
+    fun enabledSecondaries(): List<Language> {
+        val codes = secondaryLanguages
+        return Language.SECONDARIES.filter { it.code in codes }
+    }
 
     /**
      * How long the tick under the finger lasts, in milliseconds; `0` switches it off.
@@ -77,7 +88,7 @@ class KeyboardSettings(context: Context) {
 
         private const val FILE = "keyboard_settings"
         private const val KEY_HAPTIC_MS = "haptic_ms"
-        private const val KEY_ENGLISH = "english_enabled"
+        private const val KEY_LANGUAGES = "secondary_languages"
         private const val KEY_FAVOURITES = "favourite_symbols"
         private const val KEY_AUTO_CAPS = "auto_capitalise"
         private const val KEY_AUTO_SPACE = "auto_space"

@@ -10,13 +10,13 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Fase 2 — bilingue IT+EN (versione 2.0).
+**Allineato a:** Fase 2 — bilingue IT+EN attivabile (versione 2.1).
 
 **Versione visibile.** `versionName` **è** il numero dello step di `DEVELOPMENT.md`, e da lì
 derivano (via `resValue` in `app/build.gradle.kts`) il nome dell'app e l'etichetta della
-tastiera: nel selettore si legge **"T9 2.0"**. Provando sul telefono si sa sempre a che punto
+tastiera: nel selettore si legge **"T9 2.1"**. Provando sul telefono si sa sempre a che punto
 del log corrisponde ciò che si ha in mano — e `bash tools/dev.sh apk` produce anche un file
-con la versione nel nome (`t9-2.0-debug.apk`), così gli APK non si confondono fra loro. Le
+con la versione nel nome (`t9-2.1-debug.apk`), così gli APK non si confondono fra loro. Le
 due stringhe non stanno più in `strings.xml`: scritte a mano resterebbero indietro.
 
 ## Indice
@@ -346,14 +346,14 @@ SingleLetterEngine                  (ultima parola su cosa offre un tasto solo)
               └── CorpusDictionaryEngine   (corpora fusi, 50k parole)
 ```
 
-### `BilingualDictionaryEngine` — italiano e inglese insieme (Fase 2)
+### `LanguagePriorityEngine` — più lingue insieme (Fase 2)
 
-Due lingue senza cambiare lingua. Il tastierino è lo stesso in entrambe — `2`=ABC ovunque
+Più lingue senza cambiare lingua. Il tastierino è lo stesso in entrambe — `2`=ABC ovunque
 nello standard ITU-T E.161 — quindi **dell'input non c'è niente di bilingue**: lo è solo il
 ranking, ed è tutto ciò che questa classe fa. La colonna di disambiguazione resta unica,
 come previsto dal piano §8.
 
-**La lingua secondaria non scavalca mai la primaria.** Ogni parola italiana che i tasti
+**Una lingua secondaria non scavalca mai la primaria**, e le secondarie non si scavalcano fra loro fuori dall'ordine in cui sono elencate. Ogni parola italiana che i tasti
 scrivono esattamente viene prima, nel suo ordine; l'inglese segue, nel suo. Deliberatamente
 **non** una fusione per frequenza, benché i pesi lo permetterebbero: `CorpusDictionaryEngine`
 normalizza entrambi i corpora a **occorrenze per milione**, quindi le due scale sono davvero
@@ -374,9 +374,24 @@ sola**, dalla parte italiana: è la stessa parola, non due candidati.
 questo motore, quindi una parola confermata vince qualunque lingua l'abbia proposta, e
 `learned_words` non ha bisogno di una colonna `lang`.
 
-Disattivabile da `KeyboardSettings.englishEnabled` (attivo di default; l'interruttore
-arriverà con la schermata impostazioni di Fase 3). A inglese spento il motore non viene
-nemmeno costruito e `en.txt` non viene letto.
+### Quali lingue, e come si accendono
+
+`Language` (in `model/`) è **l'unico posto dove una lingua si dichiara**: codice, nome
+mostrato, percorso dell'asset. Aggiungerne una è pensato per costare *un dizionario e una
+riga* — il motore che lo legge non ha niente di specifico per lingua, il tastierino è lo
+stesso in ogni lingua E.161, e il ranking tratta ogni secondaria allo stesso modo. Per lo
+spagnolo manca il corpus, non il codice.
+
+La preferenza è un **insieme di codici** (`KeyboardSettings.secondaryLanguages`) e non un
+booleano, proprio perché la terza lingua non debba toccarla. La primaria non è nell'elenco:
+è la lingua per cui la tastiera è fatta, sempre caricata, sempre prima.
+
+Si accendono dalla **schermata impostazioni** (`SettingsActivity`, icona nel launcher), la
+prima fetta di Fase 3 portata avanti perché *una preferenza che nessuno può raggiungere non
+è una preferenza*. Il dizionario si ricostruisce al rientro della tastiera nel campo
+successivo (`onStartInputView` confronta la scelta con quella caricata): una lingua spenta
+**non viene nemmeno letta** e non occupa memoria. Con nessuna secondaria attiva resta
+esattamente la tastiera della v1.
 
 **Limite noto:** l'inglese `I` non viene reso maiuscolo. Il corpus lo marca correttamente
 come nome proprio, ma la regola "una lettera sola non è mai un nome proprio" (§7) lo scarta —
@@ -451,7 +466,7 @@ parola imparata pesa da `BASE_WEIGHT` in su e vince sempre.
 Per IT+EN si è rivelato **lo strumento sbagliato**, ed è la scoperta interessante della Fase 2:
 la fusione per peso funziona quando le fonti sono commensurabili *e si vuole* che competano.
 Fra due lingue i pesi sono commensurabili — entrambi per milione — ma la competizione è
-proprio ciò che non si vuole. Da lì `BilingualDictionaryEngine`, che concatena invece di
+proprio ciò che non si vuole. Da lì `LanguagePriorityEngine`, che concatena invece di
 fondere.
 
 ### `FuzzyDictionaryEngine` — tolleranza ai refusi
@@ -1028,7 +1043,7 @@ Unit test JVM (nessun emulatore necessario): `./gradlew :app:testDebugUnitTest`.
 | `ElisionTest` | La distinzione per posizione fra elisione e virgoletta, e che la parola imparata sia quella intera (`l'aveva`, non `aveva`) |
 | `CorpusDictionaryEngineTest` | Costruzione indice, ordinamento per peso, ricerca per prefisso (fra cui il caso `contempora` → `contemporaneamente`), e che **una lettera sola non sia mai un nome proprio** |
 | `MergingDictionaryEngineTest` | Fusione, deduplica per parola |
-| `BilingualDictionaryEngineTest` | 7 casi: che ogni parola italiana preceda ogni inglese (anche quando l'inglese pesa di più), che una parola comune a entrambe sia tenuta una volta sola, e che l'inglese risponda da solo dove l'italiano tace |
+| `LanguagePriorityEngineTest` | 9 casi: che ogni parola italiana preceda ogni inglese (anche quando l'inglese pesa di più), che una parola comune a entrambe sia tenuta una volta sola, che l'inglese risponda da solo dove l'italiano tace, che una **terza lingua** si accodi alla seconda, e che senza secondarie resti esattamente la tastiera v1 |
 | `LearnedWordsEngineTest` | Pesi, incremento usi, caricamento dallo store |
 | `FuzzyDictionaryEngineTest` | 14 casi: cancellazione/sostituzione/inserimento, **inversione di due tasti**, **due tasti sbagliati** (e che non si cerchino su parole corte né quando qualcosa già corrisponde), marcatura, tetto |
 | `FuzzyCostTest` | Guardia sul costo: la ricerca profonda sul corpus vero (50k parole) resta abbondantemente dentro il tempo di una pressione |

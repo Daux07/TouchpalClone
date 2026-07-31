@@ -5,7 +5,7 @@ import android.text.InputType
 import android.text.TextUtils
 import android.view.View
 import android.view.inputmethod.EditorInfo
-import com.daux.t9keyboard.engine.BilingualDictionaryEngine
+import com.daux.t9keyboard.engine.LanguagePriorityEngine
 import com.daux.t9keyboard.engine.Candidate
 import com.daux.t9keyboard.engine.CompletingDictionaryEngine
 import com.daux.t9keyboard.engine.DictionaryEngine
@@ -26,6 +26,7 @@ import com.daux.t9keyboard.input.ShiftState
 import com.daux.t9keyboard.learning.RoomLearnedWordsStore
 import com.daux.t9keyboard.model.FavouriteSymbols
 import com.daux.t9keyboard.model.KeyAction
+import com.daux.t9keyboard.model.Language
 import com.daux.t9keyboard.model.KeySpec
 import com.daux.t9keyboard.model.KeyboardMode
 import com.daux.t9keyboard.model.LongPressKeys
@@ -97,6 +98,9 @@ class T9ImeService : InputMethodService() {
     /** Email/URL field: the `1` key's popup offers address parts instead of symbols. */
     private var emailField = false
 
+    /** Secondary language codes the current dictionary stack was built from. */
+    private var loadedLanguages: Set<String> = emptySet()
+
     /** What this field allows: prose gets the writing aids, addresses and codes do not. */
     private var fieldAllows = FieldRules.Allowed.ALL
 
@@ -112,22 +116,36 @@ class T9ImeService : InputMethodService() {
         engine = SingleLetterEngine(CompletingDictionaryEngine(FuzzyDictionaryEngine(learnedEngine)))
         // ~50k-word Italian dictionary: parse off the main thread so the keyboard
         // shows instantly (predictions appear once loading completes, ~a moment).
+        loadDictionaries()
+    }
+
+    /**
+     * Build the dictionary stack for the languages currently switched on, off the main
+     * thread. Called at startup and again whenever the choice changes, so turning a
+     * language off in the settings takes effect without reinstalling anything.
+     */
+    private fun loadDictionaries() {
+        val wanted = settings.enabledSecondaries()
+        loadedLanguages = wanted.map { it.code }.toSet()
+        val learnedEngine = learned
+
         Thread {
             learnedEngine.load()
-            val italian = CorpusDictionaryEngine.fromAssets(this, "dict/it.txt")
+            val primary = CorpusDictionaryEngine.fromAssets(this, Language.PRIMARY.asset)
 
-            // Italian first, and the personal dictionary above it: a word the user has
-            // confirmed wins whatever language it came from, which is why learning stays
-            // one mixed store with no `lang` column (plan §8).
-            var words: DictionaryEngine = MergingDictionaryEngine(listOf(learnedEngine, italian))
-            var properNouns = italian.properNouns
+            // The personal dictionary sits above every language: a word the user has
+            // confirmed wins whatever proposed it, which is why learning stays one mixed
+            // store with no `lang` column (plan §8).
+            val main: DictionaryEngine = MergingDictionaryEngine(listOf(learnedEngine, primary))
+            val secondaries = wanted.map { CorpusDictionaryEngine.fromAssets(this, it.asset) }
 
-            if (settings.englishEnabled) {
-                val english = CorpusDictionaryEngine.fromAssets(this, "dict/en.txt")
-                words = BilingualDictionaryEngine(primary = words, secondary = english)
-                properNouns = properNouns + english.properNouns
-            }
-            ProperNouns.setKnown(properNouns)
+            ProperNouns.setKnown(
+                secondaries.fold(primary.properNouns) { known, it -> known + it.properNouns }
+            )
+
+            val words =
+                if (secondaries.isEmpty()) main
+                else LanguagePriorityEngine(primary = main, secondaries = secondaries)
 
             engine = SingleLetterEngine(
                 CompletingDictionaryEngine(FuzzyDictionaryEngine(words))
@@ -154,6 +172,10 @@ class T9ImeService : InputMethodService() {
         super.onStartInputView(info, restarting)
         emailField = isAddressField(info)
         fieldAllows = FieldRules.forInputType(info?.inputType ?: 0)
+        // The languages may have been changed in the settings while the keyboard was
+        // away. Checked here rather than watched: this is the moment the keyboard comes
+        // back, and rebuilding costs a background parse the user is not waiting on.
+        if (settings.secondaryLanguages != loadedLanguages) loadDictionaries()
         // A new field starts on letters, wherever the previous one left the keyboard.
         keyboardView?.hidePopup()
         keyboardView?.setMode(KeyboardMode.T9)

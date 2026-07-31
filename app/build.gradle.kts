@@ -14,10 +14,10 @@ android {
         targetSdk = 35
 
         // La versione **è** il numero dello step di DEVELOPMENT.md, non una numerazione
-        // parallela: provando sul telefono si legge "T9 2.0" nel selettore tastiere e si
+        // parallela: provando sul telefono si legge "T9 2.1" nel selettore tastiere e si
         // sa esattamente a che punto del log corrisponde ciò che si ha in mano.
-        versionCode = 200
-        versionName = "2.0"
+        versionCode = 210
+        versionName = "2.1"
 
         // Nome unico e derivato: il nome dell'app e l'etichetta della tastiera portano
         // sempre la versione, e non possono restare indietro perché non sono scritti a

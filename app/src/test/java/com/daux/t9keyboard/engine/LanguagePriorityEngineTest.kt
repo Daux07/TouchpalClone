@@ -4,7 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class BilingualDictionaryEngineTest {
+class LanguagePriorityEngineTest {
 
     // "casa", "cara" e l'inglese "barb" stanno tutti sulla sequenza 2272.
     private val italian = CorpusDictionaryEngine.build(
@@ -17,7 +17,7 @@ class BilingualDictionaryEngineTest {
         sequenceOf("back 800", "barb 100", "the 41924", "bar 200", "film 400")
     )
 
-    private val engine = BilingualDictionaryEngine(primary = italian, secondary = english)
+    private val engine = LanguagePriorityEngine(primary = italian, secondaries = listOf(english))
 
     @Test
     fun everyItalianWordComesBeforeEveryEnglishOne() {
@@ -28,9 +28,9 @@ class BilingualDictionaryEngineTest {
     fun aHeavyEnglishWordStillDoesNotOutrankItalian() {
         // "the" = 843, "vie" = 843 too. Weighted purely by frequency the English word
         // would lead; the whole point of the chosen order is that it cannot.
-        val withVie = BilingualDictionaryEngine(
+        val withVie = LanguagePriorityEngine(
             primary = CorpusDictionaryEngine.build(sequenceOf("vie 190")),
-            secondary = english
+            secondaries = listOf(english)
         )
 
         assertEquals(listOf("vie", "the"), withVie.lookup("843").map { it.word })
@@ -48,6 +48,30 @@ class BilingualDictionaryEngineTest {
     fun englishAloneStillAnswersWhenItalianHasNothing() {
         // 843 is only English here: the secondary is not a tail, it is a dictionary.
         assertEquals(listOf("the"), engine.lookup("843").map { it.word })
+    }
+
+    @Test
+    fun aThirdLanguageFallsInBehindTheSecond() {
+        // The claim the design makes: a further language is a list entry, and it ranks
+        // after the ones before it, never among them.
+        val threeLanguages = LanguagePriorityEngine(
+            primary = CorpusDictionaryEngine.build(sequenceOf("bar 90")),
+            secondaries = listOf(
+                CorpusDictionaryEngine.build(sequenceOf("car 500")),  // "inglese"
+                CorpusDictionaryEngine.build(sequenceOf("cap 700"))   // una terza lingua
+            )
+        )
+
+        // Tutte e tre sono 227; l'italiana è la più leggera e guida lo stesso.
+        assertEquals(listOf("bar", "car", "cap"), threeLanguages.lookup("227").map { it.word })
+    }
+
+    @Test
+    fun withNoSecondaryAtAllOnlyThePrimaryAnswers() {
+        // What switching every language off leaves: the v1 keyboard, unchanged.
+        val alone = LanguagePriorityEngine(primary = italian, secondaries = emptyList())
+
+        assertEquals(italian.lookup("2272"), alone.lookup("2272"))
     }
 
     @Test
