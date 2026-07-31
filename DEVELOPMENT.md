@@ -33,6 +33,34 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 - **Prossimo step:** **Fase 3 — impostazioni ed ergonomia**. Le preferenze esistono già nel codice e aspettano solo la schermata: altezza tastiera, durata della vibrazione, dimensione del testo dei candidati, inglese on/off, lato della colonna. Vi rientrano anche la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente.
 - **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce (vedi sopra); va riprovato sul telefono con l'APK aggiornato (`t9-2.3-debug.apk`).
 - **Dopo:** altre lingue oltre IT/EN, e il dizionario binario indicizzato se il formato testo diventasse stretto.
+
+- 📌 **Da controllare il 2026-08-01 — due code della 2.3, nessuna delle due urgente.**
+
+  1. **Le lettere singole vanno ancora escluse dall'apprendimento?** Restano escluse
+     (`LearnedWordsEngine.isLearnable` ≥ 2 caratteri), quindi `e`, `è`, `é` hanno peso solo dal
+     corpus — fisso — e l'ordine del tasto lo decide comunque `SingleLetterEngine` dal
+     tastierino, non la frequenza.
+
+     **La motivazione originale però è scaduta.** Era: *"una parola imparata batte l'intero
+     corpus, quindi scrivere `è` una volta demoterebbe `e` per sempre"* — vero con
+     `BASE_WEIGHT` 1.000.000 contro i 48.146 di `e`, falso adesso che una `è` imparata una
+     volta peserebbe **200**. Oggi il divieto regge per un motivo **diverso**: la
+     **prevedibilità** di un tasto premuto da solo, che con la spinta recente (+50.000) verrebbe
+     rimescolato per un'ora dopo ogni uso.
+
+     *Decisione da prendere, non difetto da correggere.* La difesa strutturale «l'accento sta
+     dopo la sua lettera semplice» resterebbe in piedi comunque, perché non passa dai pesi.
+     Chi riprende: se si riapre, aggiornare anche il commento di `isLearnable`, che oggi
+     racconta ancora la motivazione vecchia.
+
+  2. **Le elisioni possono infilare spazzatura nel dizionario.** Scrivendo `l` + apostrofo +
+     `a`, `Elision.join` compone **`l'a`** — tre caratteri, quindi imparabile — che finisce
+     sulla sequenza `52` insieme a `la`. Con 200 contro i 17.675 di `la` è innocuo, ma resta
+     spazzatura.
+
+     ⚠️ **Dedotto leggendo il codice, non riprodotto sull'emulatore.** Prima cosa da fare:
+     verificarlo davvero. Se confermato, la correzione naturale è chiedere a `Elision.join` che
+     la coda sia essa stessa una parola (≥ 2 caratteri), non solo il risultato dell'unione.
 - 📝 **Appunti dell'utente dalla prova reale (30/07 sera).** **Ordine deciso dall'utente: prima le tre segnalazioni (1, 2, 3), poi la vibrazione (4).** **Tutti chiusi il 31/07**: 1 → Step 1.18, 3 → Step 1.19, 4 → Step 1.21. Il punto 2 **non si riproduce** e attende un riscontro sul telefono.
 
   1. ✅ **RISOLTO — Step 1.18.** *La parola composta a mano non risulta imparata.*
