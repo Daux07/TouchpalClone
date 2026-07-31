@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">T9 Keyboard</string>
-    <string name="ime_label">T9 Keyboard</string>
+    <!-- app_name e ime_label sono generate da app/build.gradle.kts (resValue): portano la
+         versione, e scriverle qui a mano le farebbe restare indietro. -->
     <string name="subtype_it">Italiano</string>
     <string name="pick_favourite_symbol">Scegli il simbolo per la posizione %1$d</string>
 </resources>

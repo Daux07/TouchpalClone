@@ -47,8 +47,15 @@ case "$cmd" in
     install) run_gradle :app:installDebug ;;
     apk)
         run_gradle :app:assembleDebug
+        # Copia con la versione nel nome: sul telefono si accumulano più APK, e
+        # "app-debug.apk" non dice quale si sta installando.
+        version=$(sed -n 's/.*versionName = "\(.*\)".*/\1/p' app/build.gradle.kts)
+        src="app/build/outputs/apk/debug/app-debug.apk"
+        out="app/build/outputs/apk/debug/t9-$version-debug.apk"
+        cp "$src" "$out"
         echo
-        echo "APK: $(pwd)/app/build/outputs/apk/debug/app-debug.apk"
+        echo "Versione: $version   (l'app e la tastiera si chiamano \"T9 $version\")"
+        echo "APK: $(pwd)/$out"
         ;;
     gradle)  run_gradle "$@" ;;
 

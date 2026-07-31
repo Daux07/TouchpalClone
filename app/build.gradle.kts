@@ -12,8 +12,18 @@ android {
         applicationId = "com.daux.t9keyboard"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+
+        // La versione **è** il numero dello step di DEVELOPMENT.md, non una numerazione
+        // parallela: provando sul telefono si legge "T9 1.20" nel selettore tastiere e si
+        // sa esattamente a che punto del log corrisponde ciò che si ha in mano.
+        versionCode = 120
+        versionName = "1.20"
+
+        // Nome unico e derivato: il nome dell'app e l'etichetta della tastiera portano
+        // sempre la versione, e non possono restare indietro perché non sono scritti a
+        // mano da nessuna parte (per questo non stanno più in strings.xml).
+        resValue("string", "app_name", "T9 $versionName")
+        resValue("string", "ime_label", "T9 $versionName")
     }
 
     buildTypes {
