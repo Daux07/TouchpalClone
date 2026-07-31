@@ -10,7 +10,14 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Step 1.19 (Fase 1 completa).
+**Allineato a:** Step 1.21 (Fase 1 completa).
+
+**Versione visibile.** `versionName` **è** il numero dello step di `DEVELOPMENT.md`, e da lì
+derivano (via `resValue` in `app/build.gradle.kts`) il nome dell'app e l'etichetta della
+tastiera: nel selettore si legge **"T9 1.21"**. Provando sul telefono si sa sempre a che punto
+del log corrisponde ciò che si ha in mano — e `bash tools/dev.sh apk` produce anche un file
+con la versione nel nome (`t9-1.21-debug.apk`), così gli APK non si confondono fra loro. Le
+due stringhe non stanno più in `strings.xml`: scritte a mano resterebbero indietro.
 
 ## Indice
 - [Panoramica architettura](#panoramica-architettura)
@@ -74,7 +81,9 @@ La tastiera è un **IME Android** (`InputMethodService`). Package sotto
 - `onEvaluateInputViewShown()` → sempre `true`: forza la comparsa anche con tastiera hardware
   collegata (no-op sui telefoni reali, indispensabile sull'emulatore).
 
-**Privacy:** nessun permesso applicativo sensibile (niente rete/SMS/contatti). L'unico
+**Privacy:** nessun permesso applicativo sensibile (niente rete/SMS/contatti). C'è
+`VIBRATE`, di categoria "normal": concesso all'installazione, non chiede nulla e non dà
+accesso ad alcun dato — serve al ritorno tattile (§2). Per il resto l'unico
 permesso è `BIND_INPUT_METHOD`, obbligatorio per qualsiasi IME e concesso solo al sistema.
 Il dizionario personale è un database locale nella sandbox dell'app e non esce mai dal
 dispositivo.
@@ -126,6 +135,37 @@ riproporziona fra S25 e S25 Ultra senza layout dedicati.
 `GridKeyboardView` disegna un `KeyGrid` qualsiasi: le pagine simboli e il pannello emoji
 sono già solo dati, e la **QWERTY alternativa** (pianificata) sarà un `KeyGrid` in più,
 non una vista nuova.
+
+### Ritorno tattile — `Haptics`
+
+Il tasto **si sente** sotto il dito. Vive in `KeyViewFactory`, l'unico posto dove ogni
+superficie costruisce i suoi tasti, così T9, pagine simboli, emoji e popup non possono
+finire per rispondere in modo diverso.
+
+**Perché il `Vibrator` e non `performHapticFeedback`.** Il tick di sistema è quello che
+decide il telefono e non è tarabile; un tick che non si sente equivale a non averlo.
+Scegliendo il `Vibrator` la durata diventa una preferenza (`KeyboardSettings.hapticMs`,
+default **18 ms**, `0` = spento, massimo 60), ma **rispettare l'impostazione di sistema
+diventa un nostro compito**: `Haptics` legge `HAPTIC_FEEDBACK_ENABLED` e tace se l'utente
+ha spento il feedback tattile. Una tastiera che vibra dopo che l'hai disattivata è una
+tastiera che disinstalli. La lettura è memorizzata per un secondo: abbastanza spesso da
+reagire mentre la tastiera è aperta, abbastanza di rado da non essere una chiamata binder
+a ogni tasto.
+
+Tre decisioni sul *quando*:
+
+- **Alla pressione** (`ACTION_DOWN`), non al rilascio: è il momento in cui il dito chiede
+  conferma. Anche il tasto senza alternative, che declina il gesto del popup, riceve un
+  listener il cui unico compito è il tick — restituisce `false` e lascia lavorare il click.
+- **Il backspace tenuto premuto vibra una volta sola**, all'inizio. Un colpo per ogni
+  carattere cancellato si fonderebbe in un ronzio: un telefono che sembra rotto, non una
+  tastiera che risponde.
+- **L'apertura del popup ha un colpo suo**, di durata doppia: segna un cambio di stato, non
+  una battuta — la stessa distinzione che il sistema fa fra `KEYBOARD_TAP` e `LONG_PRESS`.
+
+Richiede il permesso `VIBRATE`: "normal", concesso all'installazione, senza accesso a dati.
+La durata regolabile dall'utente arriverà con la schermata impostazioni (Fase 3); il valore
+è già letto fresco a ogni pressione, quindi quella schermata non richiederà modifiche qui.
 
 ### `KeyViewFactory` — il disegno del singolo tasto
 
@@ -828,6 +868,11 @@ Unit test JVM (nessun emulatore necessario): `./gradlew :app:testDebugUnitTest`.
 | `FieldRulesTest` | Dove gli aiuti tacciono: indirizzi, password, numeri, campi senza suggerimenti |
 | `ProperNounsTest` | Che il flag del dizionario decida, e che le parole che sono **anche** nomi comuni (`rosa`, `viola`, `bianca`, `vera`) restino minuscole |
 | `SingleLetterEngineTest` | L'ordine di un tasto solo: fra i casi, **"ogni lettera del tasto è offerta"** (era sparita la `q`) e **"un accento imparato non scavalca la lettera semplice"** |
+
+**Cosa questi test non coprono:** `Haptics` e `KeyboardSettings` dipendono dalla
+piattaforma (`Vibrator`, `Settings.System`, `SharedPreferences`) e non hanno unit test JVM.
+Il ritorno tattile è verificato sull'emulatore leggendo il registro del servizio vibrazione
+(`dumpsys vibrator_manager`), che è una verifica reale ma manuale.
 
 Le verifiche su emulatore sono documentate step per step in `DEVELOPMENT.md`, con gli
 screenshot in `docs/screenshots/`.

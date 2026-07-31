@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Il ritorno tattile sotto il dito. Permesso "normal": concesso all'installazione,
+         non chiede nulla all'utente e non dà accesso ad alcun dato. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"

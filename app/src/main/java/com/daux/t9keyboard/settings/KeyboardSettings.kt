@@ -48,13 +48,30 @@ class KeyboardSettings(context: Context) {
         get() = prefs.getBoolean(KEY_AUTO_SPACE, true)
         set(value) = prefs.edit().putBoolean(KEY_AUTO_SPACE, value).apply()
 
-    private companion object {
-        const val FILE = "keyboard_settings"
-        const val KEY_FAVOURITES = "favourite_symbols"
-        const val KEY_AUTO_CAPS = "auto_capitalise"
-        const val KEY_AUTO_SPACE = "auto_space"
+    /**
+     * How long the tick under the finger lasts, in milliseconds; `0` switches it off.
+     *
+     * Stored as a duration rather than a boolean because the whole reason for driving
+     * the `Vibrator` ourselves is that it can be **tuned** — see [com.daux.t9keyboard.ui.Haptics].
+     * The default is a short tap: enough to feel, short enough not to blur when typing fast.
+     */
+    var hapticMs: Int
+        get() = prefs.getInt(KEY_HAPTIC_MS, DEFAULT_HAPTIC_MS).coerceIn(0, MAX_HAPTIC_MS)
+        set(value) = prefs.edit().putInt(KEY_HAPTIC_MS, value.coerceIn(0, MAX_HAPTIC_MS)).apply()
+
+    companion object {
+        const val DEFAULT_HAPTIC_MS = 18
+
+        /** Beyond this it stops reading as a key and starts reading as a buzz. */
+        const val MAX_HAPTIC_MS = 60
+
+        private const val FILE = "keyboard_settings"
+        private const val KEY_HAPTIC_MS = "haptic_ms"
+        private const val KEY_FAVOURITES = "favourite_symbols"
+        private const val KEY_AUTO_CAPS = "auto_capitalise"
+        private const val KEY_AUTO_SPACE = "auto_space"
 
         /** A character no symbol can contain, so the list survives a round trip. */
-        const val SEPARATOR = "\n"
+        private const val SEPARATOR = "\n"
     }
 }

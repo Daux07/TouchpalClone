@@ -28,10 +28,10 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** Fase 1 — MVP **completa**, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** Step 1.19 — **l'apostrofo dell'elisione sta dentro la parola**: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere. Prima: 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **Ultimo step completato:** Step 1.21 — **la tastiera vibra sotto il dito**, con durata regolabile (`KeyboardSettings.hapticMs`, default 18 ms). Prima: 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
-- **Prossimo step:** **punto 4 degli appunti — la vibrazione alla pressione dei tasti**, l'ultimo rimasto. Prima però serve la decisione su `performHapticFeedback` vs `Vibrator` (vedi la nota nel punto 4).
-- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce (vedi sopra); va riprovato sul telefono con l'APK aggiornato.
+- **Prossimo step:** **Fase 2 — bilingue IT+EN**. Gli appunti della prova reale sono esauriti.
+- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce (vedi sopra); va riprovato sul telefono con l'APK aggiornato (`t9-1.21-debug.apk`).
 - **Dopo i punti degli appunti:** **Fase 2 — bilingue IT+EN**. `MergingDictionaryEngine` è già pronto dallo Step 1.5: serve `EnglishDictionaryEngine` + corpus inglese.
 - **Dopo:** **Fase 3** (impostazioni/ergonomia, dove rientrano la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente). Il test reale sullo smartphone continua in parallelo: `bash tools/dev.sh apk` → `app/build/outputs/apk/debug/app-debug.apk`.
 - 📝 **Appunti dell'utente dalla prova reale (30/07 sera).** **Ordine deciso dall'utente: prima le tre segnalazioni (1, 2, 3), poi la vibrazione (4).** Il punto 1 è **chiuso** (Step 1.18, 31/07); restano 2, 3 e 4.
@@ -89,7 +89,13 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
      imparata **intera**. `sequenceFor` salta l'apostrofo dell'elisione, così `l'aveva` sta
      nel dizionario personale sotto `528382` e alla seconda scrittura si ottiene digitando
      **solo le lettere**, con l'apostrofo scritto dalla tastiera.
-  4. **Manca il ritorno tattile: la tastiera non vibra sotto il dito.** L'utente: *"mi sta mancando tanto non sentire il tasto quando schiaccio"* — quindi **non** è una rifinitura da rimandare, va fatta presto; la durata **regolabile** arriverà con la schermata impostazioni.
+  4. ✅ **RISOLTO — Step 1.21.** Scelta dell'utente: **durata regolabile**, quindi il
+     `Vibrator` con durata esplicita e non `performHapticFeedback`. Il prezzo della scelta
+     è che rispettare l'impostazione di sistema diventa un nostro compito, ed è fatto
+     (`HAPTIC_FEEDBACK_ENABLED`, verificato spegnendolo e riaccendendolo). Testo originale
+     dell'appunto qui sotto.
+
+  4. ~~**Manca il ritorno tattile: la tastiera non vibra sotto il dito.**~~ L'utente: *"mi sta mancando tanto non sentire il tasto quando schiaccio"* — quindi **non** è una rifinitura da rimandare, va fatta presto; la durata **regolabile** arriverà con la schermata impostazioni.
      **Nota per chi riprende:** il posto giusto è `KeyViewFactory`, dove ogni tasto ha già il suo `ACTION_DOWN`: si scrive una volta sola e vale per tutte le superfici (T9, simboli, emoji, popup). Una decisione da prendere subito, perché cambia l'implementazione — `performHapticFeedback(KEYBOARD_TAP)` rispetta l'impostazione di sistema e il profilo del telefono ma **non** ha durata regolabile; il `Vibrator` con durata esplicita è calibrabile ma deve tacere da sé quando l'utente ha spento il feedback tattile di sistema. Da considerare anche la ripetizione del backspace tenuto premuto (non deve diventare un ronzio continuo) e l'apertura del popup, che di solito ha un colpo suo.
 
 - **Come riprendere:** leggi questa sezione + i task non spuntati qui sotto. Build/test rapido da terminale: vedi blocco "Build & test da riga di comando" più sotto.
@@ -444,6 +450,68 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-07-31 — Step 1.21: la tastiera vibra sotto il dito
+**Punto 4 degli appunti**, l'ultimo. *"Mi sta mancando tanto non sentire il tasto quando
+schiaccio."* **Decisione dell'utente: durata regolabile** — quindi il `Vibrator` con durata
+esplicita, non `performHapticFeedback`.
+
+**Il prezzo della scelta, pagato qui:** il tick di sistema avrebbe rispettato da sé
+l'impostazione dell'utente. Guidando il `Vibrator` direttamente, farlo tocca a noi —
+`Haptics` legge `HAPTIC_FEEDBACK_ENABLED` e tace quando è spento. Una tastiera che vibra
+dopo che l'hai disattivata è una tastiera che disinstalli.
+
+**File creati/modificati:**
+- `ui/Haptics.kt` (nuovo) — il tick, con la lettura dell'impostazione di sistema memorizzata
+  per un secondo (è una chiamata binder, e i tasti sono veloci).
+- `settings/KeyboardSettings.kt` — `hapticMs`: default **18 ms**, `0` = spento, massimo 60.
+  Durata e non booleano, perché è tutto il motivo per cui guidiamo noi il `Vibrator`.
+- `ui/KeyViewFactory.kt` — l'aggancio sta qui, l'unico posto dove ogni superficie costruisce
+  i tasti, così T9/simboli/emoji/popup non possono divergere. `attachLongPressPopup` ora
+  dice se ha preso il controllo del tocco; il tasto senza alternative riceve
+  `attachTapFeedback`, un listener il cui unico compito è il tick.
+- `AndroidManifest.xml` — permesso `VIBRATE` ("normal", nessun dato).
+
+**Tre decisioni sul quando:** alla **pressione** e non al rilascio; il **backspace tenuto
+premuto vibra una volta sola** (un colpo per carattere diventerebbe un ronzio); l'**apertura
+del popup ha un colpo doppio**, perché segna un cambio di stato e non una battuta.
+
+**Verificato (2026-07-31):** `:app:testDebugUnitTest` verde (122 test). Sull'emulatore la
+vibrazione non si sente, quindi è stata letta nel **registro del servizio**: dopo due tasti,
+`dumpsys vibrator_manager` mostra due voci `Step=18ms` da `com.daux.t9keyboard` — cioè
+esattamente il nostro one-shot. Poi, spegnendo `haptic_feedback_enabled`, due altri tasti
+**non aggiungono alcuna voce**; riaccendendolo la voce ricompare.
+
+**Non coperto da unit test:** `Haptics` e `KeyboardSettings` dipendono dalla piattaforma
+(`Vibrator`, `Settings.System`, `SharedPreferences`). La verifica è reale ma manuale.
+
+**Resta per la Fase 3:** lo slider della durata nella schermata impostazioni. Il valore è
+già letto fresco a ogni pressione, quindi quella schermata non richiederà modifiche qui.
+
+### 2026-07-31 — Step 1.20: la versione è visibile mentre si prova
+**Richiesta dell'utente:** *"per evitare confusione quando testo da telefono vorrei che
+versioni apk e nome app in modo da renderci conto che versione sto testando nel frattempo
+che viene modificata."*
+
+**Fatto:** `versionName` **è** il numero dello step di questo file, non una numerazione
+parallela — e da lì derivano nome dell'app ed etichetta della tastiera. Nel selettore
+tastiere si legge **"T9 1.21"**, quindi ciò che si ha in mano si trova nel log a colpo
+d'occhio.
+
+**File modificati:**
+- `app/build.gradle.kts` — `versionCode`/`versionName`, e `resValue` che genera `app_name` e
+  `ime_label` dalla versione: unica fonte, impossibile che restino indietro.
+- `res/values/strings.xml` — le due stringhe **tolte**: scritte a mano si sarebbero
+  disallineate al primo step.
+- `tools/dev.sh` — `apk` stampa la versione e copia l'APK con la versione nel nome
+  (`t9-1.21-debug.apk`), così sul telefono non si confondono fra loro.
+
+**Verificato (2026-07-31):** installato, `dumpsys package` riporta `versionName=1.21`, e nelle
+impostazioni Android la tastiera compare come **"T9 1.20"** (screenshot preso alla 1.20:
+`docs/screenshots/step-1.20-versione-nel-selettore.png`).
+
+**Nota:** ricordarsi di alzare `versionCode`/`versionName` a ogni step — è la sola parte
+manuale rimasta, e uno step che se lo dimentica rende il numero una bugia.
 
 ### 2026-07-31 — Step 1.19: l'apostrofo dell'elisione sta dentro la parola
 **Punti 2 e 3 degli appunti, affrontati insieme** perché dipendono dalla stessa distinzione,

@@ -28,6 +28,12 @@ class KeyViewFactory(
 ) {
 
     /**
+     * The tick under the finger. It lives here, at the one place every surface builds
+     * its keys, so T9, symbol pages, emoji and popups cannot end up feeling different.
+     */
+    private val haptics = Haptics(context)
+
+    /**
      * Whoever can display a long-press panel above a key — implemented by the root
      * keyboard view, which is the only thing that knows where the key sits.
      *
@@ -73,7 +79,10 @@ class KeyViewFactory(
                 attachHoldToDelete(this)
             } else {
                 setOnClickListener { onKey(spec.action) }
-                attachLongPressPopup(this, spec)
+                // A key with no alternatives declines the popup gesture entirely, and
+                // would then have nothing watching ACTION_DOWN — so it gets a listener
+                // whose only job is the tick. Every key must feel the same.
+                if (!attachLongPressPopup(this, spec)) attachTapFeedback(this)
             }
         }
 
@@ -136,6 +145,10 @@ class KeyViewFactory(
                 MotionEvent.ACTION_DOWN -> {
                     v.isPressed = true
                     repeats = 0
+                    // Only the press itself. The repeat deliberately stays silent: one
+                    // tick per deleted character would run together into a drone, which
+                    // is a phone that feels broken rather than a keyboard that responds.
+                    haptics.keyPress()
                     onKey(KeyAction.Backspace) // the tap itself
                     handler.postDelayed(tick, HOLD_DELAY_MS)
                     true
@@ -162,9 +175,22 @@ class KeyViewFactory(
      * we do take over, a release without an open panel still fires [View.performClick],
      * so a plain tap behaves the same and accessibility keeps working.
      */
+    /**
+     * The tick for a key that handles nothing else: fires on the press and then gets
+     * out of the way, returning false so the ordinary click listener still runs.
+     */
     @SuppressLint("ClickableViewAccessibility")
-    private fun attachLongPressPopup(view: View, spec: KeySpec) {
-        val host = popups ?: return
+    private fun attachTapFeedback(view: View) {
+        view.setOnTouchListener { _, event ->
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) haptics.keyPress()
+            false // never consume: the click listener is what actually types
+        }
+    }
+
+    /** Returns true when it took over the key's touch stream. */
+    @SuppressLint("ClickableViewAccessibility")
+    private fun attachLongPressPopup(view: View, spec: KeySpec): Boolean {
+        val host = popups ?: return false
         val handler = Handler(Looper.getMainLooper())
         var handling = false
         var open = false
@@ -176,12 +202,14 @@ class KeyViewFactory(
 
         val openPopup = Runnable {
             open = true
+            haptics.popupOpen()
             host.showPopup(view, cells, lastX, lastY)
         }
 
         view.setOnTouchListener { v, event ->
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
+                    haptics.keyPress() // before deciding: a press is a press either way
                     cells = host.alternatesFor(spec)
                     handling = cells.isNotEmpty()
                     if (handling) {
@@ -220,6 +248,7 @@ class KeyViewFactory(
                 else -> false
             }
         }
+        return true
     }
 
     /**
