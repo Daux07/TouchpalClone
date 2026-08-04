@@ -10,13 +10,13 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** 3.2 — anteprima viva della tastiera nella schermata impostazioni (versione 3.2).
+**Allineato a:** 3.3 — altezza della tastiera e dimensione del testo dei candidati regolabili (versione 3.3).
 
 **Versione visibile.** `versionName` **è** il numero dello step di `DEVELOPMENT.md`, e da lì
 derivano (via `resValue` in `app/build.gradle.kts`) il nome dell'app e l'etichetta della
-tastiera: nel selettore si legge **"T9 3.2"**. Provando sul telefono si sa sempre a che punto
+tastiera: nel selettore si legge **"T9 3.3"**. Provando sul telefono si sa sempre a che punto
 del log corrisponde ciò che si ha in mano — e `bash tools/dev.sh apk` produce anche un file
-con la versione nel nome (`t9-3.2-debug.apk`), così gli APK non si confondono fra loro. Le
+con la versione nel nome (`t9-3.3-debug.apk`), così gli APK non si confondono fra loro. Le
 due stringhe non stanno più in `strings.xml`: scritte a mano resterebbero indietro.
 
 ## Indice
@@ -100,7 +100,7 @@ predefinita → abilita "T9 Keyboard"*, poi la si seleziona dal selettore tastie
 Ospita la **barra suggerimenti** in alto e sotto il **corpo della modalità corrente**.
 Possiede ciò che è comune a tutte le modalità: sfondo scuro, **inset della barra di
 navigazione** (targetSdk 35 è edge-to-edge, altrimenti i tasti finirebbero sotto la nav bar)
-e altezza complessiva (`BAR_DP` **32dp** + **28,7%** dell'altezza schermo).
+e altezza complessiva (`BAR_DP` **32dp** + una quota dello schermo regolabile, default **29%**).
 
 **Le proporzioni, e perché sono queste (Step 1.25).** Misurato su schermo 1280×2856 a 480dpi:
 
@@ -134,7 +134,8 @@ niente altro. Una riga di lettere resta 0,07 dello schermo, la misura che ha dal
 una riga di lettere»: a corpo fisso lo stesso 10% avrebbe richiesto `1.14`, perché il peso è
 una quota del tutto e il tutto sarebbe cresciuto insieme a lei.
 
-**L'altezza regolabile è compito della Fase 3**: chi la vuole più alta potrà dirlo.
+**L'altezza è regolabile dallo Step 3.3**: le misure qui sopra sono quelle del default (29%), e
+chi la vuole diversa lo dice dal cursore nelle impostazioni — vedi §12.
 
 Nelle modalità non-T9 la barra suggerimenti diventa **invisibile ma occupa il suo spazio**,
 così l'altezza della tastiera non salta cambiando superficie.
@@ -1201,8 +1202,37 @@ Tre dettagli che sembrano piccoli e non lo sono:
   contenitore e non più la `ScrollView`. Il basso resta della tastiera, che legge da sé l'inset
   della barra di navigazione.
 
-**Cosa manca ancora:** i due cursori di altezza e dimensione del testo, che arrivano nello
-Step 3.3 sopra questa anteprima.
+#### Le dimensioni (Step 3.3)
+
+Due cursori sopra l'anteprima, che si muove sotto le dita mentre li si sposta.
+
+| Comando | Intervallo | Default | Dove finisce |
+|---|---|---|---|
+| Altezza tastiera | 22–40% dello schermo | **29%** | `KeyboardSettings.bodyHeightPercent`, letta a ogni `KeyboardView.onMeasure` |
+| Testo dei candidati | 12–24 sp | **17 sp** | `SuggestionBarView.textSizeSp` |
+
+**Il riproporzionamento uniforme è gratis**, ed è il dividendo della scelta di costruire la
+disposizione con **pesi** invece che con misure: ogni tasto è una quota di qualunque altezza
+venga fuori, quindi muovere il totale riproporziona tutto insieme invece di stirare una riga.
+
+**I limiti hanno una ragione.** Il minimo del 22% sta sopra il pavimento che lo Step 1.25 aveva
+trovato scendendo troppo (e da cui la 2.5 è dovuta risalire); il massimo del 40% è dove i tasti
+tornano **più alti che larghi**, la forma che la 1.25 ha misurato e scartato. Il tetto di 24 sp è
+quanto sta ancora nella striscia dei candidati, che **non** cresce col testo — `BAR_DP` è fisso e
+la 1.25 aveva dimensionato le due cose insieme apposta.
+
+**Il default dichiara il suo arrotondamento:** gli Step 1.25 e 2.5 avevano misurato **28,7%**, e
+un cursore che si muove in punti interi non può tenerlo. 29% è circa 3px più alta su uno schermo
+da 2856 — meno della riga fra due tasti.
+
+**I cursori di dimensione scrivono e ridisegnano a ogni movimento**, al contrario di quello della
+vibrazione che agisce al rilascio. Non è un'incoerenza: un colpo va sentito uno per volta, una
+dimensione va *guardata cambiare*. Il prezzo è una scrittura nelle preferenze per pixel di corsa,
+piccolo e dichiarato; l'alternativa sarebbe un disaccordo fra ciò che si vede e ciò che è
+memorizzato per tutta la durata del trascinamento.
+
+Le nuove misure raggiungono la tastiera vera al rientro in un campo (`onStartInputView` →
+`applySizeSettings`), lo stesso momento in cui si rileggono le lingue.
 
 ---
 

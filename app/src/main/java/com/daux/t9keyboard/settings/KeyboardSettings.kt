@@ -80,11 +80,74 @@ class KeyboardSettings(context: Context) {
         get() = prefs.getInt(KEY_HAPTIC_MS, DEFAULT_HAPTIC_MS).coerceIn(0, MAX_HAPTIC_MS)
         set(value) = prefs.edit().putInt(KEY_HAPTIC_MS, value.coerceIn(0, MAX_HAPTIC_MS)).apply()
 
+    /**
+     * How tall the keypad is, as a **percentage of the screen** — the number
+     * `KeyboardView` measures itself against.
+     *
+     * Stored as a whole percent rather than a float, because that is what a slider can
+     * move in and what a readout can say. The cost is stated rather than hidden: Steps
+     * 1.25 and 2.5 measured their way to **28.7%**, and a whole percent cannot hold it, so
+     * the default is 29 — about 3px taller on a 2856px screen, which is below the width of
+     * the line between two keys.
+     */
+    var bodyHeightPercent: Int
+        get() = prefs.getInt(KEY_BODY_HEIGHT, DEFAULT_BODY_HEIGHT_PERCENT)
+            .coerceIn(MIN_BODY_HEIGHT_PERCENT, MAX_BODY_HEIGHT_PERCENT)
+        set(value) = prefs.edit()
+            .putInt(
+                KEY_BODY_HEIGHT,
+                value.coerceIn(MIN_BODY_HEIGHT_PERCENT, MAX_BODY_HEIGHT_PERCENT)
+            )
+            .apply()
+
+    /** [bodyHeightPercent] as the fraction the measuring code actually wants. */
+    fun bodyHeightFraction(): Float = bodyHeightPercent / 100f
+
+    /**
+     * Candidate text size in sp, driving `SuggestionBarView.textSizeSp`.
+     *
+     * The bar's own height does **not** follow it: `BAR_DP` is fixed, and Step 1.25 sized
+     * the two together on purpose so the words never touch the edges of their strip. The
+     * ceiling here is what still fits that strip, not what still fits the screen.
+     */
+    var candidateTextSp: Int
+        get() = prefs.getInt(KEY_CANDIDATE_SP, DEFAULT_CANDIDATE_SP)
+            .coerceIn(MIN_CANDIDATE_SP, MAX_CANDIDATE_SP)
+        set(value) = prefs.edit()
+            .putInt(KEY_CANDIDATE_SP, value.coerceIn(MIN_CANDIDATE_SP, MAX_CANDIDATE_SP))
+            .apply()
+
     companion object {
         const val DEFAULT_HAPTIC_MS = 18
 
         /** Beyond this it stops reading as a key and starts reading as a buzz. */
         const val MAX_HAPTIC_MS = 60
+
+        /** The height Steps 1.25 and 2.5 measured their way to. See [bodyHeightPercent]. */
+        const val DEFAULT_BODY_HEIGHT_PERCENT = 29
+
+        /**
+         * Below this the keys stop being aimable — Step 1.25 already found the floor by
+         * going too far in the other direction and having to come back up in 2.5.
+         */
+        const val MIN_BODY_HEIGHT_PERCENT = 22
+
+        /**
+         * Above this the keys come out **taller than wide**, which Step 1.25 measured and
+         * rejected: it reads as a numeric keypad, and it spends on height what the text
+         * being written needs more. Left reachable rather than forbidden — it is the
+         * user's screen — but the range stops where the shape stops making sense.
+         */
+        const val MAX_BODY_HEIGHT_PERCENT = 40
+
+        /** `SuggestionBarView.DEFAULT_TEXT_SP`, as an integer the slider can move in. */
+        const val DEFAULT_CANDIDATE_SP = 17
+
+        /** Smaller than this and the words are legible only to whoever wrote them. */
+        const val MIN_CANDIDATE_SP = 12
+
+        /** Larger than this and the words touch the edges of a strip that does not grow. */
+        const val MAX_CANDIDATE_SP = 24
 
         private const val FILE = "keyboard_settings"
         private const val KEY_HAPTIC_MS = "haptic_ms"
@@ -92,6 +155,8 @@ class KeyboardSettings(context: Context) {
         private const val KEY_FAVOURITES = "favourite_symbols"
         private const val KEY_AUTO_CAPS = "auto_capitalise"
         private const val KEY_AUTO_SPACE = "auto_space"
+        private const val KEY_BODY_HEIGHT = "body_height_percent"
+        private const val KEY_CANDIDATE_SP = "candidate_text_sp"
 
         /** A character no symbol can contain, so the list survives a round trip. */
         private const val SEPARATOR = "\n"

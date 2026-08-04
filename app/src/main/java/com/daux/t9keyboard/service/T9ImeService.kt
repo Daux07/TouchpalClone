@@ -199,6 +199,9 @@ class T9ImeService : InputMethodService() {
         // away. Checked here rather than watched: this is the moment the keyboard comes
         // back, and rebuilding costs a background parse the user is not waiting on.
         if (settings.secondaryLanguages != loadedLanguages) loadDictionaries()
+        // Same moment, same reason: height and candidate text size may have been moved in
+        // the settings while the keyboard was away (Step 3.3).
+        keyboardView?.applySizeSettings()
         // A new field starts on letters, wherever the previous one left the keyboard.
         keyboardView?.hidePopup()
         keyboardView?.setMode(KeyboardMode.T9)

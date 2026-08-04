@@ -37,9 +37,16 @@ import com.daux.t9keyboard.ui.KeyboardView
  */
 class SettingsActivity : Activity() {
 
+    /**
+     * The live keyboard at the foot of the screen. Built before the controls because the
+     * size sliders need something to move — see [slider].
+     */
+    private lateinit var keyboardPreview: KeyboardView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val settings = KeyboardSettings(this)
+        keyboardPreview = preview(settings)
 
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -79,6 +86,31 @@ class SettingsActivity : Activity() {
 
         root.addView(title("Vibrazione"))
         root.addView(hapticControls(settings))
+
+        root.addView(title("Dimensioni"))
+        root.addView(
+            slider(
+                label = { "Altezza tastiera: $it%" },
+                value = settings.bodyHeightPercent,
+                min = KeyboardSettings.MIN_BODY_HEIGHT_PERCENT,
+                max = KeyboardSettings.MAX_BODY_HEIGHT_PERCENT
+            ) { settings.bodyHeightPercent = it }
+        )
+        root.addView(
+            slider(
+                label = { "Testo dei candidati: $it sp" },
+                value = settings.candidateTextSp,
+                min = KeyboardSettings.MIN_CANDIDATE_SP,
+                max = KeyboardSettings.MAX_CANDIDATE_SP
+            ) { settings.candidateTextSp = it }
+        )
+        root.addView(
+            note(
+                "La tastiera qui sotto è vera e cambia mentre muovi i cursori: quello " +
+                    "che vedi è quello che avrai. I tasti mantengono le stesse proporzioni " +
+                    "fra loro a qualunque altezza."
+            )
+        )
 
         root.addView(title("Lingue"))
         root.addView(
@@ -122,7 +154,7 @@ class SettingsActivity : Activity() {
         val screen = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             addView(scroll, LinearLayout.LayoutParams(MATCH, 0, 1f))
-            addView(preview(settings), LinearLayout.LayoutParams(MATCH, WRAP))
+            addView(keyboardPreview, LinearLayout.LayoutParams(MATCH, WRAP))
         }
 
         // targetSdk 35 draws the window edge to edge, so the status bar sits *over* this
@@ -195,6 +227,54 @@ class SettingsActivity : Activity() {
             isChecked = initial
             setOnCheckedChangeListener { _, checked -> onChange(checked) }
         }
+
+    /**
+     * A labelled slider over a size, with the preview following it (Step 3.3).
+     *
+     * **The write and the redraw happen on every movement, not on release.** That is the
+     * opposite of the vibration slider above, and for the opposite reason: a tick has to
+     * be felt one at a time, while a size has to be *watched changing* — half the value of
+     * the preview is seeing the keys pass through the height you nearly chose.
+     *
+     * It costs a `SharedPreferences` write per pixel of travel, which is the honest price
+     * and a small one: `apply()` is asynchronous and the file is a handful of values.
+     * Writing on release instead would mean the preview and the stored value disagreeing
+     * for as long as the finger is down — the kind of gap that becomes a bug the moment
+     * something else reads the setting mid-drag.
+     *
+     * [SeekBar] counts from zero, so [min] is carried in and out by hand rather than
+     * leaking an offset into the callers.
+     */
+    private fun slider(
+        label: (Int) -> String,
+        value: Int,
+        min: Int,
+        max: Int,
+        onChange: (Int) -> Unit
+    ): LinearLayout {
+        val readout = note(label(value)).apply { setPadding(0, 0, 0, dp(4)) }
+        val bar = SeekBar(this).apply {
+            this.max = max - min
+            progress = value - min
+            setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(bar: SeekBar, progress: Int, fromUser: Boolean) {
+                    val chosen = progress + min
+                    readout.text = label(chosen)
+                    onChange(chosen)
+                    keyboardPreview.applySizeSettings()
+                }
+
+                override fun onStartTrackingTouch(bar: SeekBar) = Unit
+                override fun onStopTrackingTouch(bar: SeekBar) = Unit
+            })
+        }
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(0, 0, 0, dp(12))
+            addView(readout)
+            addView(bar)
+        }
+    }
 
     /**
      * The duration of the tick under the finger, chosen by **feeling it**.

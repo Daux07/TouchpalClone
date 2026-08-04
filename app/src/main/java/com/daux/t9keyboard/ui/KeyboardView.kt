@@ -18,6 +18,7 @@ import com.daux.t9keyboard.model.KeyAction
 import com.daux.t9keyboard.model.KeySpec
 import com.daux.t9keyboard.model.KeyboardMode
 import com.daux.t9keyboard.model.SymbolLayout
+import com.daux.t9keyboard.settings.KeyboardSettings
 
 /**
  * The whole input surface: the suggestion bar on top, and below it the body of the
@@ -41,6 +42,7 @@ class KeyboardView(
     private val keyAlternates: (KeySpec) -> List<KeySpec>
 ) : FrameLayout(context), KeyViewFactory.PopupHost {
 
+    private val settings = KeyboardSettings(context)
     private val keys = KeyViewFactory(context, onKey, this)
     private val suggestionBar = SuggestionBarView(context, onPickCandidate, onForgetCandidate)
     private val t9Body = T9BodyView(context, keys, onPickLetter, onPickSymbol, onEditSymbol)
@@ -260,9 +262,24 @@ class KeyboardView(
 
     private fun applyBottomPadding() = setPadding(0, 0, 0, navBottomPx + dp(6))
 
+    /**
+     * Take the height and the candidate text size from the settings again (Step 3.3).
+     *
+     * Called when the keyboard comes back to a field, and by the settings screen on every
+     * movement of a slider — which is what makes the preview there follow the finger. The
+     * height is not applied here but at [onMeasure]; this only asks for a new measurement.
+     */
+    fun applySizeSettings() {
+        suggestionBar.textSizeSp = settings.candidateTextSp.toFloat()
+        requestLayout()
+    }
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val screenH = resources.displayMetrics.heightPixels
-        val desired = dp(BAR_DP) + (screenH * BODY_HEIGHT_FRACTION).toInt() + navBottomPx + dp(6)
+        // Read here rather than cached: this is the one place the height is used, and a
+        // measurement happens far too rarely for a preferences lookup to matter.
+        val body = (screenH * settings.bodyHeightFraction()).toInt()
+        val desired = dp(BAR_DP) + body + navBottomPx + dp(6)
         val hSpec = MeasureSpec.makeMeasureSpec(desired, MeasureSpec.EXACTLY)
         super.onMeasure(widthMeasureSpec, hSpec)
     }
@@ -280,23 +297,24 @@ class KeyboardView(
         private const val BAR_DP = 32
 
         /**
-         * Height of the keypad as a share of the screen.
+         * The keypad's height is **no longer a constant** (Step 3.3): it is
+         * `KeyboardSettings.bodyHeightPercent`, read at every [onMeasure].
          *
-         * Lowered from 0.34 (Step 1.25): the keys were coming out very nearly square,
-         * which reads as a numeric keypad rather than a keyboard and wastes height that
-         * the text above needs more. Wider-than-tall is also the shape a thumb actually
-         * hits — horizontal error is the common one, vertical is not.
-         *
-         * The whole keyboard is shorter as a result. Making the height adjustable is
-         * Phase 3's job: whoever wants it taller will be able to say so.
-         *
-         * **Raised from 0.28 to 0.287 (Step 2.5)**, by the user's leave, for the single
+         * How the default got where it is, because the number means nothing without it.
+         * It was 0.34 until Step 1.25, which lowered it: the keys were coming out very
+         * nearly square, which reads as a numeric keypad rather than a keyboard and spends
+         * on height what the text above needs more. Wider-than-tall is also the shape a
+         * thumb actually hits — horizontal error is the common one, vertical is not. Step
+         * 2.5 then raised it from 0.28 to 0.287, by the user's leave, for the single
          * purpose of paying for a bottom row a tenth taller than a letter row
-         * ([T9BodyView.BOTTOM_ROW_WEIGHT]). The arithmetic is exactly that and nothing
-         * more: 0.28 × 4.1/4. A letter row is still 0.07 of the screen, the size it has
-         * had since Step 1.25 — the seven thousandths are the space bar's alone.
+         * ([T9BodyView.BOTTOM_ROW_WEIGHT]): the arithmetic was 0.28 × 4.1/4 and nothing
+         * more.
+         *
+         * Nothing else needs to change to make it adjustable, and that is the point of
+         * having built the layout out of **weights**: every key is a share of whatever
+         * height this comes out to, so moving it reproportions the lot uniformly instead
+         * of stretching one row.
          */
-        private const val BODY_HEIGHT_FRACTION = 0.287f
 
         /** Clearance between the popup and the key that opened it. See [positionPopup]. */
         private const val POPUP_GAP_DP = 10
