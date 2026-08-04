@@ -248,8 +248,14 @@ class KeyboardView(
          *
          * The whole keyboard is shorter as a result. Making the height adjustable is
          * Phase 3's job: whoever wants it taller will be able to say so.
+         *
+         * **Raised from 0.28 to 0.287 (Step 2.5)**, by the user's leave, for the single
+         * purpose of paying for a bottom row a tenth taller than a letter row
+         * ([T9BodyView.BOTTOM_ROW_WEIGHT]). The arithmetic is exactly that and nothing
+         * more: 0.28 × 4.1/4. A letter row is still 0.07 of the screen, the size it has
+         * had since Step 1.25 — the seven thousandths are the space bar's alone.
          */
-        private const val BODY_HEIGHT_FRACTION = 0.28f
+        private const val BODY_HEIGHT_FRACTION = 0.287f
 
         /** Clearance between the popup and the key that opened it. See [positionPopup]. */
         private const val POPUP_GAP_DP = 10

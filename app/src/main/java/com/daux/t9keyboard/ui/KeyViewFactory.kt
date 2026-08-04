@@ -271,6 +271,12 @@ class KeyViewFactory(
         // Worded mode keys ("12#", "abc", "1/2") — but not the glyph ones (☺).
         spec.action is KeyAction.Mode && spec.mainLabel.first().isLetterOrDigit() -> 15f
         spec.mainLabel == "space" -> 15f
+        // The shift arrow is drawn larger than its neighbours so it does not *look*
+        // smaller (Step 2.5). `⇧` is a thin outline with most of its box empty, while
+        // `⌫` and `☺` are solid: at the same nominal size the arrow reads as the runt of
+        // the column, and it is the key that has to say which case you are about to type.
+        // Nominal size is the only handle there is — the glyph widens as it grows.
+        spec.action is KeyAction.Shift -> 26f
         spec.isFunction -> 20f
         // Single glyphs (symbols, emoji) get more presence than "abc" clusters.
         // Counted in code points, so an emoji made of a surrogate pair still counts as one.

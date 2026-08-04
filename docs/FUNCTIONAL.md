@@ -10,13 +10,13 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** 2.4 — l'elisione non impara più spazzatura, e `c'è` sì (versione 2.4).
+**Allineato a:** 2.5 — riga dello spazio più alta e freccia dello shift più grande (versione 2.5).
 
 **Versione visibile.** `versionName` **è** il numero dello step di `DEVELOPMENT.md`, e da lì
 derivano (via `resValue` in `app/build.gradle.kts`) il nome dell'app e l'etichetta della
-tastiera: nel selettore si legge **"T9 2.4"**. Provando sul telefono si sa sempre a che punto
+tastiera: nel selettore si legge **"T9 2.5"**. Provando sul telefono si sa sempre a che punto
 del log corrisponde ciò che si ha in mano — e `bash tools/dev.sh apk` produce anche un file
-con la versione nel nome (`t9-2.4-debug.apk`), così gli APK non si confondono fra loro. Le
+con la versione nel nome (`t9-2.5-debug.apk`), così gli APK non si confondono fra loro. Le
 due stringhe non stanno più in `strings.xml`: scritte a mano resterebbero indietro.
 
 ## Indice
@@ -100,7 +100,7 @@ predefinita → abilita "T9 Keyboard"*, poi la si seleziona dal selettore tastie
 Ospita la **barra suggerimenti** in alto e sotto il **corpo della modalità corrente**.
 Possiede ciò che è comune a tutte le modalità: sfondo scuro, **inset della barra di
 navigazione** (targetSdk 35 è edge-to-edge, altrimenti i tasti finirebbero sotto la nav bar)
-e altezza complessiva (`BAR_DP` **32dp** + **28%** dell'altezza schermo).
+e altezza complessiva (`BAR_DP` **32dp** + **28,7%** dell'altezza schermo).
 
 **Le proporzioni, e perché sono queste (Step 1.25).** Misurato su schermo 1280×2856 a 480dpi:
 
@@ -121,6 +121,18 @@ le due cose **devono** muoversi insieme, o le parole toccano i bordi della loro 
 guadagno non è solo di spazio: nella barra ci stanno ora **sei** candidati dove ne entravano
 quattro. Il prezzo dichiarato è che 32dp sta sotto i 48dp raccomandati come area di tocco —
 accettabile per una striscia di scelta rapida sopra una tastiera, ma è un prezzo.
+
+**La riga dello spazio è un decimo più alta di una riga di lettere (Step 2.5).** L'utente
+segnalava di mancare lo spazio ogni tanto — il tasto più premuto che ci sia. Cresce **tutta la
+riga**, non il solo spazio: una riga di tasti disuguali si legge come uno sbaglio, non come un
+bersaglio più grande.
+
+I dieci centesimi sono **altezza nuova, non altezza tolta alle lettere**: la frazione del corpo
+è passata da 0,28 a **0,287**, cioè 0,28 × 4,1/4, esattamente la quota della riga in più e
+niente altro. Una riga di lettere resta 0,07 dello schermo, la misura che ha dallo Step 1.25.
+È anche il motivo per cui il peso della riga può restare leggibile — `1.1`, «un decimo più di
+una riga di lettere»: a corpo fisso lo stesso 10% avrebbe richiesto `1.14`, perché il peso è
+una quota del tutto e il tutto sarebbe cresciuto insieme a lei.
 
 **L'altezza regolabile è compito della Fase 3**: chi la vuole più alta potrà dirlo.
 
@@ -724,6 +736,12 @@ un carattere che non si digita. Parcheggiando il cursore dopo `l'aveva` si adott
 il singolo tasto (le lettere le decide il dizionario): `ONCE` capitalizza la parola in corso e
 si consuma alla conferma (`afterCommit()`), `LOCK` scrive tutto maiuscolo finché non lo
 spegni. Il glifo diventa `⇪` e passa dal teal al bianco quando è attivo.
+
+**Il glifo è disegnato più grande dei suoi vicini — 26sp contro 20sp (Step 2.5).** Non è una
+preferenza: `⇧` è una freccia di contorno con quasi tutto il suo riquadro vuoto, mentre `⌫` e
+`☺` sono pieni, e alla stessa misura nominale la freccia si legge come il tasto più piccolo
+della colonna — proprio quello che deve dire in che maiuscole si sta per scrivere. La misura
+nominale è l'unica leva che c'è: il glifo si allarga crescendo.
 
 **Punto chiave:** la maiuscola si applica **all'ultimo momento**, in `currentPreview()`;
 composizione e dizionario restano minuscoli, così apprendimento e lookup non sono influenzati

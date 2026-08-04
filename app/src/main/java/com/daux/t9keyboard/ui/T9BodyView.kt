@@ -126,16 +126,24 @@ class T9BodyView(
         private const val LETTERS_WEIGHT = 5.4f
         private const val FUNC_COLUMN_WEIGHT = 1.1f
         /**
-         * Same height as a letter row (Step 1.26). It used to be 0.72 — deliberately
+         * A tenth taller than a letter row (Step 2.5). It used to be 0.72 — deliberately
          * thinner, since the space bar and its neighbours are not letters. That held
          * while the keyboard was tall; once the whole thing came down (Step 1.25) the
          * same fraction of a smaller number left a row too shallow to aim at, and the
-         * space bar is the most-pressed key there is.
+         * space bar is the most-pressed key there is. Step 1.26 levelled it with the
+         * letter rows; the user still missed the space bar now and then, so it now gets
+         * a little more than they have.
          *
-         * The keyboard does **not** grow back: the upper area keeps the height it has,
-         * so the four rows simply share it evenly. The letter keys end up marginally
-         * flatter, which is the direction Step 1.25 was already going.
+         * The whole row grows, not just the space bar: a bottom row of uneven keys would
+         * read as a mistake rather than as a bigger target.
+         *
+         * **The extra tenth is new height, not height taken from the letters.** The user
+         * allowed the keyboard to grow, so [KeyboardView.BODY_HEIGHT_FRACTION] went up by
+         * exactly this row's share and the three letter rows keep the size they had. That
+         * is what lets this number stay readable: at a fixed body height the same 10%
+         * taller row would have meant a weight of 1.14, because a weight is a share of
+         * the whole and the whole would have been growing too.
          */
-        private const val BOTTOM_ROW_WEIGHT = 1f
+        private const val BOTTOM_ROW_WEIGHT = 1.1f
     }
 }

@@ -28,10 +28,10 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** **Fase 2 completa** — bilingue IT+EN (versione **2.0**). Fase 1 completa, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** **2.4 — l'elisione non impara più spazzatura, e `c'è` sì**: `Elision.join` non unisce una coda di una sola lettera non accentata, quindi `l'a` non entra più nel dizionario mentre `c'è`, `n'è`, `s'è` restano imparabili — e sono l'unico modo in cui possano comparire, visto che nessun corpus contiene apostrofi. Prima: **2.3 — il peso delle parole imparate**: da 1.000.000 fisso a abitudine + spinta recente sulla scala del corpus, e la pressione prolungata su un candidato lo dimentica. Prima: **2.2 — la `b` prima della `a`**: una lettera singola imparata da una build vecchia dominava il tasto 2; la regola scende nel dizionario e l'archivio viene bonificato al caricamento. Prima: **Fase 2.1 — il bilinguismo si accende e si spegne**: schermata impostazioni raggiungibile dal launcher, e la lingua è un elenco (`Language`) invece di un interruttore per l'inglese, così una terza costa un dizionario e una riga. Prima: **Fase 2 — bilingue IT+EN** (versione 2.0): italiano e inglese attivi insieme, senza cambio lingua; l'inglese non scavalca mai l'italiano, quindi nessuna sequenza che funzionava prima si ordina diversamente. Prima: Step 1.26 — **riga dello spazio uniformata** alle file di lettere (senza far ricrescere la tastiera) e **una lettera sola non è mai un nome proprio**: premendo `2` la barra offriva "a B C à". Prima: 1.25 — **tastiera più bassa**: barra candidati quasi dimezzata e tasti più larghi che alti; la tastiera passa dal 40% al 31% dello schermo. Prima: 1.24 — **resilienza ai refusi doppi**: due tasti invertiti (che prima sfuggivano del tutto) e, come ultima risorsa sulle parole lunghe, due tasti sbagliati. Prima: 1.23 (anteprima leggibile: senza corrispondenze esatte il campo mostra la migliore offerta invece delle lettere di default), 1.22 — **completamento di parola**: dopo le parole che i tasti scrivono esattamente, la barra offre quelle di cui i tasti sono l'inizio (dieci tasti per `contemporaneamente`). Prima: 1.21 (la tastiera vibra sotto il dito, con durata regolabile — `KeyboardSettings.hapticMs`, default 18 ms), 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **Ultimo step completato:** **2.5 — due ritocchi grafici chiesti dall'utente**: la riga dello spazio è un decimo più alta di una riga di lettere (si mancava lo spazio ogni tanto) e la freccia dello shift passa da 20sp a 26sp, perché un glifo di contorno alla misura dei pieni si legge più piccolo di loro. La tastiera si alza da 0,28 a 0,287 dello schermo — l'utente ha dato il permesso, così le lettere non si appiattiscono per pagare la riga. Prima: **2.4 — l'elisione non impara più spazzatura, e `c'è` sì**: `Elision.join` non unisce una coda di una sola lettera non accentata, quindi `l'a` non entra più nel dizionario mentre `c'è`, `n'è`, `s'è` restano imparabili — e sono l'unico modo in cui possano comparire, visto che nessun corpus contiene apostrofi. Prima: **2.3 — il peso delle parole imparate**: da 1.000.000 fisso a abitudine + spinta recente sulla scala del corpus, e la pressione prolungata su un candidato lo dimentica. Prima: **2.2 — la `b` prima della `a`**: una lettera singola imparata da una build vecchia dominava il tasto 2; la regola scende nel dizionario e l'archivio viene bonificato al caricamento. Prima: **Fase 2.1 — il bilinguismo si accende e si spegne**: schermata impostazioni raggiungibile dal launcher, e la lingua è un elenco (`Language`) invece di un interruttore per l'inglese, così una terza costa un dizionario e una riga. Prima: **Fase 2 — bilingue IT+EN** (versione 2.0): italiano e inglese attivi insieme, senza cambio lingua; l'inglese non scavalca mai l'italiano, quindi nessuna sequenza che funzionava prima si ordina diversamente. Prima: Step 1.26 — **riga dello spazio uniformata** alle file di lettere (senza far ricrescere la tastiera) e **una lettera sola non è mai un nome proprio**: premendo `2` la barra offriva "a B C à". Prima: 1.25 — **tastiera più bassa**: barra candidati quasi dimezzata e tasti più larghi che alti; la tastiera passa dal 40% al 31% dello schermo. Prima: 1.24 — **resilienza ai refusi doppi**: due tasti invertiti (che prima sfuggivano del tutto) e, come ultima risorsa sulle parole lunghe, due tasti sbagliati. Prima: 1.23 (anteprima leggibile: senza corrispondenze esatte il campo mostra la migliore offerta invece delle lettere di default), 1.22 — **completamento di parola**: dopo le parole che i tasti scrivono esattamente, la barra offre quelle di cui i tasti sono l'inizio (dieci tasti per `contemporaneamente`). Prima: 1.21 (la tastiera vibra sotto il dito, con durata regolabile — `KeyboardSettings.hapticMs`, default 18 ms), 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
 - **Prossimo step:** **Fase 3 — impostazioni ed ergonomia**. Le preferenze esistono già nel codice e aspettano solo la schermata: altezza tastiera, durata della vibrazione, dimensione del testo dei candidati, lingue secondarie (l'elenco `Language`, non più un interruttore per l'inglese: dalla 2.1), lato della colonna. Vi rientrano anche la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente.
-- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce sull'emulatore — riprovato sulla 2.4 il 04/08 sia a inizio campo sia a inizio frase, con la maiuscola automatica armata (vedi sopra). Resta da provare sul telefono con `t9-2.4-debug.apk`, che è l'unico posto dove il difetto sia mai stato visto.
+- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce sull'emulatore — riprovato sulla 2.4 il 04/08 sia a inizio campo sia a inizio frase, con la maiuscola automatica armata (vedi sopra). Resta da provare sul telefono con `t9-2.5-debug.apk`, che è l'unico posto dove il difetto sia mai stato visto.
 - **Dopo:** altre lingue oltre IT/EN, e il dizionario binario indicizzato se il formato testo diventasse stretto.
 
 - 📌 **Code della 2.3 — entrambe chiuse il 2026-08-04.**
@@ -139,7 +139,7 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
      **Cosa questo non prova.** La segnalazione originale viene dal **telefono**, non
      dall'emulatore, e su un APK di cui non si conosce la versione. L'emulatore può solo
      continuare a dire che il difetto non c'è: a chiudere il punto è un riscontro sul
-     telefono con `t9-2.4-debug.apk`.
+     telefono con `t9-2.5-debug.apk`.
 
   3. ✅ **RISOLTO — Step 1.19.** *Elisioni come parola unica.*
 
@@ -513,6 +513,36 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-08-04 — Step 2.5: la riga dello spazio si alza, la freccia dello shift si allarga
+**Due ritocchi grafici chiesti dall'utente dopo l'uso**, non trovati leggendo il codice.
+
+**1. «Ogni tanto manco lo spazio».** La riga in fondo era alta esattamente come una riga di
+lettere dallo Step 1.26; ora è **un decimo più alta**. Cresce tutta la riga e non il solo
+spazio: una riga di tasti disuguali si legge come uno sbaglio, non come un bersaglio più grande.
+
+**Il permesso dell'utente ha cambiato la soluzione a metà lavoro.** La prima versione teneva la
+tastiera all'altezza di prima e prendeva i dieci centesimi alle righe di lettere — che
+diventavano il 3,4% più piatte — e costringeva il peso a valere `1.14`, perché un peso è una
+quota del tutto e cresceva anche il tutto. Poi è arrivato *«puoi alzare un po' il livello totale
+della tastiera se serve»*: il corpo passa da **0,28 a 0,287** dello schermo, cioè 0,28 × 4,1/4,
+esattamente la quota della riga in più. Le lettere restano quelle che erano, e il peso torna a
+dire una cosa sola: `1.1`, un decimo più di una riga di lettere.
+
+**2. «La freccia dello shift la vedo un po' piccola».** Da **20sp a 26sp**, mentre `⌫` e `☺`
+restano a 20. Non è un'eccezione arbitraria: `⇧` è una freccia di **contorno** con quasi tutto
+il riquadro vuoto, gli altri sono glifi pieni, e alla stessa misura nominale la freccia si legge
+come il tasto più piccolo della colonna — proprio quello che deve dire in che maiuscole si sta
+per scrivere. La richiesta era «almeno allargare la freccia» e la misura nominale è l'unica leva
+che c'è: il glifo si allarga crescendo.
+
+**File modificati:** `ui/T9BodyView.kt` (`BOTTOM_ROW_WEIGHT`), `ui/KeyboardView.kt`
+(`BODY_HEIGHT_FRACTION`), `ui/KeyViewFactory.kt` (`labelSize`), `app/build.gradle.kts` (2.4 → 2.5).
+Nessun test nuovo: sono tre costanti di disposizione, e ciò che va verificato è come si vedono.
+
+**Verificato (2026-08-04):** 160 test verdi, e installato sull'emulatore — la riga in fondo è
+visibilmente più alta delle righe di lettere, che non sono cambiate, e la freccia dello shift
+sta ora alla pari di `⌫` e `☺` invece che sotto.
 
 ### 2026-08-04 — Step 2.4: l'elisione non impara più spazzatura, e `c'è` continua a impararsi
 **La seconda coda della 2.3, e il caso in cui la correzione già scritta nel promemoria era
@@ -992,7 +1022,7 @@ d'occhio.
 - `res/values/strings.xml` — le due stringhe **tolte**: scritte a mano si sarebbero
   disallineate al primo step.
 - `tools/dev.sh` — `apk` stampa la versione e copia l'APK con la versione nel nome
-  (`t9-2.4-debug.apk`), così sul telefono non si confondono fra loro.
+  (`t9-2.5-debug.apk`), così sul telefono non si confondono fra loro.
 
 **Verificato (2026-07-31):** installato, `dumpsys package` riporta `versionName=1.21`, e nelle
 impostazioni Android la tastiera compare come **"T9 1.20"** (screenshot preso alla 1.20:
