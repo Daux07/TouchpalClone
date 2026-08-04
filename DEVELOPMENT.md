@@ -28,10 +28,10 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** **Fase 3 — impostazioni ed ergonomia**, pianificata con l'utente il 04/08 (vedi *Fase 3 — decisioni di piano*): 3.1 fatta, si prosegue con la 3.2. Fasi 1 e 2 complete.
-- **Ultimo step completato:** **3.4 — larghezza dei tasti e lato (idea dell'utente)**: un cursore stringe i tasti dal 100% al 60% dello schermo e un interruttore li porta a sinistra per i mancini. Il pannello resta largo quanto lo schermo: non rimpicciolisce la tastiera, la **avvicina al pollice**. Default a tutto schermo — stringere costa precisione, quindi si accende solo chi ne ha bisogno. Prima: **3.3 — altezza della tastiera e dimensione del testo dei candidati**: due cursori sopra l'anteprima, che si muove sotto le dita mentre li sposti. L'altezza va dal 22% al 40% dello schermo e riproporziona tutto in modo uniforme — è gratis, perché la disposizione è fatta di pesi; il testo dei candidati va da 12 a 24 sp sul seam che aspettava dallo Step 1.25. Prima: **3.2 — anteprima viva nella schermata impostazioni**: in fondo alla schermata c'è una tastiera **vera** (`KeyboardView` con le callback a vuoto), non un disegno. Serve alla 3.3 — una misura non si sceglie alla cieca — ma si ripaga già ora: i tasti sono vivi, quindi la durata della vibrazione si giudica premendo un tasto invece che dal solo colpo al rilascio dello slider. Prima: **3.1 — le impostazioni si raggiungono e contengono qualcosa**: una rotellina sopra la colonna, all'altezza dei candidati, apre la schermata senza uscire dall'app in cui si scrive; dentro ci sono maiuscola e spazio automatici e la durata della vibrazione, che vibra quando lasci lo slider. Prima: **2.5 — due ritocchi grafici chiesti dall'utente**: la riga dello spazio è un decimo più alta di una riga di lettere (si mancava lo spazio ogni tanto) e la freccia dello shift passa da 20sp a 26sp, perché un glifo di contorno alla misura dei pieni si legge più piccolo di loro. La tastiera si alza da 0,28 a 0,287 dello schermo — l'utente ha dato il permesso, così le lettere non si appiattiscono per pagare la riga. Prima: **2.4 — l'elisione non impara più spazzatura, e `c'è` sì**: `Elision.join` non unisce una coda di una sola lettera non accentata, quindi `l'a` non entra più nel dizionario mentre `c'è`, `n'è`, `s'è` restano imparabili — e sono l'unico modo in cui possano comparire, visto che nessun corpus contiene apostrofi. Prima: **2.3 — il peso delle parole imparate**: da 1.000.000 fisso a abitudine + spinta recente sulla scala del corpus, e la pressione prolungata su un candidato lo dimentica. Prima: **2.2 — la `b` prima della `a`**: una lettera singola imparata da una build vecchia dominava il tasto 2; la regola scende nel dizionario e l'archivio viene bonificato al caricamento. Prima: **Fase 2.1 — il bilinguismo si accende e si spegne**: schermata impostazioni raggiungibile dal launcher, e la lingua è un elenco (`Language`) invece di un interruttore per l'inglese, così una terza costa un dizionario e una riga. Prima: **Fase 2 — bilingue IT+EN** (versione 2.0): italiano e inglese attivi insieme, senza cambio lingua; l'inglese non scavalca mai l'italiano, quindi nessuna sequenza che funzionava prima si ordina diversamente. Prima: Step 1.26 — **riga dello spazio uniformata** alle file di lettere (senza far ricrescere la tastiera) e **una lettera sola non è mai un nome proprio**: premendo `2` la barra offriva "a B C à". Prima: 1.25 — **tastiera più bassa**: barra candidati quasi dimezzata e tasti più larghi che alti; la tastiera passa dal 40% al 31% dello schermo. Prima: 1.24 — **resilienza ai refusi doppi**: due tasti invertiti (che prima sfuggivano del tutto) e, come ultima risorsa sulle parole lunghe, due tasti sbagliati. Prima: 1.23 (anteprima leggibile: senza corrispondenze esatte il campo mostra la migliore offerta invece delle lettere di default), 1.22 — **completamento di parola**: dopo le parole che i tasti scrivono esattamente, la barra offre quelle di cui i tasti sono l'inizio (dieci tasti per `contemporaneamente`). Prima: 1.21 (la tastiera vibra sotto il dito, con durata regolabile — `KeyboardSettings.hapticMs`, default 18 ms), 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **Ultimo step completato:** **3.5 — l'app si chiama DauxPal, e ogni build lascia un APK versionato**: nome e etichetta tastiera passano da "T9" a "DauxPal" (scelta dell'utente), l'icona da "T" a "D" — **segnaposto, ne arriverà una vera**. L'`applicationId` non cambia, o si perderebbe il dizionario personale. E il file versionato lo produce ora anche `install`, non solo `apk`: usando `install` ci si ritrovava sempre col solo `app-debug.apk`. Prima: **3.4 — larghezza dei tasti e lato (idea dell'utente)**: un cursore stringe i tasti dal 100% al 60% dello schermo e un interruttore li porta a sinistra per i mancini. Il pannello resta largo quanto lo schermo: non rimpicciolisce la tastiera, la **avvicina al pollice**. Default a tutto schermo — stringere costa precisione, quindi si accende solo chi ne ha bisogno. Prima: **3.3 — altezza della tastiera e dimensione del testo dei candidati**: due cursori sopra l'anteprima, che si muove sotto le dita mentre li sposti. L'altezza va dal 22% al 40% dello schermo e riproporziona tutto in modo uniforme — è gratis, perché la disposizione è fatta di pesi; il testo dei candidati va da 12 a 24 sp sul seam che aspettava dallo Step 1.25. Prima: **3.2 — anteprima viva nella schermata impostazioni**: in fondo alla schermata c'è una tastiera **vera** (`KeyboardView` con le callback a vuoto), non un disegno. Serve alla 3.3 — una misura non si sceglie alla cieca — ma si ripaga già ora: i tasti sono vivi, quindi la durata della vibrazione si giudica premendo un tasto invece che dal solo colpo al rilascio dello slider. Prima: **3.1 — le impostazioni si raggiungono e contengono qualcosa**: una rotellina sopra la colonna, all'altezza dei candidati, apre la schermata senza uscire dall'app in cui si scrive; dentro ci sono maiuscola e spazio automatici e la durata della vibrazione, che vibra quando lasci lo slider. Prima: **2.5 — due ritocchi grafici chiesti dall'utente**: la riga dello spazio è un decimo più alta di una riga di lettere (si mancava lo spazio ogni tanto) e la freccia dello shift passa da 20sp a 26sp, perché un glifo di contorno alla misura dei pieni si legge più piccolo di loro. La tastiera si alza da 0,28 a 0,287 dello schermo — l'utente ha dato il permesso, così le lettere non si appiattiscono per pagare la riga. Prima: **2.4 — l'elisione non impara più spazzatura, e `c'è` sì**: `Elision.join` non unisce una coda di una sola lettera non accentata, quindi `l'a` non entra più nel dizionario mentre `c'è`, `n'è`, `s'è` restano imparabili — e sono l'unico modo in cui possano comparire, visto che nessun corpus contiene apostrofi. Prima: **2.3 — il peso delle parole imparate**: da 1.000.000 fisso a abitudine + spinta recente sulla scala del corpus, e la pressione prolungata su un candidato lo dimentica. Prima: **2.2 — la `b` prima della `a`**: una lettera singola imparata da una build vecchia dominava il tasto 2; la regola scende nel dizionario e l'archivio viene bonificato al caricamento. Prima: **Fase 2.1 — il bilinguismo si accende e si spegne**: schermata impostazioni raggiungibile dal launcher, e la lingua è un elenco (`Language`) invece di un interruttore per l'inglese, così una terza costa un dizionario e una riga. Prima: **Fase 2 — bilingue IT+EN** (versione 2.0): italiano e inglese attivi insieme, senza cambio lingua; l'inglese non scavalca mai l'italiano, quindi nessuna sequenza che funzionava prima si ordina diversamente. Prima: Step 1.26 — **riga dello spazio uniformata** alle file di lettere (senza far ricrescere la tastiera) e **una lettera sola non è mai un nome proprio**: premendo `2` la barra offriva "a B C à". Prima: 1.25 — **tastiera più bassa**: barra candidati quasi dimezzata e tasti più larghi che alti; la tastiera passa dal 40% al 31% dello schermo. Prima: 1.24 — **resilienza ai refusi doppi**: due tasti invertiti (che prima sfuggivano del tutto) e, come ultima risorsa sulle parole lunghe, due tasti sbagliati. Prima: 1.23 (anteprima leggibile: senza corrispondenze esatte il campo mostra la migliore offerta invece delle lettere di default), 1.22 — **completamento di parola**: dopo le parole che i tasti scrivono esattamente, la barra offre quelle di cui i tasti sono l'inizio (dieci tasti per `contemporaneamente`). Prima: 1.21 (la tastiera vibra sotto il dito, con durata regolabile — `KeyboardSettings.hapticMs`, default 18 ms), 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
 - **Prossimo step:** **3.5 — scorrimento del cursore trascinando sulla barra spazio** (idea dell'utente). Indipendente dalla schermata impostazioni: occupa il long-press dello spazio, tenuto libero apposta fin dallo Step 1.12 perché lo `0` è già sulla virgola.
-- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce sull'emulatore — riprovato sulla 2.4 il 04/08 sia a inizio campo sia a inizio frase, con la maiuscola automatica armata (vedi sopra). Resta da provare sul telefono con `t9-3.4-debug.apk`, che è l'unico posto dove il difetto sia mai stato visto.
+- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce sull'emulatore — riprovato sulla 2.4 il 04/08 sia a inizio campo sia a inizio frase, con la maiuscola automatica armata (vedi sopra). Resta da provare sul telefono con `dauxpal-3.5-debug.apk`, che è l'unico posto dove il difetto sia mai stato visto.
 - **Dopo:** altre lingue oltre IT/EN, e il dizionario binario indicizzato se il formato testo diventasse stretto.
 
 - 📌 **Code della 2.3 — entrambe chiuse il 2026-08-04.**
@@ -139,7 +139,7 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
      **Cosa questo non prova.** La segnalazione originale viene dal **telefono**, non
      dall'emulatore, e su un APK di cui non si conosce la versione. L'emulatore può solo
      continuare a dire che il difetto non c'è: a chiudere il punto è un riscontro sul
-     telefono con `t9-3.4-debug.apk`.
+     telefono con `dauxpal-3.5-debug.apk`.
 
   3. ✅ **RISOLTO — Step 1.19.** *Elisioni come parola unica.*
 
@@ -176,7 +176,7 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 > Android Studio, SDK, ricerca del Gradle scaricato). Sta tutta nello script, da Git Bash:
 > ```bash
 > bash tools/dev.sh test              # unit test JVM (nessun emulatore)
-> bash tools/dev.sh install           # build + installa su emulatore/telefono
+> bash tools/dev.sh install           # build + installa (lascia anche l'APK versionato)
 > bash tools/dev.sh apk               # genera l'APK debug e stampa il percorso
 > bash tools/dev.sh boot              # avvia l'emulatore e aspetta il boot
 > bash tools/dev.sh ime               # abilita e seleziona la tastiera T9
@@ -288,6 +288,12 @@ testo → 3.4 cursore sulla barra spazio → 3.5 colonna e preferiti → 3.6 diz
 
 ## Fase 3 — Impostazioni, ergonomia, rifiniture
 
+- [ ] 🎨 **Icona vera al posto del segnaposto.** Dallo Step 3.5 è una "D" bianca su indigo,
+      disegnata a mano come prima era una "T" — «per l'icona poi sistemiamo, troveremo un'icona»
+      (utente, 04/08)
+- [x] **Nome dell'app: DauxPal** (richiesta dell'utente, 04/08) — **Step 3.5**. L'`applicationId`
+      **non** va cambiato: si porterebbe via il dizionario personale
+- [x] **APK versionato a ogni build**, non solo con `dev.sh apk` — **Step 3.5**
 - [x] **Larghezza dei tasti e lato dello schermo** (idea dell'utente, 04/08) — **Step 3.4**. Da
       non confondere con la riga qui sotto: questa sposta **la tastiera dentro lo schermo**,
       quella sposta **la colonna dentro la tastiera**. Sono complementari, e un mancino
@@ -584,6 +590,41 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-08-04 — Step 3.5: l'app si chiama DauxPal, e ogni build lascia un APK versionato
+**Due richieste dell'utente, arrivate insieme mentre se ne stava indagando un'altra.**
+
+**1. Il nome.** *"vorrei che l'app al posto di t9 si chiamasse DauxPal"*. `app_name` e
+`ime_label` derivano da un solo posto (`resValue` in `build.gradle.kts`, dallo Step 1.20),
+quindi è stata una riga — più tre cose che sarebbero rimaste indietro:
+- Il **titolo della schermata impostazioni**, che scriveva "T9 3.4 — Impostazioni" a mano.
+- L'**icona**, una "T" disegnata a mano *per T9*: la lettera è il nome, quindi rinominare
+  l'app senza ridisegnarla avrebbe lasciato il vecchio nome sulla schermata principale. Ora è
+  una "D" — **segnaposto dichiarato**, l'utente ne troverà una vera.
+- Il **prefisso degli APK**, da `t9-` a `dauxpal-`.
+
+**L'`applicationId` resta `com.daux.t9keyboard`, e non è una dimenticanza.** Cambiarlo fa
+disinstallare e reinstallare l'app per Android, e con essa se ne andrebbe il **dizionario
+personale** — cioè tutto ciò che l'utente ha insegnato scrivendo. Il nome del pacchetto non si
+vede da nessuna parte; il dizionario si sente a ogni parola. "T9" del resto continua a indicare
+la *tecnica*, che non è cambiata: ad avere un nome proprio è il prodotto.
+
+**2. Gli APK versionati.** *"gli apk andavano versionati in modo da non avere sempre solo
+app-debug"*. La copia col nome versionato esisteva dallo Step 1.20 ma la faceva **solo**
+`dev.sh apk` — e in pratica si usa `install`, quindi ci si ritrovava sempre e solo
+`app-debug.apk`: un nome che non dice quale build sia e che ogni ricostruzione sovrascrive. La
+copia è ora una funzione chiamata da entrambi i comandi.
+
+**File modificati:** `app/build.gradle.kts` (nome e versione 3.4 → 3.5),
+`res/drawable/ic_launcher.xml`, `settings/SettingsActivity.kt` (il titolo), `tools/dev.sh`.
+
+**Verificato (2026-08-04):** 160 test verdi; `install` lascia `dauxpal-3.5-debug.apk` accanto ad
+`app-debug.apk`; nel selettore tastiere di Android si legge **"DauxPal 3.5"** con l'icona "D".
+
+**Nota di metodo:** l'icona è rimasta una "T" per due build. Non era il codice — è la **cache
+delle icone di sistema**: si aggiorna con `am force-stop com.android.settings`, non
+reinstallando. E soprattutto **non** con `pm clear` sulla propria app, che cancellerebbe il
+dizionario personale (la lezione della 2.2).
 
 ### 2026-08-04 — Step 3.4: i tasti si stringono verso un lato (idea dell'utente)
 **Domanda dell'utente:** *"è fattibile inserire un cursore per ottimizzare la larghezza? Il
@@ -1287,7 +1328,7 @@ d'occhio.
 - `res/values/strings.xml` — le due stringhe **tolte**: scritte a mano si sarebbero
   disallineate al primo step.
 - `tools/dev.sh` — `apk` stampa la versione e copia l'APK con la versione nel nome
-  (`t9-3.4-debug.apk`), così sul telefono non si confondono fra loro.
+  (`dauxpal-3.5-debug.apk`), così sul telefono non si confondono fra loro.
 
 **Verificato (2026-07-31):** installato, `dumpsys package` riporta `versionName=1.21`, e nelle
 impostazioni Android la tastiera compare come **"T9 1.20"** (screenshot preso alla 1.20:

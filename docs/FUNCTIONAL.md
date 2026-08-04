@@ -10,14 +10,26 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** 3.4 — larghezza dei tasti e lato dello schermo (versione 3.4).
+**Allineato a:** 3.5 — l'app si chiama DauxPal, e ogni build lascia un APK con la versione nel nome (versione 3.5).
 
 **Versione visibile.** `versionName` **è** il numero dello step di `DEVELOPMENT.md`, e da lì
 derivano (via `resValue` in `app/build.gradle.kts`) il nome dell'app e l'etichetta della
-tastiera: nel selettore si legge **"T9 3.4"**. Provando sul telefono si sa sempre a che punto
-del log corrisponde ciò che si ha in mano — e `bash tools/dev.sh apk` produce anche un file
-con la versione nel nome (`t9-3.4-debug.apk`), così gli APK non si confondono fra loro. Le
-due stringhe non stanno più in `strings.xml`: scritte a mano resterebbero indietro.
+tastiera: nel selettore si legge **"DauxPal 3.5"**. Provando sul telefono si sa sempre a che punto
+del log corrisponde ciò che si ha in mano. Le due stringhe non stanno più in `strings.xml`:
+scritte a mano resterebbero indietro.
+
+**Il nome è "DauxPal" dallo Step 3.5** (scelta dell'utente). L'`applicationId` resta
+`com.daux.t9keyboard`: cambiarlo significherebbe disinstallare e reinstallare l'app, e con essa
+il **dizionario personale** che l'utente ha costruito scrivendo. "T9" continua a indicare la
+tecnica di scrittura, che non è cambiata — solo il prodotto ha un nome proprio.
+
+**Ogni build lascia un APK con la versione nel nome** (`dauxpal-3.5-debug.apk`), prodotto sia da
+`bash tools/dev.sh apk` sia da `install`. Prima lo faceva solo `apk`: usando `install` — cioè
+quasi sempre — si ritrovava il solo `app-debug.apk`, un nome che non dice quale build sia e che
+ogni ricostruzione sovrascrive.
+
+⚠️ **L'icona è un segnaposto**: una "D" bianca disegnata a mano, come prima era una "T". Ne
+arriverà una vera.
 
 ## Indice
 - [Panoramica architettura](#panoramica-architettura)

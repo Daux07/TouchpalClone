@@ -61,7 +61,7 @@ class SettingsActivity : Activity() {
         }
 
         root.addView(
-            title("T9 ${versionName()} — Impostazioni").apply {
+            title("DauxPal ${versionName()} — Impostazioni").apply {
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 26f)
             }
         )

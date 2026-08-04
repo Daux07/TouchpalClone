@@ -14,16 +14,22 @@ android {
         targetSdk = 35
 
         // La versione **è** il numero dello step di DEVELOPMENT.md, non una numerazione
-        // parallela: provando sul telefono si legge "T9 2.3" nel selettore tastiere e si
-        // sa esattamente a che punto del log corrisponde ciò che si ha in mano.
-        versionCode = 340
-        versionName = "3.4"
+        // parallela: provando sul telefono si legge "DauxPal 3.5" nel selettore tastiere e
+        // si sa esattamente a che punto del log corrisponde ciò che si ha in mano.
+        versionCode = 350
+        versionName = "3.5"
 
         // Nome unico e derivato: il nome dell'app e l'etichetta della tastiera portano
         // sempre la versione, e non possono restare indietro perché non sono scritti a
         // mano da nessuna parte (per questo non stanno più in strings.xml).
-        resValue("string", "app_name", "T9 $versionName")
-        resValue("string", "ime_label", "T9 $versionName")
+        //
+        // "DauxPal" dallo Step 3.5, scelto dall'utente. "T9" diceva la tecnica, non il
+        // prodotto — e nel selettore tastiere di Android si finisce accanto a nomi propri,
+        // dove una sigla si legge come un segnaposto. L'`applicationId` **non** cambia:
+        // cambiarlo farebbe disinstallare e reinstallare l'app, e con essa il dizionario
+        // personale che l'utente ha costruito scrivendo.
+        resValue("string", "app_name", "DauxPal $versionName")
+        resValue("string", "ime_label", "DauxPal $versionName")
     }
 
     buildTypes {

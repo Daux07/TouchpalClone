@@ -42,20 +42,34 @@ run_gradle() {
 cmd="${1:-help}"
 shift || true
 
+# Copia l'APK appena costruito con la versione nel nome, e stampa dove sta.
+#
+# Gradle scrive sempre e solo "app-debug.apk": un nome che non dice quale build sia,
+# e che ogni ricostruzione sovrascrive. Sul telefono se ne accumulano diversi ed è
+# impossibile sapere quale si sta installando — per questo la copia esiste. Dallo
+# Step 3.5 viene fatta **anche da `install`** e non solo da `apk`: prima bastava usare
+# `install` (cioè quasi sempre) per ritrovarsi di nuovo col solo `app-debug.apk`.
+versioned_apk() {
+    local version src out
+    version=$(sed -n 's/.*versionName = "\(.*\)".*/\1/p' app/build.gradle.kts)
+    src="app/build/outputs/apk/debug/app-debug.apk"
+    out="app/build/outputs/apk/debug/dauxpal-$version-debug.apk"
+    [ -f "$src" ] || return 0
+    cp "$src" "$out"
+    echo
+    echo "Versione: $version   (l'app e la tastiera si chiamano \"DauxPal $version\")"
+    echo "APK: $(pwd)/$out"
+}
+
 case "$cmd" in
     test)    run_gradle :app:testDebugUnitTest ;;
-    install) run_gradle :app:installDebug ;;
+    install)
+        run_gradle :app:installDebug
+        versioned_apk
+        ;;
     apk)
         run_gradle :app:assembleDebug
-        # Copia con la versione nel nome: sul telefono si accumulano più APK, e
-        # "app-debug.apk" non dice quale si sta installando.
-        version=$(sed -n 's/.*versionName = "\(.*\)".*/\1/p' app/build.gradle.kts)
-        src="app/build/outputs/apk/debug/app-debug.apk"
-        out="app/build/outputs/apk/debug/t9-$version-debug.apk"
-        cp "$src" "$out"
-        echo
-        echo "Versione: $version   (l'app e la tastiera si chiamano \"T9 $version\")"
-        echo "APK: $(pwd)/$out"
+        versioned_apk
         ;;
     gradle)  run_gradle "$@" ;;
 

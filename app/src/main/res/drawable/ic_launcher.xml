@@ -6,8 +6,13 @@
     <path
         android:fillColor="#3F51B5"
         android:pathData="M0,0h48v48h-48z" />
-    <!-- A simple white "T" for T9 -->
+    <!--
+      A white "D" for DauxPal (Step 3.5). It was a "T" for T9: the letter *is* the name,
+      so renaming the app without redrawing it would have left the old one on the home
+      screen. Two subpaths with evenOdd — the bowl, and the hole inside it.
+    -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M13,14h22v5h-8.5v20h-5v-20h-8.5z" />
+        android:fillType="evenOdd"
+        android:pathData="M15,14h9a12.5,12.5 0 0 1 0,25h-9zM20,19v15h4a7.5,7.5 0 0 0 0,-15z" />
 </vector>
