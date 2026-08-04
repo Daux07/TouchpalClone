@@ -14,9 +14,9 @@ import com.daux.t9keyboard.model.T9Layout
  *
  * ```
  * ┌──────┬───────────────────────────┬─────────┐
- * │ dis- │  @   abc   def            │   ⌫     │
+ * │ dis- │  @   abc   def            │   ☺     │
  * │ amb. │  ghi jkl   mno            │   ⇧     │
- * │ col. │  pqrs tuv  wxyz           │   ☺     │
+ * │ col. │  pqrs tuv  wxyz           │   ⌫     │
  * │      ├───────────────────────────┴─────────┤
  * │      │ 12# ,   [   space   ]  .   ⏎        │
  * └──────┴─────────────────────────────────────┘

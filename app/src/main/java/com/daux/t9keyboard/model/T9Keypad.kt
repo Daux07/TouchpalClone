@@ -113,7 +113,7 @@ data class KeySpec(
 /**
  * The keypad layout, reproducing the original TouchPal structure:
  * - [letterRows]: the central 3×3 letter grid.
- * - [rightColumn]: the right-hand function column (backspace, shift, emoji).
+ * - [rightColumn]: the right-hand function column (emoji, shift, backspace).
  * - [bottomRow]: the full-width bottom row (12#, comma, space, mic, enter).
  * The disambiguation column on the far left is a separate dynamic view.
  */
@@ -131,11 +131,23 @@ object T9Layout {
         listOf(letterKey(7), letterKey(8), letterKey(9))
     )
 
+    /**
+     * The right-hand function column, **emoji on top and backspace at the bottom**
+     * (Step 3.7). They were the other way round until the user asked to swap them:
+     * *"avendo usato la Gboard ultimamente si trova in una posizione più simile e riesco
+     * ad usare la memoria muscolare meglio"*.
+     *
+     * Which is the whole argument, and a good one. Backspace is the most pressed key
+     * after the space bar, and where it sits is not a matter of taste but of what the
+     * thumb has already learned somewhere else: a keyboard that puts it where every other
+     * keyboard does not costs a correction every time the hand is right and the layout is
+     * different. `⇧` stays in the middle — it was never the one in question.
+     */
     val rightColumn: List<KeySpec> = listOf(
-        KeySpec("⌫", null, isFunction = true, KeyAction.Backspace),
-        KeySpec("⇧", null, isFunction = true, KeyAction.Shift),
         // U+FE0E forces monochrome (outline) rendering instead of a colour emoji.
-        KeySpec("☺︎", null, isFunction = true, KeyAction.Mode(KeyboardMode.EMOJI))
+        KeySpec("☺︎", null, isFunction = true, KeyAction.Mode(KeyboardMode.EMOJI)),
+        KeySpec("⇧", null, isFunction = true, KeyAction.Shift),
+        KeySpec("⌫", null, isFunction = true, KeyAction.Backspace)
     )
 
     /**

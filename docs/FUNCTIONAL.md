@@ -10,11 +10,11 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** 3.6 — il maiuscolo in mezzo alla parola, scrivibile e memorizzato (versione 3.6).
+**Allineato a:** 3.7 — backspace ed emoji scambiati nella colonna funzioni (versione 3.7).
 
 **Versione visibile.** `versionName` **è** il numero dello step di `DEVELOPMENT.md`, e da lì
 derivano (via `resValue` in `app/build.gradle.kts`) il nome dell'app e l'etichetta della
-tastiera: nel selettore si legge **"DauxPal 3.6"**. Provando sul telefono si sa sempre a che punto
+tastiera: nel selettore si legge **"DauxPal 3.7"**. Provando sul telefono si sa sempre a che punto
 del log corrisponde ciò che si ha in mano. Le due stringhe non stanno più in `strings.xml`:
 scritte a mano resterebbero indietro.
 
@@ -23,7 +23,7 @@ scritte a mano resterebbero indietro.
 il **dizionario personale** che l'utente ha costruito scrivendo. "T9" continua a indicare la
 tecnica di scrittura, che non è cambiata — solo il prodotto ha un nome proprio.
 
-**Ogni build lascia un APK con la versione nel nome** (`dauxpal-3.6-debug.apk`), prodotto sia da
+**Ogni build lascia un APK con la versione nel nome** (`dauxpal-3.7-debug.apk`), prodotto sia da
 `bash tools/dev.sh apk` sia da `install`. Prima lo faceva solo `apk`: usando `install` — cioè
 quasi sempre — si ritrovava il solo `app-debug.apk`, un nome che non dice quale build sia e che
 ogni ricostruzione sovrascrive.
@@ -160,11 +160,16 @@ lascerebbe un composing text che nessun tasto potrebbe più chiudere.
 
 ### `T9BodyView` — il corpo T9
 
+**Il backspace sta in basso a destra dallo Step 3.7**, scambiato con le emoji su richiesta
+dell'utente: *"avendo usato la Gboard ultimamente si trova in una posizione più simile e riesco
+ad usare la memoria muscolare meglio"*. Dove sta il tasto più premuto dopo lo spazio non è una
+questione di gusto ma di cosa il pollice ha già imparato altrove.
+
 ```
 ┌──────┬───────────────────────────┬─────────┐
-│ dis- │  @   abc   def            │   ⌫     │
+│ dis- │  @   abc   def            │   ☺     │
 │ amb. │  ghi jkl   mno            │   ⇧     │
-│ col. │  pqrs tuv  wxyz           │   ☺     │
+│ col. │  pqrs tuv  wxyz           │   ⌫     │
 │      ├───────────────────────────┴─────────┤
 │      │ 12# ,   [   space   ]  .   ⏎        │
 └──────┴─────────────────────────────────────┘
