@@ -10,11 +10,11 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** 3.5 — l'app si chiama DauxPal, e ogni build lascia un APK con la versione nel nome (versione 3.5).
+**Allineato a:** 3.6 — il maiuscolo in mezzo alla parola, scrivibile e memorizzato (versione 3.6).
 
 **Versione visibile.** `versionName` **è** il numero dello step di `DEVELOPMENT.md`, e da lì
 derivano (via `resValue` in `app/build.gradle.kts`) il nome dell'app e l'etichetta della
-tastiera: nel selettore si legge **"DauxPal 3.5"**. Provando sul telefono si sa sempre a che punto
+tastiera: nel selettore si legge **"DauxPal 3.6"**. Provando sul telefono si sa sempre a che punto
 del log corrisponde ciò che si ha in mano. Le due stringhe non stanno più in `strings.xml`:
 scritte a mano resterebbero indietro.
 
@@ -23,7 +23,7 @@ scritte a mano resterebbero indietro.
 il **dizionario personale** che l'utente ha costruito scrivendo. "T9" continua a indicare la
 tecnica di scrittura, che non è cambiata — solo il prodotto ha un nome proprio.
 
-**Ogni build lascia un APK con la versione nel nome** (`dauxpal-3.5-debug.apk`), prodotto sia da
+**Ogni build lascia un APK con la versione nel nome** (`dauxpal-3.6-debug.apk`), prodotto sia da
 `bash tools/dev.sh apk` sia da `install`. Prima lo faceva solo `apk`: usando `install` — cioè
 quasi sempre — si ritrovava il solo `app-debug.apk`, un nome che non dice quale build sia e che
 ogni ricostruzione sovrascrive.
@@ -676,8 +676,28 @@ peggio di nessun gesto. La barra dice quale dei due casi è stato.
   `LearnedWordDao`, `LearnedWordsDatabase`, `RoomLearnedWordsStore` che **scrive in coda su un
   thread singolo** — la pressione di un tasto non deve mai attendere il disco; l'ordine è
   garantito dall'executor a thread singolo.
-- Le parole sono memorizzate **minuscole**: "Casa" e "casa" sono la stessa parola per lookup
-  e apprendimento.
+- La **chiave** è minuscola: "Casa" e "casa" sono la stessa parola per lookup, deduplica e
+  conteggio.
+
+- **Ma la forma scritta viene ricordata quando dice qualcosa** (Step 3.6). Accanto alla chiave
+  c'è un `display`, valorizzato solo quando la parola porta una maiuscola **che nessuna regola
+  avrebbe potuto metterci** — cioè dopo il primo carattere:
+
+  | Scritto | Memorizzato come | Perché |
+  |---|---|---|
+  | `casa` | `casa` | niente da dire |
+  | `Casa` | `casa` | la maiuscola iniziale la fanno un punto, un campo nuovo o un nome proprio |
+  | `CIAO` | `ciao` | tutto maiuscolo è un tono di voce, non un'ortografia |
+  | `xD`, `iPhone`, `McDonald` | **`xD`, `iPhone`, `McDonald`** | qualcuno l'ha voluto |
+
+  E una forma che non dice niente **non cancella** una che diceva qualcosa: `xd` scritto a
+  inizio frase arriva come `Xd`, e senza questa cautela spazzerebbe via lo `xD` voluto.
+
+  La colonna è arrivata con la **versione 2** del database e una migrazione scritta a mano.
+  `fallbackToDestructiveMigration` sarebbe stata una riga, e avrebbe cancellato il dizionario
+  personale di chi ne aveva già uno — l'unico dato dell'app che non si può recuperare, perché lo
+  si costruisce scrivendo. Le righe preesistenti prendono `NULL`, che è giusto: sono state
+  imparate quando le maiuscole non si ricordavano.
 - **Le lettere singole non si imparano** (`LearnedWordsEngine.isLearnable`). Cosa offre un
   tasto solo lo decide `SingleLetterEngine` dal tastierino, non la cronologia.
 
@@ -759,6 +779,23 @@ nominale è l'unica leva che c'è: il glifo si allarga crescendo.
 **Punto chiave:** la maiuscola si applica **all'ultimo momento**, in `currentPreview()`;
 composizione e dizionario restano minuscoli, così apprendimento e lookup non sono influenzati
 dallo shift.
+
+#### Una maiuscola in mezzo alla parola (Step 3.6)
+
+`ONCE` e `LOCK` sanno fare due cose: la prima lettera, o tutte. Non c'è uno stato «questa lettera
+qui», e non potrebbe essercene uno in generale — nella scrittura predittiva si premono cifre e le
+lettere le sceglie il dizionario, quindi «la prossima lettera» non indica niente.
+
+**Ma mentre si forza dalla colonna sì**, perché lì l'utente sta dettando la parola una lettera
+per volta. Quindi, **passata la prima lettera**, `⇧` vale per la lettera che si sta per scegliere:
+`x` → `⇧` → `D` dà **`xD`**. È l'unico modo di scrivere `iPhone` o `McDonald`, che nessuna regola
+sulla prima lettera può raggiungere.
+
+`ComposeState` tiene le posizioni capitalizzate a mano. **La posizione 0 non è mai fra queste**:
+la prima lettera è affare di `ShiftState`, e due meccanismi che rispondono dello stesso carattere
+sono due meccanismi che prima o poi si contraddicono. Un `⇧` singolo si consuma sulla lettera
+scelta, e mentre si forza non capitalizza all'indietro la prima lettera — si vedrebbe la parola
+lampeggiare in una forma diversa da quella che si sta scegliendo.
 
 **Ciò che si vede è ciò che si scriverà.** `appliesToNext(atWordStart)` decide, e il service
 lo chiama **due volte con posizioni diverse**: i tasti scrivono il carattere dopo l'ultima
@@ -1278,7 +1315,7 @@ Unit test JVM (nessun emulatore necessario): `./gradlew :app:testDebugUnitTest`.
 | `CorpusDictionaryEngineTest` | Costruzione indice, ordinamento per peso, ricerca per prefisso (fra cui il caso `contempora` → `contemporaneamente`), e che **una lettera sola non sia mai un nome proprio** |
 | `MergingDictionaryEngineTest` | Fusione, deduplica per parola |
 | `LanguagePriorityEngineTest` | 9 casi: che ogni parola italiana preceda ogni inglese (anche quando l'inglese pesa di più), che una parola comune a entrambe sia tenuta una volta sola, che l'inglese risponda da solo dove l'italiano tace, che una **terza lingua** si accodi alla seconda, e che senza secondarie resti esattamente la tastiera v1 |
-| `LearnedWordsEngineTest` | Pesi, incremento usi, caricamento dallo store; e le lettere singole: **mai imparate**, e **cancellate** dall'archivio se ve le aveva messe una build vecchia; la curva dei pesi (abitudine con tetto + spinta recente che svanisce) e il **dimenticare** una parola |
+| `LearnedWordsEngineTest` | Pesi, incremento usi, caricamento dallo store; la **forma scritta** (`xD` e `iPhone` tenuti, `Casa` e `CIAO` no, e una maiuscola ordinaria che non cancella quella voluta); e le lettere singole: **mai imparate**, e **cancellate** dall'archivio se ve le aveva messe una build vecchia; la curva dei pesi (abitudine con tetto + spinta recente che svanisce) e il **dimenticare** una parola |
 | `FuzzyDictionaryEngineTest` | 14 casi: cancellazione/sostituzione/inserimento, **inversione di due tasti**, **due tasti sbagliati** (e che non si cerchino su parole corte né quando qualcosa già corrisponde), marcatura, tetto |
 | `FuzzyCostTest` | Guardia sul costo: la ricerca profonda sul corpus vero (50k parole) resta abbondantemente dentro il tempo di una pressione |
 | `CompletingDictionaryEngineTest` | 7 casi: che i tasti che non scrivono nulla offrano comunque la parola lunga, l'ordine **esatte → completamenti → refusi**, niente doppioni, la soglia delle 4 cifre e il tetto |

@@ -22,6 +22,26 @@ class ComposeState {
     private val digits = ArrayList<Int>()
     private val chosen = StringBuilder()
 
+    /**
+     * Positions of [chosen] the user asked to be **uppercase**, by hand (Step 3.6).
+     *
+     * This is the only place a capital can live *inside* a word. Everywhere else
+     * capitalisation is applied to the whole word at the last moment by `ShiftState`,
+     * which knows how to capitalise the first letter and how to shout, and nothing in
+     * between — because in predictive typing you press digits and the dictionary picks
+     * the letters, so "make the next letter a capital" means nothing.
+     *
+     * It means something *here*, though: while forcing, the user is choosing each letter
+     * personally, so a capital on one of them is a fact about the word (`xD`, `iPhone`,
+     * `McDonald`) rather than a rule being applied to it.
+     *
+     * **Position 0 is deliberately never recorded.** The first letter is `ShiftState`'s
+     * business — automatic sentence capitals, proper nouns, shift-lock all decide it —
+     * and having two mechanisms answer for the same character is how they come to
+     * disagree.
+     */
+    private val capitals = HashSet<Int>()
+
     /** Append a pressed digit key to the sequence. */
     fun pressDigit(digit: Int) {
         digits.add(digit)
@@ -31,15 +51,32 @@ class ComposeState {
      * Force [letter] for the first unresolved position. Returns false (and changes
      * nothing) if there is no position to resolve or [letter] does not belong to
      * that position's digit.
+     *
+     * [uppercase] records a hand-made capital for this position — see [capitals]. It is
+     * ignored at position 0, which belongs to `ShiftState`.
      */
-    fun chooseLetter(letter: Char): Boolean {
+    fun chooseLetter(letter: Char, uppercase: Boolean = false): Boolean {
         val pos = chosen.length
         if (pos >= digits.size) return false
         val lower = letter.lowercaseChar()
         // Accented vowels count as letters of their key (à belongs to 2, è to 3, …).
         if (lower !in T9Keypad.columnLetters(digits[pos])) return false
         chosen.append(lower)
+        // Stored lowercase either way: the letter belongs to the composition, the case
+        // to the rendering. Keeping them apart is what leaves lookups case-blind.
+        if (uppercase && pos > 0) capitals.add(pos)
         return true
+    }
+
+    /** Whether the letter at [index] of the composed word was capitalised by hand. */
+    private fun isCapital(index: Int): Boolean = index in capitals
+
+    /** [text] with the hand-made capitals put back. */
+    private fun withCapitals(text: CharSequence): String {
+        if (capitals.isEmpty()) return text.toString()
+        val sb = StringBuilder(text)
+        for (i in capitals) if (i < sb.length) sb[i] = sb[i].uppercaseChar()
+        return sb.toString()
     }
 
     /**
@@ -50,7 +87,11 @@ class ComposeState {
     fun backspace(): Boolean {
         if (digits.isEmpty()) return false
         digits.removeAt(digits.size - 1)
-        if (chosen.length > digits.size) chosen.deleteCharAt(chosen.length - 1)
+        if (chosen.length > digits.size) {
+            chosen.deleteCharAt(chosen.length - 1)
+            // The capital belonged to the letter just removed, not to the position.
+            capitals.remove(chosen.length)
+        }
         return true
     }
 
@@ -61,7 +102,7 @@ class ComposeState {
     }
 
     /** The forced letters chosen so far (the word being built via the column). */
-    fun forcedText(): String = chosen.toString()
+    fun forcedText(): String = withCapitals(chosen)
 
     /**
      * The word as it currently reads while forcing: the letters resolved so far,
@@ -76,7 +117,7 @@ class ComposeState {
         for (i in chosen.length until digits.size) {
             sb.append(T9Keypad.letters[digits[i]]?.firstOrNull() ?: ' ')
         }
-        return sb.toString()
+        return withCapitals(sb)
     }
 
     /**
@@ -100,7 +141,12 @@ class ComposeState {
         reset()
         for (i in sequence.indices) {
             digits.add(sequence[i] - '0')
-            if (!chooseLetter(letters[i])) {
+            // Capitals inside the word are adopted along with the letters (Step 3.6):
+            // they are how the word is written, and taking it over means taking over how
+            // it is written. Without this, parking the cursor after "xD" and pressing
+            // space would put "xd" in the dictionary — or, since the adoption refuses to
+            // rewrite the field, would refuse the word altogether.
+            if (!chooseLetter(letters[i], uppercase = word[i].isUpperCase())) {
                 reset()
                 return false
             }
@@ -133,5 +179,6 @@ class ComposeState {
     fun reset() {
         digits.clear()
         chosen.setLength(0)
+        capitals.clear()
     }
 }

@@ -23,8 +23,14 @@ class LearnedWordsEngineTest {
             return saved.values.toList()
         }
 
-        override fun save(word: String, sequence: String, uses: Long, lastUsed: Long) {
-            saved[word] = LearnedWordsEngine.Entry(word, sequence, uses)
+        override fun save(
+            word: String,
+            sequence: String,
+            uses: Long,
+            lastUsed: Long,
+            display: String?
+        ) {
+            saved[word] = LearnedWordsEngine.Entry(word, sequence, uses, lastUsed, display)
         }
 
         override fun delete(word: String) {
@@ -82,7 +88,9 @@ class LearnedWordsEngineTest {
         engine.learn("bau", 1L)
         engine.learn("bau", 2L)
 
-        assertEquals(LearnedWordsEngine.Entry("bau", "228", 2L), store.saved["bau"])
+        // `lastUsed` is asserted too since Step 3.6: the fake used to drop it on the way
+        // in, so nothing here could have caught it going astray.
+        assertEquals(LearnedWordsEngine.Entry("bau", "228", 2L, 2L), store.saved["bau"])
     }
 
     @Test
@@ -200,5 +208,69 @@ class LearnedWordsEngineTest {
         // "casa" belongs to the corpus, which is not the user's to edit.
         assertFalse(engine.forget("casa"))
         assertEquals(listOf("bau"), engine.lookup("228").map { it.word })
+    }
+
+    // --- How a word is written (Step 3.6) -----------------------------------------
+
+    @Test
+    fun `a capital in the middle is kept, because no rule could have put it there`() {
+        val engine = LearnedWordsEngine(FakeStore())
+
+        engine.learn("xD", 1L)
+
+        assertEquals(listOf("xD"), engine.lookup("93").map { it.word })
+    }
+
+    @Test
+    fun `an ordinary capital is not kept`() {
+        val engine = LearnedWordsEngine(FakeStore())
+
+        // A full stop, a fresh field or a proper noun all produce this: remembering it
+        // would capitalise for ever every word that once started a sentence.
+        engine.learn("Bau", 1L)
+
+        assertEquals(listOf("bau"), engine.lookup("228").map { it.word })
+    }
+
+    @Test
+    fun `shouting is not a spelling`() {
+        val engine = LearnedWordsEngine(FakeStore())
+
+        engine.learn("BAU", 1L)
+
+        assertEquals(listOf("bau"), engine.lookup("228").map { it.word })
+    }
+
+    @Test
+    fun `an ordinary capital does not erase one that was meant`() {
+        val engine = LearnedWordsEngine(FakeStore())
+        engine.learn("xD", 1L)
+
+        // Same word at the start of a sentence: the automatic capital must not overwrite
+        // the form the user chose by hand.
+        engine.learn("Xd", 2L)
+
+        assertEquals(listOf("xD"), engine.lookup("93").map { it.word })
+    }
+
+    @Test
+    fun `the written form survives a reload`() {
+        val store = FakeStore()
+        LearnedWordsEngine(store).learn("iPhone", 1L)
+
+        val reloaded = LearnedWordsEngine(store).apply { load() }
+
+        assertEquals(listOf("iPhone"), reloaded.lookup("474663").map { it.word })
+    }
+
+    @Test
+    fun `the written form does not split the word in two`() {
+        val engine = LearnedWordsEngine(FakeStore())
+
+        engine.learn("xD", 1L)
+        engine.learn("xd", 2L)
+
+        // One word, counted twice — the key stays lowercase so lookups stay case-blind.
+        assertEquals(1, engine.lookup("93").size)
     }
 }

@@ -18,11 +18,18 @@ class RoomLearnedWordsStore(context: Context) : LearnedWordsEngine.Store {
         Thread(runnable, "learned-words-writer").apply { isDaemon = true }
     }
 
-    override fun loadAll(): List<LearnedWordsEngine.Entry> =
-        dao.all().map { LearnedWordsEngine.Entry(it.word, it.sequence, it.uses, it.lastUsed) }
+    override fun loadAll(): List<LearnedWordsEngine.Entry> = dao.all().map {
+        LearnedWordsEngine.Entry(it.word, it.sequence, it.uses, it.lastUsed, it.display)
+    }
 
-    override fun save(word: String, sequence: String, uses: Long, lastUsed: Long) {
-        writer.execute { dao.upsert(LearnedWord(word, sequence, uses, lastUsed)) }
+    override fun save(
+        word: String,
+        sequence: String,
+        uses: Long,
+        lastUsed: Long,
+        display: String?
+    ) {
+        writer.execute { dao.upsert(LearnedWord(word, sequence, uses, lastUsed, display)) }
     }
 
     /** Queued like a write, for the same reason: nothing on the key path waits on disk. */

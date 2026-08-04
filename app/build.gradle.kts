@@ -14,10 +14,10 @@ android {
         targetSdk = 35
 
         // La versione **è** il numero dello step di DEVELOPMENT.md, non una numerazione
-        // parallela: provando sul telefono si legge "DauxPal 3.5" nel selettore tastiere e
+        // parallela: provando sul telefono si legge "DauxPal 3.6" nel selettore tastiere e
         // si sa esattamente a che punto del log corrisponde ciò che si ha in mano.
-        versionCode = 350
-        versionName = "3.5"
+        versionCode = 360
+        versionName = "3.6"
 
         // Nome unico e derivato: il nome dell'app e l'etichetta della tastiera portano
         // sempre la versione, e non possono restare indietro perché non sono scritti a

@@ -23,8 +23,15 @@ class LearnedWordsEngine(
     private val clock: () -> Long = System::currentTimeMillis
 ) : DictionaryEngine {
 
-    /** What is known about a word: how often, and when last. */
-    private data class Use(val count: Long, val lastUsed: Long)
+    /**
+     * What is known about a word: how often, when last, and — when it is not the
+     * ordinary all-lowercase case — how it is **written** ([displayFormOf]).
+     */
+    private data class Use(
+        val count: Long,
+        val lastUsed: Long,
+        val display: String? = null
+    )
 
     /** Sequence → (word → use). Guarded by the instance lock. */
     private val index = HashMap<String, HashMap<String, Use>>()
@@ -32,7 +39,7 @@ class LearnedWordsEngine(
     /** Persistence seam; implemented on top of Room by the app, faked in tests. */
     interface Store {
         fun loadAll(): List<Entry>
-        fun save(word: String, sequence: String, uses: Long, lastUsed: Long)
+        fun save(word: String, sequence: String, uses: Long, lastUsed: Long, display: String?)
         fun delete(word: String)
     }
 
@@ -40,7 +47,8 @@ class LearnedWordsEngine(
         val word: String,
         val sequence: String,
         val uses: Long,
-        val lastUsed: Long = 0L
+        val lastUsed: Long = 0L,
+        val display: String? = null
     )
 
     /**
@@ -60,7 +68,7 @@ class LearnedWordsEngine(
             for (entry in entries) {
                 if (!isLearnable(entry.word)) continue
                 index.getOrPut(entry.sequence) { HashMap() }[entry.word] =
-                    Use(entry.uses, entry.lastUsed)
+                    Use(entry.uses, entry.lastUsed, entry.display)
             }
         }
         for (entry in stale) store.delete(entry.word)
@@ -69,8 +77,9 @@ class LearnedWordsEngine(
     override fun lookup(sequence: String): List<Candidate> {
         val now = clock()
         val words = synchronized(this) { index[sequence]?.toMap() } ?: return emptyList()
-        return words.map { (word, use) -> Candidate(word, sequence, weightOf(use, now)) }
-            .sortedByDescending { it.weight }
+        return words.map { (word, use) ->
+            Candidate(use.display ?: word, sequence, weightOf(use, now))
+        }.sortedByDescending { it.weight }
     }
 
     /**
@@ -87,7 +96,9 @@ class LearnedWordsEngine(
             for ((sequence, words) in index) {
                 if (sequence.length == prefix.length || !sequence.startsWith(prefix)) continue
                 for ((word, use) in words) {
-                    found += Candidate(word, sequence, weightOf(use, now), completion = true)
+                    found += Candidate(
+                        use.display ?: word, sequence, weightOf(use, now), completion = true
+                    )
                 }
             }
         }
@@ -102,17 +113,24 @@ class LearnedWordsEngine(
      * Returns false when nothing was learned.
      */
     fun learn(word: String, now: Long): Boolean {
-        val normalized = word.trim().lowercase()
+        val trimmed = word.trim()
+        val normalized = trimmed.lowercase()
         if (!isLearnable(normalized)) return false
         val sequence = T9Keypad.sequenceFor(normalized) ?: return false
 
-        val uses = synchronized(this) {
+        val written = displayFormOf(trimmed)
+        val (uses, display) = synchronized(this) {
             val bySequence = index.getOrPut(sequence) { HashMap() }
-            val next = (bySequence[normalized]?.count ?: 0L) + 1L
-            bySequence[normalized] = Use(next, now)
-            next
+            val before = bySequence[normalized]
+            val next = (before?.count ?: 0L) + 1L
+            // A form that says nothing must not erase one that said something: writing
+            // `xd` at the start of a sentence comes through as `Xd`, whose capital is
+            // ordinary, and it would otherwise wipe out the `xD` learned on purpose.
+            val kept = written ?: before?.display
+            bySequence[normalized] = Use(next, now, kept)
+            next to kept
         }
-        store.save(normalized, sequence, uses, now)
+        store.save(normalized, sequence, uses, now, display)
         return true
     }
 
@@ -140,6 +158,31 @@ class LearnedWordsEngine(
     }
 
     private fun weightOf(use: Use, now: Long): Long = weightFor(use.count, use.lastUsed, now)
+
+    /**
+     * The written form worth remembering for [word], or null when there is nothing to
+     * remember — which is almost always (Step 3.6).
+     *
+     * **The test is a capital that no rule could have put there:** one after the first
+     * character. Everything else is already explained by something the keyboard does on
+     * its own, and storing it would be storing the keyboard's own behaviour as if it
+     * were a fact about the word:
+     *
+     * - `casa` — nothing to say.
+     * - `Casa` — a capital on the first letter is what a full stop, a fresh field or a
+     *   proper noun produces. Remembering it would make every word that ever started a
+     *   sentence come back capitalised forever.
+     * - `CIAO` — all capitals is shift-lock, i.e. shouting; a tone of voice, not a
+     *   spelling. Excluded even though its capitals are "inner" ones.
+     * - `xD`, `iPhone`, `McDonald`, `LaTeX` — a capital in the middle that nothing else
+     *   explains. Somebody meant it, so it is kept exactly as written.
+     */
+    private fun displayFormOf(word: String): String? {
+        if (word.length < 2) return null
+        if (word.all { !it.isLowerCase() }) return null // shouting, not spelling
+        val hasInnerCapital = (1 until word.length).any { word[it].isUpperCase() }
+        return if (hasInnerCapital) word else null
+    }
 
     companion object {
         /**

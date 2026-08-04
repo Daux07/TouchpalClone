@@ -325,7 +325,10 @@ class T9ImeService : InputMethodService() {
     private fun alternatesFor(spec: KeySpec): List<KeySpec> {
         val cells = LongPressKeys.forKey(spec.action, favourites, emailField)
         if (cells.isEmpty()) return cells
-        if (!shift.appliesToNext(atWordStart = !state.isForcing())) return cells
+        val armed =
+            if (state.isForcing()) shift != ShiftState.OFF
+            else shift.appliesToNext(atWordStart = true)
+        if (!armed) return cells
         return cells.map {
             if (it.action is KeyAction.ForceLetter) it.copy(mainLabel = it.mainLabel.uppercase())
             else it
@@ -628,7 +631,12 @@ class T9ImeService : InputMethodService() {
         keyboardView?.setShiftState(
             shift,
             keysUppercase = shift.appliesToNext(atWordStart = state.isEmpty()),
-            columnUppercase = shift.appliesToNext(atWordStart = !state.isForcing())
+            // While forcing, the column resolves a letter *inside* the word, and there
+            // `⇧` now means that letter (Step 3.6) — so it must be shown armed, or the
+            // column would offer a lowercase letter and produce a capital.
+            columnUppercase =
+                if (state.isForcing()) shift != ShiftState.OFF
+                else shift.appliesToNext(atWordStart = true)
         )
     }
 
@@ -637,10 +645,27 @@ class T9ImeService : InputMethodService() {
         keyboardView?.setHint(null)
     }
 
-    /** Tap on a letter in the disambiguation column: force it into the word. */
+    /**
+     * Tap on a letter in the disambiguation column: force it into the word.
+     *
+     * **Past the first letter, `⇧` applies to this letter alone** (Step 3.6). Choosing
+     * letters by hand is the one moment the user is spelling rather than predicting, so
+     * "make *this* one a capital" is a question with an answer — and it is the only way
+     * to write `xD`, `iPhone` or `McDonald`, which no rule about first letters can reach.
+     *
+     * A one-shot `⇧` is consumed here, like a shift key on a typewriter: it was pressed
+     * for the letter that just came out, and leaving it armed would capitalise the next
+     * one too.
+     */
     private fun onPickLetter(letter: Char) {
         selfEdit = true
-        if (state.chooseLetter(letter)) render()
+        val innerCapital = state.isForcing() && shift != ShiftState.OFF
+        if (!state.chooseLetter(letter, uppercase = innerCapital)) return
+        if (innerCapital && shift == ShiftState.ONCE) {
+            shiftIsAutomatic = false
+            setShift(ShiftState.OFF)
+        }
+        render()
     }
 
     /**
@@ -795,10 +820,19 @@ class T9ImeService : InputMethodService() {
      * typing a word the dictionary doesn't know would silently turn into a similar
      * one, which is exactly what the column exists to prevent.
      */
-    private fun currentPreview(): String =
+    private fun currentPreview(): String {
         // Capitalisation is applied here, at the last moment: the composition and the
         // dictionary stay lowercase, so learning and lookups are unaffected by shift.
-        shift.apply(previewWord())
+        //
+        // **Except a one-shot shift while forcing** (Step 3.6), where it no longer means
+        // "capitalise this word" but "capitalise the letter I am about to pick" — see
+        // [onPickLetter]. Letting it also reach back to the first letter would show `X`
+        // the moment `⇧` is pressed and then take it away again when the next letter
+        // arrives: the word flickering into a different shape than the one being chosen.
+        val word = previewWord()
+        val reachesBack = !(state.isForcing() && shift == ShiftState.ONCE)
+        return if (reachesBack) shift.apply(word) else word
+    }
 
     /**
      * The preview before the shift state is applied — one letter per pressed digit.
