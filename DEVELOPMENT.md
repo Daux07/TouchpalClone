@@ -30,28 +30,36 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 - **Fase in corso:** **Fase 2 completa** — bilingue IT+EN (versione **2.0**). Fase 1 completa, con gli step aggiuntivi nati dalla prova reale.
 - **Ultimo step completato:** **2.3 — il peso delle parole imparate**: da 1.000.000 fisso a abitudine + spinta recente sulla scala del corpus, e la pressione prolungata su un candidato lo dimentica. Prima: **2.2 — la `b` prima della `a`**: una lettera singola imparata da una build vecchia dominava il tasto 2; la regola scende nel dizionario e l'archivio viene bonificato al caricamento. Prima: **Fase 2.1 — il bilinguismo si accende e si spegne**: schermata impostazioni raggiungibile dal launcher, e la lingua è un elenco (`Language`) invece di un interruttore per l'inglese, così una terza costa un dizionario e una riga. Prima: **Fase 2 — bilingue IT+EN** (versione 2.0): italiano e inglese attivi insieme, senza cambio lingua; l'inglese non scavalca mai l'italiano, quindi nessuna sequenza che funzionava prima si ordina diversamente. Prima: Step 1.26 — **riga dello spazio uniformata** alle file di lettere (senza far ricrescere la tastiera) e **una lettera sola non è mai un nome proprio**: premendo `2` la barra offriva "a B C à". Prima: 1.25 — **tastiera più bassa**: barra candidati quasi dimezzata e tasti più larghi che alti; la tastiera passa dal 40% al 31% dello schermo. Prima: 1.24 — **resilienza ai refusi doppi**: due tasti invertiti (che prima sfuggivano del tutto) e, come ultima risorsa sulle parole lunghe, due tasti sbagliati. Prima: 1.23 (anteprima leggibile: senza corrispondenze esatte il campo mostra la migliore offerta invece delle lettere di default), 1.22 — **completamento di parola**: dopo le parole che i tasti scrivono esattamente, la barra offre quelle di cui i tasti sono l'inizio (dieci tasti per `contemporaneamente`). Prima: 1.21 (la tastiera vibra sotto il dito, con durata regolabile — `KeyboardSettings.hapticMs`, default 18 ms), 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
-- **Prossimo step:** **Fase 3 — impostazioni ed ergonomia**. Le preferenze esistono già nel codice e aspettano solo la schermata: altezza tastiera, durata della vibrazione, dimensione del testo dei candidati, inglese on/off, lato della colonna. Vi rientrano anche la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente.
+- **Prossimo step:** **Fase 3 — impostazioni ed ergonomia**. Le preferenze esistono già nel codice e aspettano solo la schermata: altezza tastiera, durata della vibrazione, dimensione del testo dei candidati, lingue secondarie (l'elenco `Language`, non più un interruttore per l'inglese: dalla 2.1), lato della colonna. Vi rientrano anche la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente.
 - **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce (vedi sopra); va riprovato sul telefono con l'APK aggiornato (`t9-2.3-debug.apk`).
 - **Dopo:** altre lingue oltre IT/EN, e il dizionario binario indicizzato se il formato testo diventasse stretto.
 
-- 📌 **Da controllare il 2026-08-01 — due code della 2.3, nessuna delle due urgente.**
+- 📌 **Code della 2.3 — la 1 è chiusa (2026-08-04), la 2 resta aperta e non è urgente.**
 
-  1. **Le lettere singole vanno ancora escluse dall'apprendimento?** Restano escluse
-     (`LearnedWordsEngine.isLearnable` ≥ 2 caratteri), quindi `e`, `è`, `é` hanno peso solo dal
-     corpus — fisso — e l'ordine del tasto lo decide comunque `SingleLetterEngine` dal
-     tastierino, non la frequenza.
+  1. ✅ **CHIUSA — 2026-08-04. Decisione dell'utente: le lettere singole restano escluse.**
+     `LearnedWordsEngine.isLearnable` non cambia (≥ 2 caratteri): `e`, `è`, `é` hanno peso solo
+     dal corpus — fisso — e l'ordine del tasto lo decide `SingleLetterEngine` dal tastierino,
+     non la frequenza.
 
-     **La motivazione originale però è scaduta.** Era: *"una parola imparata batte l'intero
-     corpus, quindi scrivere `è` una volta demoterebbe `e` per sempre"* — vero con
-     `BASE_WEIGHT` 1.000.000 contro i 48.146 di `e`, falso adesso che una `è` imparata una
-     volta peserebbe **200**. Oggi il divieto regge per un motivo **diverso**: la
-     **prevedibilità** di un tasto premuto da solo, che con la spinta recente (+50.000) verrebbe
-     rimescolato per un'ora dopo ogni uso.
+     **La motivazione originale era scaduta, e la regola è stata rimotivata invece che tolta.**
+     Era: *"una parola imparata batte l'intero corpus, quindi scrivere `è` una volta demoterebbe
+     `e` per sempre"* — vero con `BASE_WEIGHT` 1.000.000 contro i 48.146 di `e`, falso adesso che
+     una `è` imparata una volta peserebbe **200**. Il motivo per cui la regola resta è
+     **diverso**: la **prevedibilità** di un tasto premuto da solo.
 
-     *Decisione da prendere, non difetto da correggere.* La difesa strutturale «l'accento sta
-     dopo la sua lettera semplice» resterebbe in piedi comunque, perché non passa dai pesi.
-     Chi riprende: se si riapre, aggiornare anche il commento di `isLearnable`, che oggi
-     racconta ancora la motivazione vecchia.
+     **Misurato prima di decidere**, sul tasto `2` dove `a` pesa 15.038: una `b` imparata una
+     volta peserebbe `200 + 50.000` di spinta recente = **50.200**, e siccome
+     `SingleLetterEngine` confronta per peso le lettere semplici dello stesso tasto (sopra
+     `REAL_WORD_WEIGHT` = 1.000), il tasto leggerebbe **`b a c à` per un'ora**, poi 5.200 entro
+     il giorno, 700 entro la settimana, 200 dopo. Cioè il sintomo della 2.2 — quello segnalato
+     due volte dall'utente — non più permanente ma **ricorrente a ogni uso**. In cambio, il
+     guadagno era quasi nullo: le lettere singole che sono parole vere il corpus le ordina già
+     bene, e servirebbero ~50 usi perché l'abitudine da sola (senza spinta) superi `a`.
+
+     **Quel che la regola non porta:** la difesa «l'accento sta dopo la sua lettera semplice»
+     **non** dipende da qui — `SingleLetterEngine` ordina su quel flag prima ancora di guardare
+     un peso, quindi reggerebbe anche togliendo la regola. Il commento di `isLearnable`, che
+     raccontava ancora la motivazione vecchia, è stato riscritto con questa.
 
   2. **Le elisioni possono infilare spazzatura nel dizionario.** Scrivendo `l` + apostrofo +
      `a`, `Elision.join` compone **`l'a`** — tre caratteri, quindi imparabile — che finisce
@@ -225,8 +233,10 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 - [x] Simboli preferiti a stack vuoto (configurabili) — anticipati allo Step 1.9
 - [ ] Riordino dei preferiti per trascinamento (oggi si riordina scambiandoli, vedi 1.9)
 - [ ] Numero di preferiti configurabile (oggi fisso a `FavouriteSymbols.COUNT` = 7)
-- [ ] **Vibrazione alla pressione dei tasti** (richiesta dell'utente dopo la prova reale, da
-      anticipare: manca proprio all'uso) + **durata regolabile** nelle impostazioni
+- [x] **Vibrazione alla pressione dei tasti** + **durata regolabile** — anticipata allo Step 1.21
+      (richiesta dell'utente dopo la prova reale). La durata è già un'impostazione
+      (`KeyboardSettings.hapticMs`, default 18 ms): di questa riga manca solo la UI, che sta
+      nella riga qui sotto insieme alle altre preferenze senza schermata
 - [ ] Altezza tastiera regolabile con riproporzionamento uniforme
 - [ ] Dimensione del testo dei candidati regolabile (seam già pronto:
       `SuggestionBarView.textSizeSp`)
@@ -246,7 +256,8 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
       voce in `KeyboardMode`; vista e plumbing già pronti dallo Step 1.8
 - [x] Vocali accentate via long-press — **fatto nello Step 1.12**
 - [ ] Schermata gestione dizionario personale (lista + cancella)
-- [ ] Long-press su candidato → rimuovi dal dizionario
+- [x] Long-press su candidato → rimuovi dal dizionario — anticipato alla 2.3 (solo le parole
+      personali; sul corpus la barra dice che non c'è niente da dimenticare)
 - [ ] Opzione "salvataggio sicuro"
 - [ ] Pannello emoji base
 - [ ] Verifica layout responsive su S25 e S25 Ultra
@@ -477,6 +488,46 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-08-04 — Coda della 2.3: le lettere singole restano fuori dal dizionario
+**Non uno step: una decisione rimasta in sospeso dalla 2.3**, più la documentazione che la
+2.3 aveva lasciato indietro. Nessun cambio di comportamento, nessun test nuovo — il
+comportamento è esattamente quello di prima, ed è questo il punto.
+
+**La domanda era se `isLearnable` (≥ 2 caratteri) avesse ancora un motivo di esistere**, visto
+che la sua motivazione scritta — *"una parola imparata batte l'intero corpus"* — era stata resa
+falsa dalla 2.3 stessa, che ha portato `BASE_WEIGHT` da 1.000.000 a 200. Una regola che sopravvive
+alla propria motivazione è un candidato naturale alla rimozione, e valeva la pena guardarci dentro
+invece di lasciarla lì per inerzia.
+
+**Misurato invece che stimato.** Sul tasto `2` (`a` = 15.038): una `b` imparata una volta
+peserebbe 200 + 50.000 di `RECENT_WEIGHT` = 50.200, e `SingleLetterEngine` confronta per peso le
+lettere semplici sopra `REAL_WORD_WEIGHT` = 1.000 — quindi `b a c à` per un'ora, 5.200 entro il
+giorno, 700 entro la settimana. Il sintomo della 2.2, non più permanente ma **ricorrente**.
+
+**Decisione dell'utente: la regola resta, con una motivazione nuova** — la *prevedibilità* di un
+tasto premuto da solo, non più il peso. Il guadagno del toglierla era quasi nullo (le lettere che
+sono parole vere il corpus le ordina già bene; servirebbero ~50 usi perché l'abitudine da sola
+superi `a`), il costo era un difetto già segnalato due volte.
+
+**Notato mentre si decideva, e messo per iscritto:** la difesa «l'accento sta dopo la sua lettera
+semplice» **non passa da questa regola** — `SingleLetterEngine` ordina su quel flag prima di
+guardare i pesi. Reggerebbe anche togliendola. Prima non era scritto da nessuna parte, e chi
+avesse riaperto la questione avrebbe potuto crederla in pericolo.
+
+**File modificati:** `engine/LearnedWordsEngine.kt` (solo il commento di `isLearnable`),
+`DEVELOPMENT.md`, `docs/FUNCTIONAL.md`.
+
+**Disallineamenti di documentazione riparati nello stesso commit** (direttiva permanente: un file
+disallineato è un bug):
+- `docs/FUNCTIONAL.md` — la riga *"Allineato a:"* diceva ancora **2.1** mentre il file
+  documentava già la 2.3.
+- Fase 3 — *"Long-press su candidato → rimuovi dal dizionario"* era ancora da fare: l'ha fatta
+  la 2.3.
+- Fase 3 — la vibrazione con durata regolabile era ancora da fare: l'ha fatta la 1.21. Riscritta
+  per dire cosa manca davvero, cioè solo la UI.
+- *Prossimo step* parlava ancora di «inglese on/off», che la 2.1 ha sostituito con l'elenco
+  `Language`.
 
 ### 2026-07-31 — 2.3: il peso delle parole imparate, e il modo di dimenticarle
 **Domanda dell'utente:** *"Il peso delle parole imparate è forse esagerato? Non è detto che

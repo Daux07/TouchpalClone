@@ -10,7 +10,7 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** Fase 2 — bilingue IT+EN attivabile (versione 2.1).
+**Allineato a:** 2.3 — il peso delle parole imparate e il modo di dimenticarle (versione 2.3).
 
 **Versione visibile.** `versionName` **è** il numero dello step di `DEVELOPMENT.md`, e da lì
 derivano (via `resValue` in `app/build.gradle.kts`) il nome dell'app e l'etichetta della
@@ -342,7 +342,7 @@ fondono con un sort.
 SingleLetterEngine                  (ultima parola su cosa offre un tasto solo)
   └── FuzzyDictionaryEngine
         └── MergingDictionaryEngine
-              ├── LearnedWordsEngine        (dizionario personale, pesi ≥ 1.000.000)
+              ├── LearnedWordsEngine        (dizionario personale, pesi nell'unità del corpus)
               └── CorpusDictionaryEngine   (corpora fusi, 50k parole)
 ```
 
@@ -653,11 +653,21 @@ peggio di nessun gesto. La barra dice quale dei due casi è stato.
   garantito dall'executor a thread singolo.
 - Le parole sono memorizzate **minuscole**: "Casa" e "casa" sono la stessa parola per lookup
   e apprendimento.
-- **Le lettere singole non si imparano** (`LearnedWordsEngine.isLearnable`). Una parola
-  imparata batte l'intero corpus, quindi una lettera finita lì dentro **una volta** siede in
-  cima al suo tasto per sempre: scrivere `b` per sbaglio demote `a` — una delle parole più
-  frequenti che esistano — in modo permanente. Cosa offre un tasto solo lo decide
-  `SingleLetterEngine` dal tastierino, non la cronologia.
+- **Le lettere singole non si imparano** (`LearnedWordsEngine.isLearnable`). Cosa offre un
+  tasto solo lo decide `SingleLetterEngine` dal tastierino, non la cronologia.
+
+  **Il motivo è cambiato con la 2.3, la regola no** (decisione dell'utente, 04/08). Fino alla
+  2.2 il motivo era che una parola imparata batteva l'intero corpus (`BASE_WEIGHT` 1.000.000),
+  quindi una lettera finita lì dentro una volta sedeva in cima al suo tasto **per sempre**. Con
+  i pesi della 2.3 non è più vero: una lettera imparata una volta peserebbe 200 contro i 15.038
+  di `a`. Il motivo per cui la regola resta è la **prevedibilità** di un tasto premuto da solo:
+  la spinta recente (+50.000) metterebbe una `b` appena scritta davanti ad `a` **per un'ora**,
+  poi la lascerebbe ricadere — lo stesso sintomo della 2.2, non più permanente ma ricorrente a
+  ogni uso.
+
+  **Cosa non dipende da questa regola:** che un accento stia dopo la sua lettera semplice.
+  `SingleLetterEngine` ordina su quel flag *prima* di guardare i pesi, quindi quella garanzia
+  reggerebbe anche se le lettere singole diventassero imparabili.
 
   **La regola sta con i dati, non con il chiamante.** Fino alla 2.2 viveva nel servizio, e
   un chiamante che se ne dimenticasse la aggirava: è esattamente così che le lettere singole

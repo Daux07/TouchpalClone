@@ -145,10 +145,22 @@ class LearnedWordsEngine(
         /**
          * What may enter the personal dictionary at all.
          *
-         * **Never a single letter.** A learned word competes with the whole corpus, so
-         * one letter stored once sits near the top of its key: writing `b` by accident
-         * demotes `a` — a word people write constantly. What a lone key offers is decided
-         * by `SingleLetterEngine` from the keypad, not by history.
+         * **Never a single letter** — kept in Phase 2.3, but for a different reason than
+         * the one it was written for. The old reason was that a learned word outweighed
+         * the entire corpus (`BASE_WEIGHT` was 1.000.000), so a `b` written once demoted
+         * `a` **forever**. That is gone: a letter learned once would now weigh 200
+         * against the 15.038 of `a`.
+         *
+         * The reason it stays is **predictability**. A key pressed on its own should read
+         * the same way every time, and [RECENT_WEIGHT] would break exactly that: 200 plus
+         * 50.000 puts a just-written `b` ahead of `a` for an hour, then lets it fall back
+         * — the Phase 2.2 symptom again, briefly and repeatedly instead of permanently.
+         * What a lone key offers is decided by `SingleLetterEngine` from the keypad, not
+         * by history, and that is the whole point of that class.
+         *
+         * Note what this rule does *not* carry: an accent never precedes its plain letter
+         * because `SingleLetterEngine` orders on that flag before it ever looks at a
+         * weight. That defence would survive this rule being lifted.
          *
          * The rule lives here, with the data, rather than in the caller that happened to
          * need it first: that is exactly how single letters got in before Phase 1.14, and
