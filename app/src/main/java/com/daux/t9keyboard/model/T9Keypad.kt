@@ -65,6 +65,12 @@ object T9Keypad {
     )
 
     /**
+     * Whether [c] is an accented vowel — the same set [sequenceFor] folds, asked as a
+     * question instead of used as a map, so callers need no second list of their own.
+     */
+    fun isAccented(c: Char): Boolean = c.lowercaseChar() in accentFold
+
+    /**
      * The T9 digit sequence for a word (e.g. "casa" → "2272"), or null if the word
      * contains a character with no digit mapping. Accents are folded first.
      */

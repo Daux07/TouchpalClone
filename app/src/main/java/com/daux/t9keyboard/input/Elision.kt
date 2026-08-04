@@ -1,5 +1,7 @@
 package com.daux.t9keyboard.input
 
+import com.daux.t9keyboard.model.T9Keypad
+
 /**
  * When an apostrophe belongs **inside** a word and when it is a quotation mark.
  *
@@ -50,9 +52,24 @@ object Elision {
      *
      * Learning `aveva` out of `l'aveva` is not wrong so much as useless — it stores the
      * half that the dictionary already knew.
+     *
+     * **A tail of one plain letter is not joined.** Typing `l` + `'` + `a` composed
+     * `l'a` — three characters, so the dictionary accepted it — and it landed on
+     * sequence `52` next to `la`. Reproduced on the emulator: for the hour that the
+     * recency boost lasts, `52` offered `l'a` **ahead of `la`**, one of the commonest
+     * words in the language.
+     *
+     * The tail has to be accented rather than merely long, because length cannot tell
+     * the cases apart: `c'è` is one letter joined to one letter, exactly like `l'a`.
+     * What separates them is the accent — the short elisions Italian really has are
+     * `c'è`, `n'è`, `s'è`, `v'è`, all ending in one, while the rubbish is always a
+     * plain vowel (`l'a`, `l'e`, `l'o`). And `c'è` is worth protecting precisely here:
+     * no corpus contains an apostrophe, so being learned is the **only** way it can
+     * ever be offered.
      */
     fun join(before: CharSequence, word: String): String {
         val head = headOf(before) ?: return word
+        if (word.length == 1 && !T9Keypad.isAccented(word[0])) return word
         return "$head'$word"
     }
 }

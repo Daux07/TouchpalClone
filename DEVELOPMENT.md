@@ -28,13 +28,13 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** **Fase 2 completa** — bilingue IT+EN (versione **2.0**). Fase 1 completa, con gli step aggiuntivi nati dalla prova reale.
-- **Ultimo step completato:** **2.3 — il peso delle parole imparate**: da 1.000.000 fisso a abitudine + spinta recente sulla scala del corpus, e la pressione prolungata su un candidato lo dimentica. Prima: **2.2 — la `b` prima della `a`**: una lettera singola imparata da una build vecchia dominava il tasto 2; la regola scende nel dizionario e l'archivio viene bonificato al caricamento. Prima: **Fase 2.1 — il bilinguismo si accende e si spegne**: schermata impostazioni raggiungibile dal launcher, e la lingua è un elenco (`Language`) invece di un interruttore per l'inglese, così una terza costa un dizionario e una riga. Prima: **Fase 2 — bilingue IT+EN** (versione 2.0): italiano e inglese attivi insieme, senza cambio lingua; l'inglese non scavalca mai l'italiano, quindi nessuna sequenza che funzionava prima si ordina diversamente. Prima: Step 1.26 — **riga dello spazio uniformata** alle file di lettere (senza far ricrescere la tastiera) e **una lettera sola non è mai un nome proprio**: premendo `2` la barra offriva "a B C à". Prima: 1.25 — **tastiera più bassa**: barra candidati quasi dimezzata e tasti più larghi che alti; la tastiera passa dal 40% al 31% dello schermo. Prima: 1.24 — **resilienza ai refusi doppi**: due tasti invertiti (che prima sfuggivano del tutto) e, come ultima risorsa sulle parole lunghe, due tasti sbagliati. Prima: 1.23 (anteprima leggibile: senza corrispondenze esatte il campo mostra la migliore offerta invece delle lettere di default), 1.22 — **completamento di parola**: dopo le parole che i tasti scrivono esattamente, la barra offre quelle di cui i tasti sono l'inizio (dieci tasti per `contemporaneamente`). Prima: 1.21 (la tastiera vibra sotto il dito, con durata regolabile — `KeyboardSettings.hapticMs`, default 18 ms), 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **Ultimo step completato:** **2.4 — l'elisione non impara più spazzatura, e `c'è` sì**: `Elision.join` non unisce una coda di una sola lettera non accentata, quindi `l'a` non entra più nel dizionario mentre `c'è`, `n'è`, `s'è` restano imparabili — e sono l'unico modo in cui possano comparire, visto che nessun corpus contiene apostrofi. Prima: **2.3 — il peso delle parole imparate**: da 1.000.000 fisso a abitudine + spinta recente sulla scala del corpus, e la pressione prolungata su un candidato lo dimentica. Prima: **2.2 — la `b` prima della `a`**: una lettera singola imparata da una build vecchia dominava il tasto 2; la regola scende nel dizionario e l'archivio viene bonificato al caricamento. Prima: **Fase 2.1 — il bilinguismo si accende e si spegne**: schermata impostazioni raggiungibile dal launcher, e la lingua è un elenco (`Language`) invece di un interruttore per l'inglese, così una terza costa un dizionario e una riga. Prima: **Fase 2 — bilingue IT+EN** (versione 2.0): italiano e inglese attivi insieme, senza cambio lingua; l'inglese non scavalca mai l'italiano, quindi nessuna sequenza che funzionava prima si ordina diversamente. Prima: Step 1.26 — **riga dello spazio uniformata** alle file di lettere (senza far ricrescere la tastiera) e **una lettera sola non è mai un nome proprio**: premendo `2` la barra offriva "a B C à". Prima: 1.25 — **tastiera più bassa**: barra candidati quasi dimezzata e tasti più larghi che alti; la tastiera passa dal 40% al 31% dello schermo. Prima: 1.24 — **resilienza ai refusi doppi**: due tasti invertiti (che prima sfuggivano del tutto) e, come ultima risorsa sulle parole lunghe, due tasti sbagliati. Prima: 1.23 (anteprima leggibile: senza corrispondenze esatte il campo mostra la migliore offerta invece delle lettere di default), 1.22 — **completamento di parola**: dopo le parole che i tasti scrivono esattamente, la barra offre quelle di cui i tasti sono l'inizio (dieci tasti per `contemporaneamente`). Prima: 1.21 (la tastiera vibra sotto il dito, con durata regolabile — `KeyboardSettings.hapticMs`, default 18 ms), 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
 - **Prossimo step:** **Fase 3 — impostazioni ed ergonomia**. Le preferenze esistono già nel codice e aspettano solo la schermata: altezza tastiera, durata della vibrazione, dimensione del testo dei candidati, lingue secondarie (l'elenco `Language`, non più un interruttore per l'inglese: dalla 2.1), lato della colonna. Vi rientrano anche la **QWERTY come layout alternativo** e lo **scorrimento del cursore trascinando sulla barra spazio**, entrambi richiesti dall'utente.
-- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce (vedi sopra); va riprovato sul telefono con l'APK aggiornato (`t9-2.3-debug.apk`).
+- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce (vedi sopra); va riprovato sul telefono con l'APK aggiornato (`t9-2.4-debug.apk`).
 - **Dopo:** altre lingue oltre IT/EN, e il dizionario binario indicizzato se il formato testo diventasse stretto.
 
-- 📌 **Code della 2.3 — la 1 è chiusa (2026-08-04), la 2 resta aperta e non è urgente.**
+- 📌 **Code della 2.3 — entrambe chiuse il 2026-08-04.**
 
   1. ✅ **CHIUSA — 2026-08-04. Decisione dell'utente: le lettere singole restano escluse.**
      `LearnedWordsEngine.isLearnable` non cambia (≥ 2 caratteri): `e`, `è`, `é` hanno peso solo
@@ -61,14 +61,25 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
      un peso, quindi reggerebbe anche togliendo la regola. Il commento di `isLearnable`, che
      raccontava ancora la motivazione vecchia, è stato riscritto con questa.
 
-  2. **Le elisioni possono infilare spazzatura nel dizionario.** Scrivendo `l` + apostrofo +
-     `a`, `Elision.join` compone **`l'a`** — tre caratteri, quindi imparabile — che finisce
-     sulla sequenza `52` insieme a `la`. Con 200 contro i 17.675 di `la` è innocuo, ma resta
-     spazzatura.
+  2. ✅ **CHIUSA — Step 2.4 (2026-08-04).** *Le elisioni potevano infilare spazzatura nel
+     dizionario.* **Riprodotta sull'emulatore prima di correggere**, e la riproduzione ha
+     smentito la stima scritta qui: non era affatto innocua. Scritto `l` + apostrofo + `a` +
+     spazio, la sequenza `52` proponeva **`l'a` prima di `la`** — non in coda, come diceva il
+     conto «200 contro 17.675», perché quel conto dimenticava la spinta recente della 2.3, che
+     per un'ora mette la parola appena imparata sopra tutto il corpus.
 
-     ⚠️ **Dedotto leggendo il codice, non riprodotto sull'emulatore.** Prima cosa da fare:
-     verificarlo davvero. Se confermato, la correzione naturale è chiedere a `Elision.join` che
-     la coda sia essa stessa una parola (≥ 2 caratteri), non solo il risultato dell'unione.
+     ⚠️ **La correzione che questo promemoria suggeriva era sbagliata, ed è la cosa più utile
+     da ricordare.** «Chiedere che la coda sia essa stessa una parola (≥ 2 caratteri)» avrebbe
+     ucciso **`c'è`** — che ha esattamente la forma di `l'a`: una lettera di testa, una di coda.
+     Lo ha fatto notare l'utente. E `c'è` è proprio la parola da proteggere: **nessun corpus
+     contiene apostrofi** (verificato su `it.txt` e `en.txt`), quindi essere imparata è l'unico
+     modo in cui possa mai comparire fra i candidati. Provata sull'emulatore, si riscrive con
+     **due tasti** dalla sequenza `23`.
+
+     **La discriminante vera non è la lunghezza ma l'accento:** le elisioni corte che l'italiano
+     ha davvero — `c'è`, `n'è`, `s'è`, `v'è` — finiscono tutte per vocale accentata, mentre la
+     spazzatura è sempre una vocale semplice (`l'a`, `l'e`, `l'o`). `Elision.join` rifiuta ora
+     di unire una coda di un solo carattere non accentato.
 - 📝 **Appunti dell'utente dalla prova reale (30/07 sera).** **Ordine deciso dall'utente: prima le tre segnalazioni (1, 2, 3), poi la vibrazione (4).** **Tutti chiusi il 31/07**: 1 → Step 1.18, 3 → Step 1.19, 4 → Step 1.21. Il punto 2 **non si riproduce** e attende un riscontro sul telefono.
 
   1. ✅ **RISOLTO — Step 1.18.** *La parola composta a mano non risulta imparata.*
@@ -488,6 +499,41 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-08-04 — Step 2.4: l'elisione non impara più spazzatura, e `c'è` continua a impararsi
+**La seconda coda della 2.3, e il caso in cui la correzione già scritta nel promemoria era
+sbagliata.** Il promemoria diceva: se `Elision.join` compone `l'a`, chiedere che la coda sia
+essa stessa una parola (≥ 2 caratteri).
+
+**L'utente ha fatto notare che l'unica elisione che valga la pena imparare è `c'è`.** Che ha
+esattamente la forma di `l'a`: una lettera di testa, una di coda, tre caratteri. La correzione
+suggerita le avrebbe uccise **entrambe** — nessuna regola sulla lunghezza può distinguerle.
+
+**Verificato che `c'è` dipenda davvero dall'apprendimento:** nessuna parola con apostrofo esiste
+in `it.txt` né in `en.txt`. Il dizionario personale è l'unica strada per cui possa comparire fra
+i candidati. Buttarla via per prevenire `l'a` sarebbe stato un pessimo scambio.
+
+**Riprodotto sull'emulatore prima di scrivere codice**, e la riproduzione ha corretto anche la
+stima del danno:
+- `l` + `'` + `a` + spazio → la sequenza `52` proponeva **`l'a` prima di `la`**. Il promemoria
+  diceva «con 200 contro i 17.675 di `la` è innocuo»: sbagliato, perché quel conto ignorava la
+  spinta recente della 2.3 (+50.000), che per un'ora mette la parola appena imparata sopra tutto.
+- `c` + `'` + `è` → la sequenza `23` la propone per prima. Due tasti per scrivere `c'è`.
+- Pressione prolungata su `l'a` → sparisce, `la` torna prima, la lista si ricompone intatta. Il
+  rimedio della 2.3 funziona, il che è il motivo per cui questo difetto non era urgente.
+
+**La discriminante è l'accento, non la lunghezza.** Le elisioni corte che l'italiano ha davvero
+— `c'è`, `n'è`, `s'è`, `v'è` — finiscono tutte per vocale accentata; la spazzatura è sempre una
+vocale semplice (`l'a`, `l'e`, `l'o`). `Elision.join` rifiuta di unire una coda di un solo
+carattere non accentato.
+
+**File modificati:** `input/Elision.kt` (la regola), `model/T9Keypad.kt` (`isAccented`, che
+espone come domanda la mappa `accentFold` già esistente invece di far nascere una seconda lista
+di accenti), `app/build.gradle.kts` (2.3 → 2.4). Test: `ElisionTest` +2, i due casi riprodotti.
+
+**Verificato (2026-08-04):** 160 test verdi. Su emulatore, con la build nuova: `52` legge
+`la là ja ka jb jc kc lb` — `l'a` non entra più; e `c'è`, dimenticata apposta e riscritta da
+zero, torna prima su `23`.
 
 ### 2026-08-04 — Coda della 2.3: le lettere singole restano fuori dal dizionario
 **Non uno step: una decisione rimasta in sospeso dalla 2.3**, più la documentazione che la
@@ -932,7 +978,7 @@ d'occhio.
 - `res/values/strings.xml` — le due stringhe **tolte**: scritte a mano si sarebbero
   disallineate al primo step.
 - `tools/dev.sh` — `apk` stampa la versione e copia l'APK con la versione nel nome
-  (`t9-2.3-debug.apk`), così sul telefono non si confondono fra loro.
+  (`t9-2.4-debug.apk`), così sul telefono non si confondono fra loro.
 
 **Verificato (2026-07-31):** installato, `dumpsys package` riporta `versionName=1.21`, e nelle
 impostazioni Android la tastiera compare come **"T9 1.20"** (screenshot preso alla 1.20:

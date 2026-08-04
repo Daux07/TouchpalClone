@@ -10,13 +10,13 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** 2.3 — il peso delle parole imparate e il modo di dimenticarle (versione 2.3).
+**Allineato a:** 2.4 — l'elisione non impara più spazzatura, e `c'è` sì (versione 2.4).
 
 **Versione visibile.** `versionName` **è** il numero dello step di `DEVELOPMENT.md`, e da lì
 derivano (via `resValue` in `app/build.gradle.kts`) il nome dell'app e l'etichetta della
-tastiera: nel selettore si legge **"T9 2.3"**. Provando sul telefono si sa sempre a che punto
+tastiera: nel selettore si legge **"T9 2.4"**. Provando sul telefono si sa sempre a che punto
 del log corrisponde ciò che si ha in mano — e `bash tools/dev.sh apk` produce anche un file
-con la versione nel nome (`t9-2.3-debug.apk`), così gli APK non si confondono fra loro. Le
+con la versione nel nome (`t9-2.4-debug.apk`), così gli APK non si confondono fra loro. Le
 due stringhe non stanno più in `strings.xml`: scritte a mano resterebbero indietro.
 
 ## Indice
@@ -696,6 +696,20 @@ Il guadagno si vede alla seconda scrittura: siccome `sequenceFor` salta l'apostr
 `l'aveva` sta nel dizionario personale sotto `528382` e si ottiene **digitando solo le
 lettere**, con l'apostrofo scritto dalla tastiera.
 
+**Una coda di una lettera sola viene unita solo se accentata** (Step 2.4). Senza questa
+regola, scrivere `l` + apostrofo + `a` componeva `l'a` — tre caratteri, quindi imparabile —
+che finiva sulla sequenza `52` accanto a `la`; riprodotto sull'emulatore, per l'ora della
+spinta recente la barra offriva **`l'a` prima di `la`**.
+
+La regola guarda l'accento e non la lunghezza perché la lunghezza non basta: **`c'è` ha
+esattamente la forma di `l'a`**, una lettera unita a una lettera. A separarle è che le
+elisioni corte che l'italiano ha davvero — `c'è`, `n'è`, `s'è`, `v'è` — finiscono tutte per
+vocale accentata, mentre la spazzatura è sempre una vocale semplice (`l'a`, `l'e`, `l'o`).
+
+E `c'è` va protetta proprio qui: **nessun corpus contiene apostrofi**, né l'italiano né
+l'inglese, quindi essere imparata è l'unico modo in cui possa comparire fra i candidati.
+Scritta una volta, si riscrive con **due tasti** dalla sequenza `23`.
+
 **Limite noto:** l'adozione di una parola sotto il cursore (§4) si ferma ancora
 all'apostrofo, perché `ComposeState` associa una cifra a ogni lettera e non sa rappresentare
 un carattere che non si digita. Parcheggiando il cursore dopo `l'aveva` si adotta `aveva`.
@@ -1111,7 +1125,7 @@ Unit test JVM (nessun emulatore necessario): `./gradlew :app:testDebugUnitTest`.
 | Test | Copre |
 |------|-------|
 | `T9KeypadTest` | `sequenceFor`, fold accenti, e l'apostrofo: saltato nell'elisione (`l'aveva` → `528382`), rifiutato come virgoletta (`po'`, `'ciao`) |
-| `ElisionTest` | La distinzione per posizione fra elisione e virgoletta, e che la parola imparata sia quella intera (`l'aveva`, non `aveva`) |
+| `ElisionTest` | La distinzione per posizione fra elisione e virgoletta, che la parola imparata sia quella intera (`l'aveva`, non `aveva`), e le due facce della regola sulla coda di una lettera: **`l'a` rifiutata**, **`c'è` tenuta** |
 | `CorpusDictionaryEngineTest` | Costruzione indice, ordinamento per peso, ricerca per prefisso (fra cui il caso `contempora` → `contemporaneamente`), e che **una lettera sola non sia mai un nome proprio** |
 | `MergingDictionaryEngineTest` | Fusione, deduplica per parola |
 | `LanguagePriorityEngineTest` | 9 casi: che ogni parola italiana preceda ogni inglese (anche quando l'inglese pesa di più), che una parola comune a entrambe sia tenuta una volta sola, che l'inglese risponda da solo dove l'italiano tace, che una **terza lingua** si accodi alla seconda, e che senza secondarie resti esattamente la tastiera v1 |

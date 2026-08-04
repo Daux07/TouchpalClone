@@ -52,4 +52,28 @@ class ElisionTest {
         assertEquals("aveva", Elision.join("ciao '", "aveva")) // a quotation joins nothing
         assertEquals("aveva", Elision.join("", "aveva"))
     }
+
+    /**
+     * Reproduced on the emulator before this rule existed: typing `l` `'` `a` and a
+     * space put `l'a` on sequence `52`, and for the hour of the recency boost the
+     * keyboard offered it **ahead of `la`**.
+     */
+    @Test
+    fun join_refusesATailOfOnePlainLetter() {
+        assertEquals("a", Elision.join("l'", "a"))
+        assertEquals("e", Elision.join("l'", "e"))
+        assertEquals("o", Elision.join("dell'", "o"))
+    }
+
+    /**
+     * The other half of the same rule, and the reason it is about accents and not
+     * length: `c'è` has the very shape [join_refusesATailOfOnePlainLetter] rejects.
+     * No corpus contains an apostrophe, so learning is the only way it ever appears.
+     */
+    @Test
+    fun join_keepsTheShortElisionsItalianReallyHas() {
+        assertEquals("c'è", Elision.join("c'", "è"))
+        assertEquals("n'è", Elision.join("ce n'", "è"))
+        assertEquals("s'è", Elision.join("s'", "è"))
+    }
 }
