@@ -5,10 +5,13 @@ import android.content.Context
 import android.graphics.PointF
 import android.graphics.Rect
 import android.os.Build
+import android.util.TypedValue
+import android.view.Gravity
 import android.view.View
 import android.view.WindowInsets
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.TextView
 import com.daux.t9keyboard.engine.Candidate
 import com.daux.t9keyboard.input.ShiftState
 import com.daux.t9keyboard.model.KeyAction
@@ -34,6 +37,7 @@ class KeyboardView(
     onPickLetter: (Char) -> Unit,
     onPickSymbol: (String) -> Unit,
     onEditSymbol: (Int) -> Unit,
+    onSettings: () -> Unit,
     private val keyAlternates: (KeySpec) -> List<KeySpec>
 ) : FrameLayout(context), KeyViewFactory.PopupHost {
 
@@ -70,7 +74,7 @@ class KeyboardView(
         applyBottomPadding()
 
         content.addView(
-            suggestionBar,
+            topRow(onSettings),
             LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(BAR_DP))
         )
         content.addView(t9Body, bodyParams())
@@ -83,6 +87,43 @@ class KeyboardView(
 
     private fun bodyParams() =
         LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f)
+
+    /**
+     * The settings cog, then the candidates — the strip above the keys (Step 3.1).
+     *
+     * **Why here and not only in the launcher.** Until now the one way in was the app
+     * icon, which means leaving whatever you were writing in to change how you write.
+     * The cog sits directly above the disambiguation column, in the column's own strip
+     * of width: the leftmost lane of the keyboard is already "not letters", so nothing
+     * has to move aside to make room. It uses the same weights and the same 3dp inset as
+     * [T9BodyView], which is what makes it line up with the column instead of merely
+     * being near it.
+     *
+     * It stays visible when the bar does not (symbol and emoji pages): the way to the
+     * settings should not depend on which surface you happen to be looking at.
+     */
+    private fun topRow(onSettings: () -> Unit): LinearLayout {
+        val cog = TextView(context).apply {
+            text = COG
+            gravity = Gravity.CENTER
+            setTextColor(KeyboardTheme.TEXT_DIM)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
+            isClickable = true
+            setOnClickListener { onSettings() }
+        }
+        return LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(dp(3), 0, dp(3), 0)
+            addView(
+                cog,
+                LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, COG_WEIGHT)
+            )
+            addView(
+                suggestionBar,
+                LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, BAR_WEIGHT)
+            )
+        }
+    }
 
     // --- Modes ----------------------------------------------------------------
 
@@ -259,5 +300,21 @@ class KeyboardView(
 
         /** Clearance between the popup and the key that opened it. See [positionPopup]. */
         private const val POPUP_GAP_DP = 10
+
+        /**
+         * `U+FE0E` is the variation selector that asks for the **text** shape of the cog
+         * rather than the colour emoji one — the same trick the `☺︎` key uses. Without it
+         * Android draws a full-colour gear, which would be the loudest thing on a
+         * keyboard whose every other glyph is one flat colour.
+         */
+        private const val COG = "⚙︎"
+
+        /**
+         * The cog's share of the strip, and the candidates'. They add up to the 7.4 of
+         * [T9BodyView] and the cog takes the column's own 0.9, so it sits exactly over
+         * the column instead of approximately over it.
+         */
+        private const val COG_WEIGHT = 0.9f
+        private const val BAR_WEIGHT = 6.5f
     }
 }

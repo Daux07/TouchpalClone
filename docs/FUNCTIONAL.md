@@ -10,13 +10,13 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** 2.5 — riga dello spazio più alta e freccia dello shift più grande (versione 2.5).
+**Allineato a:** 3.1 — le impostazioni si raggiungono dalla tastiera e contengono i primi comandi (versione 3.1).
 
 **Versione visibile.** `versionName` **è** il numero dello step di `DEVELOPMENT.md`, e da lì
 derivano (via `resValue` in `app/build.gradle.kts`) il nome dell'app e l'etichetta della
-tastiera: nel selettore si legge **"T9 2.5"**. Provando sul telefono si sa sempre a che punto
+tastiera: nel selettore si legge **"T9 3.1"**. Provando sul telefono si sa sempre a che punto
 del log corrisponde ciò che si ha in mano — e `bash tools/dev.sh apk` produce anche un file
-con la versione nel nome (`t9-2.5-debug.apk`), così gli APK non si confondono fra loro. Le
+con la versione nel nome (`t9-3.1-debug.apk`), così gli APK non si confondono fra loro. Le
 due stringhe non stanno più in `strings.xml`: scritte a mano resterebbero indietro.
 
 ## Indice
@@ -1139,9 +1139,50 @@ Due meccanismi, scelti in base a ciò che devono reggere:
 |------|------|--------|
 | Parole imparate | **Room** (`learned_words.db`) | Migliaia di righe, query per sequenza, conteggi da aggiornare |
 | Simboli preferiti | **SharedPreferences** (`KeyboardSettings`) | Sette valori letti una volta e scritti a un tocco: un database sarebbe solo costo |
-| Maiuscola e spazio automatici | **SharedPreferences** (`autoCapitalise`, `autoSpace`) | Due interruttori, accesi di default; la schermata di Fase 3 li esporrà |
+| Maiuscola e spazio automatici | **SharedPreferences** (`autoCapitalise`, `autoSpace`) | Due interruttori, accesi di default, mostrati dallo Step 3.1 |
 
 Entrambi restano nella sandbox dell'app.
+
+### La schermata — `SettingsActivity`
+
+**Due strade per arrivarci:** l'icona nel launcher e — dallo Step 3.1 — una **rotellina sopra la
+colonna di disambiguazione**, all'altezza dei candidati. La seconda esiste perché la prima
+obbliga a *uscire dall'app in cui si sta scrivendo* per cambiare come si scrive.
+
+La rotellina usa gli stessi pesi e lo stesso rientro di 3dp di `T9BodyView` (0.9 su 7.4), quindi
+sta **sopra** la colonna e non genericamente vicino; occupa la corsia che è già "non lettere",
+così niente si è dovuto spostare. Resta visibile anche dove la barra dei candidati non lo è
+(simboli, emoji). Il glifo è `⚙︎` con `U+FE0E`, la variante *testuale*: senza, Android lo
+disegnerebbe come emoji a colori, l'unica cosa colorata di tutta la tastiera.
+
+`KeyboardView` non conosce le Activity — riceve una lambda `onSettings` come per ogni altro
+tasto, e apre il servizio. Là servono due cose non negoziabili: **`FLAG_ACTIVITY_NEW_TASK`**
+(una tastiera è un servizio e non ha un task proprio: senza il flag `startActivity` lancia) e
+**`requestHideSelf`** (la schermata non è un campo di testo, e una tastiera aperta sopra
+coprirebbe i comandi per cui ci si è andati).
+
+**Cosa contiene, in ordine di quanto spesso si cambia:**
+
+| Sezione | Comandi |
+|---|---|
+| Scrittura | Maiuscola automatica a inizio frase, spazio automatico dopo un candidato |
+| Vibrazione | Durata da 0 a `MAX_HAPTIC_MS` (60 ms); `0` = spenta |
+| Lingue | Le secondarie dichiarate in `Language.SECONDARIES` |
+
+Le lingue erano prime solo perché erano arrivate prime (2.1): gli aiuti alla scrittura sono
+quelli che si provano, non piacciono e si riprovano, una lingua si mette una volta.
+
+**Lo slider della vibrazione vibra**, ed è il punto. 12 ms e 24 ms sono lo stesso numero da
+guardare e due tastiere diverse da usare, quindi lo slider chiama la `Haptics` vera — lo stesso
+percorso di codice di una pressione — e ciò che si sente lì è ciò che si sentirà scrivendo.
+Vibra **al rilascio**: un colpo per pixel di trascinamento sarebbe un sonaglio, e coprirebbe la
+cosa da giudicare.
+
+**Cosa manca ancora, e perché non è qui.** Altezza della tastiera e dimensione del testo dei
+candidati sono **misure**, e una misura scelta alla cieca è scelta male. Lo Step 3.2 mette una
+tastiera viva sotto questi comandi — `KeyboardView` è un normale `FrameLayout` e non dipende dal
+servizio IME, quindi si istanzia qui con le callback a vuoto — e lo Step 3.3 aggiunge i due
+cursori sopra di essa.
 
 ---
 

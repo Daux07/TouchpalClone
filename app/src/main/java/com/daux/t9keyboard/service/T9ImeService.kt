@@ -1,5 +1,6 @@
 package com.daux.t9keyboard.service
 
+import android.content.Intent
 import android.inputmethodservice.InputMethodService
 import android.text.InputType
 import android.text.TextUtils
@@ -32,6 +33,7 @@ import com.daux.t9keyboard.model.KeyboardMode
 import com.daux.t9keyboard.model.LongPressKeys
 import com.daux.t9keyboard.model.T9Keypad
 import com.daux.t9keyboard.settings.KeyboardSettings
+import com.daux.t9keyboard.settings.SettingsActivity
 import com.daux.t9keyboard.ui.KeyboardView
 
 /**
@@ -162,11 +164,31 @@ class T9ImeService : InputMethodService() {
             onPickLetter = ::onPickLetter,
             onPickSymbol = ::onInsert,
             onEditSymbol = ::onEditFavourite,
+            onSettings = ::openSettings,
             keyAlternates = ::alternatesFor
         )
         keyboardView = view
         render()
         return view
+    }
+
+    /**
+     * Open the settings from the cog above the column (Step 3.1).
+     *
+     * **`FLAG_ACTIVITY_NEW_TASK` is not optional here.** A keyboard is a service, not an
+     * activity: it has no task of its own to put the screen into, and starting one
+     * without the flag throws. The keyboard then hides itself — the settings screen is
+     * not a text field, and leaving a keyboard open over it would cover the very
+     * controls the user went there to reach.
+     *
+     * Anything changed there is picked up on the way back: [onStartInputView] already
+     * re-reads the languages, and everything else is read fresh at the moment it is used.
+     */
+    private fun openSettings() {
+        val intent = Intent(this, SettingsActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
+        requestHideSelf(0)
     }
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
