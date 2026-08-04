@@ -28,10 +28,10 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** **Fase 3 — impostazioni ed ergonomia**, pianificata con l'utente il 04/08 (vedi *Fase 3 — decisioni di piano*): 3.1 fatta, si prosegue con la 3.2. Fasi 1 e 2 complete.
-- **Ultimo step completato:** **3.3 — altezza della tastiera e dimensione del testo dei candidati**: due cursori sopra l'anteprima, che si muove sotto le dita mentre li sposti. L'altezza va dal 22% al 40% dello schermo e riproporziona tutto in modo uniforme — è gratis, perché la disposizione è fatta di pesi; il testo dei candidati va da 12 a 24 sp sul seam che aspettava dallo Step 1.25. Prima: **3.2 — anteprima viva nella schermata impostazioni**: in fondo alla schermata c'è una tastiera **vera** (`KeyboardView` con le callback a vuoto), non un disegno. Serve alla 3.3 — una misura non si sceglie alla cieca — ma si ripaga già ora: i tasti sono vivi, quindi la durata della vibrazione si giudica premendo un tasto invece che dal solo colpo al rilascio dello slider. Prima: **3.1 — le impostazioni si raggiungono e contengono qualcosa**: una rotellina sopra la colonna, all'altezza dei candidati, apre la schermata senza uscire dall'app in cui si scrive; dentro ci sono maiuscola e spazio automatici e la durata della vibrazione, che vibra quando lasci lo slider. Prima: **2.5 — due ritocchi grafici chiesti dall'utente**: la riga dello spazio è un decimo più alta di una riga di lettere (si mancava lo spazio ogni tanto) e la freccia dello shift passa da 20sp a 26sp, perché un glifo di contorno alla misura dei pieni si legge più piccolo di loro. La tastiera si alza da 0,28 a 0,287 dello schermo — l'utente ha dato il permesso, così le lettere non si appiattiscono per pagare la riga. Prima: **2.4 — l'elisione non impara più spazzatura, e `c'è` sì**: `Elision.join` non unisce una coda di una sola lettera non accentata, quindi `l'a` non entra più nel dizionario mentre `c'è`, `n'è`, `s'è` restano imparabili — e sono l'unico modo in cui possano comparire, visto che nessun corpus contiene apostrofi. Prima: **2.3 — il peso delle parole imparate**: da 1.000.000 fisso a abitudine + spinta recente sulla scala del corpus, e la pressione prolungata su un candidato lo dimentica. Prima: **2.2 — la `b` prima della `a`**: una lettera singola imparata da una build vecchia dominava il tasto 2; la regola scende nel dizionario e l'archivio viene bonificato al caricamento. Prima: **Fase 2.1 — il bilinguismo si accende e si spegne**: schermata impostazioni raggiungibile dal launcher, e la lingua è un elenco (`Language`) invece di un interruttore per l'inglese, così una terza costa un dizionario e una riga. Prima: **Fase 2 — bilingue IT+EN** (versione 2.0): italiano e inglese attivi insieme, senza cambio lingua; l'inglese non scavalca mai l'italiano, quindi nessuna sequenza che funzionava prima si ordina diversamente. Prima: Step 1.26 — **riga dello spazio uniformata** alle file di lettere (senza far ricrescere la tastiera) e **una lettera sola non è mai un nome proprio**: premendo `2` la barra offriva "a B C à". Prima: 1.25 — **tastiera più bassa**: barra candidati quasi dimezzata e tasti più larghi che alti; la tastiera passa dal 40% al 31% dello schermo. Prima: 1.24 — **resilienza ai refusi doppi**: due tasti invertiti (che prima sfuggivano del tutto) e, come ultima risorsa sulle parole lunghe, due tasti sbagliati. Prima: 1.23 (anteprima leggibile: senza corrispondenze esatte il campo mostra la migliore offerta invece delle lettere di default), 1.22 — **completamento di parola**: dopo le parole che i tasti scrivono esattamente, la barra offre quelle di cui i tasti sono l'inizio (dieci tasti per `contemporaneamente`). Prima: 1.21 (la tastiera vibra sotto il dito, con durata regolabile — `KeyboardSettings.hapticMs`, default 18 ms), 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **Ultimo step completato:** **3.4 — larghezza dei tasti e lato (idea dell'utente)**: un cursore stringe i tasti dal 100% al 60% dello schermo e un interruttore li porta a sinistra per i mancini. Il pannello resta largo quanto lo schermo: non rimpicciolisce la tastiera, la **avvicina al pollice**. Default a tutto schermo — stringere costa precisione, quindi si accende solo chi ne ha bisogno. Prima: **3.3 — altezza della tastiera e dimensione del testo dei candidati**: due cursori sopra l'anteprima, che si muove sotto le dita mentre li sposti. L'altezza va dal 22% al 40% dello schermo e riproporziona tutto in modo uniforme — è gratis, perché la disposizione è fatta di pesi; il testo dei candidati va da 12 a 24 sp sul seam che aspettava dallo Step 1.25. Prima: **3.2 — anteprima viva nella schermata impostazioni**: in fondo alla schermata c'è una tastiera **vera** (`KeyboardView` con le callback a vuoto), non un disegno. Serve alla 3.3 — una misura non si sceglie alla cieca — ma si ripaga già ora: i tasti sono vivi, quindi la durata della vibrazione si giudica premendo un tasto invece che dal solo colpo al rilascio dello slider. Prima: **3.1 — le impostazioni si raggiungono e contengono qualcosa**: una rotellina sopra la colonna, all'altezza dei candidati, apre la schermata senza uscire dall'app in cui si scrive; dentro ci sono maiuscola e spazio automatici e la durata della vibrazione, che vibra quando lasci lo slider. Prima: **2.5 — due ritocchi grafici chiesti dall'utente**: la riga dello spazio è un decimo più alta di una riga di lettere (si mancava lo spazio ogni tanto) e la freccia dello shift passa da 20sp a 26sp, perché un glifo di contorno alla misura dei pieni si legge più piccolo di loro. La tastiera si alza da 0,28 a 0,287 dello schermo — l'utente ha dato il permesso, così le lettere non si appiattiscono per pagare la riga. Prima: **2.4 — l'elisione non impara più spazzatura, e `c'è` sì**: `Elision.join` non unisce una coda di una sola lettera non accentata, quindi `l'a` non entra più nel dizionario mentre `c'è`, `n'è`, `s'è` restano imparabili — e sono l'unico modo in cui possano comparire, visto che nessun corpus contiene apostrofi. Prima: **2.3 — il peso delle parole imparate**: da 1.000.000 fisso a abitudine + spinta recente sulla scala del corpus, e la pressione prolungata su un candidato lo dimentica. Prima: **2.2 — la `b` prima della `a`**: una lettera singola imparata da una build vecchia dominava il tasto 2; la regola scende nel dizionario e l'archivio viene bonificato al caricamento. Prima: **Fase 2.1 — il bilinguismo si accende e si spegne**: schermata impostazioni raggiungibile dal launcher, e la lingua è un elenco (`Language`) invece di un interruttore per l'inglese, così una terza costa un dizionario e una riga. Prima: **Fase 2 — bilingue IT+EN** (versione 2.0): italiano e inglese attivi insieme, senza cambio lingua; l'inglese non scavalca mai l'italiano, quindi nessuna sequenza che funzionava prima si ordina diversamente. Prima: Step 1.26 — **riga dello spazio uniformata** alle file di lettere (senza far ricrescere la tastiera) e **una lettera sola non è mai un nome proprio**: premendo `2` la barra offriva "a B C à". Prima: 1.25 — **tastiera più bassa**: barra candidati quasi dimezzata e tasti più larghi che alti; la tastiera passa dal 40% al 31% dello schermo. Prima: 1.24 — **resilienza ai refusi doppi**: due tasti invertiti (che prima sfuggivano del tutto) e, come ultima risorsa sulle parole lunghe, due tasti sbagliati. Prima: 1.23 (anteprima leggibile: senza corrispondenze esatte il campo mostra la migliore offerta invece delle lettere di default), 1.22 — **completamento di parola**: dopo le parole che i tasti scrivono esattamente, la barra offre quelle di cui i tasti sono l'inizio (dieci tasti per `contemporaneamente`). Prima: 1.21 (la tastiera vibra sotto il dito, con durata regolabile — `KeyboardSettings.hapticMs`, default 18 ms), 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
-- **Prossimo step:** **3.4 — scorrimento del cursore trascinando sulla barra spazio** (idea dell'utente). Indipendente dalla schermata impostazioni: occupa il long-press dello spazio, tenuto libero apposta fin dallo Step 1.12 perché lo `0` è già sulla virgola.
-- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce sull'emulatore — riprovato sulla 2.4 il 04/08 sia a inizio campo sia a inizio frase, con la maiuscola automatica armata (vedi sopra). Resta da provare sul telefono con `t9-3.3-debug.apk`, che è l'unico posto dove il difetto sia mai stato visto.
+- **Prossimo step:** **3.5 — scorrimento del cursore trascinando sulla barra spazio** (idea dell'utente). Indipendente dalla schermata impostazioni: occupa il long-press dello spazio, tenuto libero apposta fin dallo Step 1.12 perché lo `0` è già sulla virgola.
+- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce sull'emulatore — riprovato sulla 2.4 il 04/08 sia a inizio campo sia a inizio frase, con la maiuscola automatica armata (vedi sopra). Resta da provare sul telefono con `t9-3.4-debug.apk`, che è l'unico posto dove il difetto sia mai stato visto.
 - **Dopo:** altre lingue oltre IT/EN, e il dizionario binario indicizzato se il formato testo diventasse stretto.
 
 - 📌 **Code della 2.3 — entrambe chiuse il 2026-08-04.**
@@ -139,7 +139,7 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
      **Cosa questo non prova.** La segnalazione originale viene dal **telefono**, non
      dall'emulatore, e su un APK di cui non si conosce la versione. L'emulatore può solo
      continuare a dire che il difetto non c'è: a chiudere il punto è un riscontro sul
-     telefono con `t9-3.3-debug.apk`.
+     telefono con `t9-3.4-debug.apk`.
 
   3. ✅ **RISOLTO — Step 1.19.** *Elisioni come parola unica.*
 
@@ -288,7 +288,11 @@ testo → 3.4 cursore sulla barra spazio → 3.5 colonna e preferiti → 3.6 diz
 
 ## Fase 3 — Impostazioni, ergonomia, rifiniture
 
-- [ ] Posizione colonna sinistra/destra configurabile
+- [x] **Larghezza dei tasti e lato dello schermo** (idea dell'utente, 04/08) — **Step 3.4**. Da
+      non confondere con la riga qui sotto: questa sposta **la tastiera dentro lo schermo**,
+      quella sposta **la colonna dentro la tastiera**. Sono complementari, e un mancino
+      probabilmente vorrà entrambe
+- [ ] Posizione colonna sinistra/destra configurabile (dentro la tastiera — vedi la riga sopra)
 - [x] Simboli preferiti a stack vuoto (configurabili) — anticipati allo Step 1.9
 - [ ] Riordino dei preferiti per trascinamento (oggi si riordina scambiandoli, vedi 1.9)
 - [ ] Numero di preferiti configurabile (oggi fisso a `FavouriteSymbols.COUNT` = 7)
@@ -580,6 +584,51 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-08-04 — Step 3.4: i tasti si stringono verso un lato (idea dell'utente)
+**Domanda dell'utente:** *"è fattibile inserire un cursore per ottimizzare la larghezza? Il
+pannello può rimanere a schermo intero ma per schermi larghi potrebbe stringere un po' i tasti
+verso destra (ed un pulsante che permette di fare l'opposto stringendo verso sinistra in caso di
+uso mancino)"*. Fattibile, e più semplice di quanto sembrasse.
+
+- **Larghezza tasti**, dal **60% al 100%** dello schermo, default **100%**.
+- **Interruttore «Tasti a sinistra (per mancini)»**, che non significa niente a tutto schermo.
+
+**Perché è costato poco:** tutto ciò che si vede sta dentro un unico figlio, `content`, in un
+`FrameLayout`. Stringere è dargli una larghezza frazionaria e una `gravity`. Il pannello resta a
+tutto schermo perché lo sfondo è della `KeyboardView`, non di `content` — e questo è il punto
+della richiesta: **non rimpicciolisce la tastiera, la avvicina al pollice**. Colonna, tasti, riga
+dello spazio, barra dei candidati e rotellina si stringono insieme, perché sono tutti figli di
+`content` che se la dividono a pesi.
+
+**Il difetto che sarebbe arrivato dopo, corretto insieme.** `positionPopup` teneva i popup
+long-press dentro i bordi della **`KeyboardView`**. Finché i tasti erano larghi quanto lei le due
+cose coincidevano; con i tasti stretti, un popup aperto sul tasto di bordo poteva piazzarsi nella
+fascia vuota accanto, staccato dal tasto che lo aveva aperto. Il limite è ora `content.left` /
+`content.right`. Una riga, ma senza pensarci si sarebbe scoperta solo per caso.
+
+**Il default è 100% di proposito.** Stringere costa precisione — gli stessi tasti con meno spazio
+— quindi vale solo per chi non arriva dall'altra parte dello schermo, e può dirlo. Una tastiera
+che arriva già stretta sarebbe peggio per tutti quelli che non l'hanno chiesto.
+
+**Da non confondere con «posizione colonna sinistra/destra»**, che resta aperta in Fase 3: quella
+sposta la colonna di disambiguazione **dentro** la tastiera, questa sposta la tastiera **dentro
+lo schermo**. Sono complementari.
+
+**File modificati:** `settings/KeyboardSettings.kt` (`keyboardWidthPercent`, `keyboardOnLeft`),
+`ui/KeyboardView.kt` (`applyContentWidth`, il limite dei popup), `settings/SettingsActivity.kt`,
+`app/build.gradle.kts` (3.3 → 3.4).
+
+**Verificato (2026-08-04):** 160 test verdi, e sull'emulatore — cursore e interruttore muovono
+l'anteprima (a destra e a sinistra, col pannello sempre a tutto schermo), e la tastiera **vera**
+si stringe a sinistra riaperto un campo in Messaggi. Il popup long-press sul tasto di bordo resta
+**dentro i tasti** invece di scivolare nella fascia vuota — catturato tenendo premuto con
+`input motionevent DOWN`/`UP` separati, perché `input swipe` rilascia prima che lo screenshot
+faccia in tempo. Screenshot: `step-3.4-tasti-stretti-a-destra.png`,
+`step-3.4-tasti-stretti-a-sinistra.png`, `step-3.4-popup-dentro-i-tasti.png`.
+
+**Nota:** su questo emulatore (1280px, 427dp) il guadagno è modesto — la tastiera è già
+raggiungibile. Si vedrà sull'S25 Ultra, che è il caso per cui la funzione è stata chiesta.
 
 ### 2026-08-04 — Step 3.3: altezza e testo dei candidati, scelti guardandoli cambiare
 **Due cursori sopra l'anteprima della 3.2**, che si muove sotto le dita mentre li sposti.
@@ -1238,7 +1287,7 @@ d'occhio.
 - `res/values/strings.xml` — le due stringhe **tolte**: scritte a mano si sarebbero
   disallineate al primo step.
 - `tools/dev.sh` — `apk` stampa la versione e copia l'APK con la versione nel nome
-  (`t9-3.3-debug.apk`), così sul telefono non si confondono fra loro.
+  (`t9-3.4-debug.apk`), così sul telefono non si confondono fra loro.
 
 **Verificato (2026-07-31):** installato, `dumpsys package` riporta `versionName=1.21`, e nelle
 impostazioni Android la tastiera compare come **"T9 1.20"** (screenshot preso alla 1.20:

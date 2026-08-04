@@ -104,6 +104,36 @@ class KeyboardSettings(context: Context) {
     fun bodyHeightFraction(): Float = bodyHeightPercent / 100f
 
     /**
+     * How wide the keys are, as a **percentage of the screen** (Step 3.4).
+     *
+     * The panel behind them stays full width whatever this says: what narrows is the keys,
+     * so a thumb can reach the far side of a big phone without the keyboard looking like
+     * it fell off the edge.
+     *
+     * **The default is 100 on purpose.** Narrowing costs accuracy — the same keys with
+     * less room — so it is worth it only to somebody who cannot reach across their screen,
+     * and they can say so. A keyboard that arrives already narrowed would be worse for
+     * everyone who did not ask.
+     */
+    var keyboardWidthPercent: Int
+        get() = prefs.getInt(KEY_WIDTH, DEFAULT_WIDTH_PERCENT)
+            .coerceIn(MIN_WIDTH_PERCENT, MAX_WIDTH_PERCENT)
+        set(value) = prefs.edit()
+            .putInt(KEY_WIDTH, value.coerceIn(MIN_WIDTH_PERCENT, MAX_WIDTH_PERCENT))
+            .apply()
+
+    /** [keyboardWidthPercent] as the fraction the measuring code wants. */
+    fun keyboardWidthFraction(): Float = keyboardWidthPercent / 100f
+
+    /**
+     * Which edge the narrowed keys sit against — left for a left-handed grip, right
+     * otherwise. Means nothing at all while [keyboardWidthPercent] is 100.
+     */
+    var keyboardOnLeft: Boolean
+        get() = prefs.getBoolean(KEY_ON_LEFT, false)
+        set(value) = prefs.edit().putBoolean(KEY_ON_LEFT, value).apply()
+
+    /**
      * Candidate text size in sp, driving `SuggestionBarView.textSizeSp`.
      *
      * The bar's own height does **not** follow it: `BAR_DP` is fixed, and Step 1.25 sized
@@ -140,6 +170,18 @@ class KeyboardSettings(context: Context) {
          */
         const val MAX_BODY_HEIGHT_PERCENT = 40
 
+        /** Full width: the keyboard nobody asked to narrow. See [keyboardWidthPercent]. */
+        const val DEFAULT_WIDTH_PERCENT = 100
+
+        /**
+         * Below this the keys are narrower than a thumb is wide on a phone that was not
+         * big enough to need this in the first place. The point is reaching the far side
+         * of a large screen, not making a small keyboard.
+         */
+        const val MIN_WIDTH_PERCENT = 60
+
+        const val MAX_WIDTH_PERCENT = 100
+
         /** `SuggestionBarView.DEFAULT_TEXT_SP`, as an integer the slider can move in. */
         const val DEFAULT_CANDIDATE_SP = 17
 
@@ -157,6 +199,8 @@ class KeyboardSettings(context: Context) {
         private const val KEY_AUTO_SPACE = "auto_space"
         private const val KEY_BODY_HEIGHT = "body_height_percent"
         private const val KEY_CANDIDATE_SP = "candidate_text_sp"
+        private const val KEY_WIDTH = "keyboard_width_percent"
+        private const val KEY_ON_LEFT = "keyboard_on_left"
 
         /** A character no symbol can contain, so the list survives a round trip. */
         private const val SEPARATOR = "\n"

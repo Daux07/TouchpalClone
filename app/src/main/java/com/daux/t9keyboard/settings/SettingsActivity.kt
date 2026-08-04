@@ -105,10 +105,31 @@ class SettingsActivity : Activity() {
             ) { settings.candidateTextSp = it }
         )
         root.addView(
+            slider(
+                label = { if (it == 100) "Larghezza tasti: tutto lo schermo" else "Larghezza tasti: $it%" },
+                value = settings.keyboardWidthPercent,
+                min = KeyboardSettings.MIN_WIDTH_PERCENT,
+                max = KeyboardSettings.MAX_WIDTH_PERCENT
+            ) { settings.keyboardWidthPercent = it }
+        )
+        root.addView(
+            check("Tasti a sinistra (per mancini)", settings.keyboardOnLeft) {
+                settings.keyboardOnLeft = it
+                keyboardPreview.applySizeSettings()
+            }
+        )
+        root.addView(
+            note(
+                "Stringendo i tasti il pannello resta largo quanto lo schermo: non " +
+                    "rimpicciolisce la tastiera, la avvicina al pollice. A tutto schermo " +
+                    "il lato non fa differenza."
+            )
+        )
+        root.addView(
             note(
                 "La tastiera qui sotto è vera e cambia mentre muovi i cursori: quello " +
                     "che vedi è quello che avrai. I tasti mantengono le stesse proporzioni " +
-                    "fra loro a qualunque altezza."
+                    "fra loro a qualunque dimensione."
             )
         )
 

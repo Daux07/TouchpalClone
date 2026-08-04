@@ -10,13 +10,13 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** 3.3 — altezza della tastiera e dimensione del testo dei candidati regolabili (versione 3.3).
+**Allineato a:** 3.4 — larghezza dei tasti e lato dello schermo (versione 3.4).
 
 **Versione visibile.** `versionName` **è** il numero dello step di `DEVELOPMENT.md`, e da lì
 derivano (via `resValue` in `app/build.gradle.kts`) il nome dell'app e l'etichetta della
-tastiera: nel selettore si legge **"T9 3.3"**. Provando sul telefono si sa sempre a che punto
+tastiera: nel selettore si legge **"T9 3.4"**. Provando sul telefono si sa sempre a che punto
 del log corrisponde ciò che si ha in mano — e `bash tools/dev.sh apk` produce anche un file
-con la versione nel nome (`t9-3.3-debug.apk`), così gli APK non si confondono fra loro. Le
+con la versione nel nome (`t9-3.4-debug.apk`), così gli APK non si confondono fra loro. Le
 due stringhe non stanno più in `strings.xml`: scritte a mano resterebbero indietro.
 
 ## Indice
@@ -1210,6 +1210,8 @@ Due cursori sopra l'anteprima, che si muove sotto le dita mentre li si sposta.
 |---|---|---|---|
 | Altezza tastiera | 22–40% dello schermo | **29%** | `KeyboardSettings.bodyHeightPercent`, letta a ogni `KeyboardView.onMeasure` |
 | Testo dei candidati | 12–24 sp | **17 sp** | `SuggestionBarView.textSizeSp` |
+| Larghezza tasti | 60–100% dello schermo | **100%** | `KeyboardSettings.keyboardWidthPercent` |
+| Tasti a sinistra | interruttore | **spento** | `KeyboardSettings.keyboardOnLeft` |
 
 **Il riproporzionamento uniforme è gratis**, ed è il dividendo della scelta di costruire la
 disposizione con **pesi** invece che con misure: ogni tasto è una quota di qualunque altezza
@@ -1230,6 +1232,23 @@ vibrazione che agisce al rilascio. Non è un'incoerenza: un colpo va sentito uno
 dimensione va *guardata cambiare*. Il prezzo è una scrittura nelle preferenze per pixel di corsa,
 piccolo e dichiarato; l'alternativa sarebbe un disaccordo fra ciò che si vede e ciò che è
 memorizzato per tutta la durata del trascinamento.
+
+**La larghezza stringe i tasti, non la tastiera (Step 3.4).** Il pannello scuro resta largo
+quanto lo schermo — è lo sfondo della `KeyboardView`, mentre a stringersi è il solo `content` con
+una `gravity` a destra o a sinistra. Serve ad **avvicinare i tasti al pollice** su uno schermo
+grande, non a rimpicciolirli: colonna, tasti, riga dello spazio, barra dei candidati e rotellina
+si stringono insieme, essendo tutti figli di `content` che se la divide a pesi.
+
+Il default resta il 100% perché stringere **costa precisione** — gli stessi tasti con meno spazio
+— e conviene solo a chi non arriva dall'altra parte dello schermo.
+
+⚠️ **Da non confondere con la posizione della colonna** (ancora da fare): questa sposta la
+tastiera *dentro lo schermo*, quella sposta la colonna *dentro la tastiera*. Sono complementari.
+
+**Il limite dei popup segue i tasti, non la vista.** `positionPopup` tiene i pannelli long-press
+dentro `content.left`/`content.right`. Finché i tasti erano larghi quanto la `KeyboardView` le
+due cose coincidevano; con i tasti stretti, limitarsi alla vista lascerebbe un popup di bordo
+scivolare nella fascia vuota accanto, staccato dal tasto che lo ha aperto.
 
 Le nuove misure raggiungono la tastiera vera al rientro in un campo (`onStartInputView` →
 `applySizeSettings`), lo stesso momento in cui si rileggono le lingue.

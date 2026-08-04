@@ -83,6 +83,7 @@ class KeyboardView(
         content.addView(gridBody, bodyParams())
 
         addView(content, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+        applyContentWidth()
         addView(popup, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT))
         showMode(KeyboardMode.T9)
     }
@@ -220,6 +221,11 @@ class KeyboardView(
      * not fit between the top of the keyboard and a key 61dp below it. There the finger
      * ends up under the panel no matter what, which is why the vertical gain carries more
      * of the work than the horizontal one.
+     *
+     * **"Inside the keyboard" means inside [content], not inside this view** (Step 3.4).
+     * The two were the same thing until the keys could be narrowed: after that, clamping
+     * to the whole view would let a panel opened on the leftmost key drift out into the
+     * empty strip beside the keys, floating away from the key that opened it.
      */
     private fun positionPopup() {
         val anchor = popupAnchor ?: return
@@ -229,8 +235,9 @@ class KeyboardView(
         offsetDescendantRectToMyCoords(anchor, rect)
 
         val opening = popup.visibility != View.VISIBLE
-        val maxX = (width - popup.width).coerceAtLeast(0)
-        val x = (rect.centerX() - popup.width / 2).coerceIn(0, maxX)
+        val minX = content.left
+        val maxX = (content.right - popup.width).coerceAtLeast(minX)
+        val x = (rect.centerX() - popup.width / 2).coerceIn(minX, maxX)
         val y = (rect.top - popup.height - dp(POPUP_GAP_DP)).coerceAtLeast(0)
 
         // Translation is relative to where the layout put it, not to the origin.
@@ -271,7 +278,27 @@ class KeyboardView(
      */
     fun applySizeSettings() {
         suggestionBar.textSizeSp = settings.candidateTextSp.toFloat()
+        applyContentWidth()
         requestLayout()
+    }
+
+    /**
+     * How wide the keys are, and which edge they sit against (Step 3.4).
+     *
+     * Only [content] narrows. The panel is this view's own background, so it stays full
+     * width and the keys look moved rather than shrunk — which is what they are: a thumb
+     * that cannot cross a big screen does not want a smaller keyboard, it wants the same
+     * keyboard closer.
+     *
+     * Everything inside follows for free, candidate bar and cog included, because they are
+     * all children of [content] sharing it out by weight.
+     */
+    private fun applyContentWidth() {
+        val full = resources.displayMetrics.widthPixels
+        val fraction = settings.keyboardWidthFraction()
+        val width = if (fraction >= 1f) LayoutParams.MATCH_PARENT else (full * fraction).toInt()
+        val side = if (settings.keyboardOnLeft) Gravity.START else Gravity.END
+        content.layoutParams = LayoutParams(width, LayoutParams.MATCH_PARENT, side)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
