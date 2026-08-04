@@ -10,13 +10,13 @@
 > feature che documenta, insieme a `DEVELOPMENT.md`. Documentazione disallineata =
 > step non finito.
 
-**Allineato a:** 3.1 — le impostazioni si raggiungono dalla tastiera e contengono i primi comandi (versione 3.1).
+**Allineato a:** 3.2 — anteprima viva della tastiera nella schermata impostazioni (versione 3.2).
 
 **Versione visibile.** `versionName` **è** il numero dello step di `DEVELOPMENT.md`, e da lì
 derivano (via `resValue` in `app/build.gradle.kts`) il nome dell'app e l'etichetta della
-tastiera: nel selettore si legge **"T9 3.1"**. Provando sul telefono si sa sempre a che punto
+tastiera: nel selettore si legge **"T9 3.2"**. Provando sul telefono si sa sempre a che punto
 del log corrisponde ciò che si ha in mano — e `bash tools/dev.sh apk` produce anche un file
-con la versione nel nome (`t9-3.1-debug.apk`), così gli APK non si confondono fra loro. Le
+con la versione nel nome (`t9-3.2-debug.apk`), così gli APK non si confondono fra loro. Le
 due stringhe non stanno più in `strings.xml`: scritte a mano resterebbero indietro.
 
 ## Indice
@@ -1178,11 +1178,31 @@ percorso di codice di una pressione — e ciò che si sente lì è ciò che si s
 Vibra **al rilascio**: un colpo per pixel di trascinamento sarebbe un sonaglio, e coprirebbe la
 cosa da giudicare.
 
-**Cosa manca ancora, e perché non è qui.** Altezza della tastiera e dimensione del testo dei
-candidati sono **misure**, e una misura scelta alla cieca è scelta male. Lo Step 3.2 mette una
-tastiera viva sotto questi comandi — `KeyboardView` è un normale `FrameLayout` e non dipende dal
-servizio IME, quindi si istanzia qui con le callback a vuoto — e lo Step 3.3 aggiunge i due
-cursori sopra di essa.
+#### L'anteprima viva (Step 3.2)
+
+In fondo alla schermata sta una **tastiera vera**: `KeyboardView`, la stessa classe che mostra
+l'IME, con le callback che non vanno da nessuna parte. Non un disegno, non un mock-up. È
+possibile perché `KeyboardView` è un normale `FrameLayout` che prende un `Context` e delle
+lambda, e non ha mai saputo nulla di `InputMethodService`.
+
+Serve alle **misure**: altezza della tastiera e dimensione del testo dei candidati (Step 3.3)
+non si scelgono alla cieca, e qui la cosa misurata sta sulla stessa schermata del comando che la
+misura. Ma si ripaga già prima: i tasti sono vivi, quindi la durata della vibrazione si giudica
+**premendo un tasto**, non dal solo colpo al rilascio del cursore — stesso `KeyViewFactory`,
+stessa `Haptics`.
+
+Tre dettagli che sembrano piccoli e non lo sono:
+- **La rotellina dell'anteprima non porta da nessuna parte.** È già la schermata impostazioni: un
+  comando che riapre la schermata su cui sei è una trappola.
+- **`FOCUS_BLOCK_DESCENDANTS`**: ogni tasto è focalizzabile, perché nell'IME sono tasti veri. In
+  un modulo diventerebbero tappe del giro del fuoco. Un'anteprima si guarda e si preme, non si
+  attraversa col tab.
+- **L'inset della barra di stato lo reclama la vista più esterna**, che dalla 3.2 è il
+  contenitore e non più la `ScrollView`. Il basso resta della tastiera, che legge da sé l'inset
+  della barra di navigazione.
+
+**Cosa manca ancora:** i due cursori di altezza e dimensione del testo, che arrivano nello
+Step 3.3 sopra questa anteprima.
 
 ---
 

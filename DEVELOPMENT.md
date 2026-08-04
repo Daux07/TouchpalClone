@@ -28,10 +28,10 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 ## 🔖 STATO CORRENTE (aggiornare sempre qui)
 
 - **Fase in corso:** **Fase 3 — impostazioni ed ergonomia**, pianificata con l'utente il 04/08 (vedi *Fase 3 — decisioni di piano*): 3.1 fatta, si prosegue con la 3.2. Fasi 1 e 2 complete.
-- **Ultimo step completato:** **3.1 — le impostazioni si raggiungono e contengono qualcosa**: una rotellina sopra la colonna, all'altezza dei candidati, apre la schermata senza uscire dall'app in cui si scrive; dentro ci sono maiuscola e spazio automatici e la durata della vibrazione, che vibra quando lasci lo slider. Prima: **2.5 — due ritocchi grafici chiesti dall'utente**: la riga dello spazio è un decimo più alta di una riga di lettere (si mancava lo spazio ogni tanto) e la freccia dello shift passa da 20sp a 26sp, perché un glifo di contorno alla misura dei pieni si legge più piccolo di loro. La tastiera si alza da 0,28 a 0,287 dello schermo — l'utente ha dato il permesso, così le lettere non si appiattiscono per pagare la riga. Prima: **2.4 — l'elisione non impara più spazzatura, e `c'è` sì**: `Elision.join` non unisce una coda di una sola lettera non accentata, quindi `l'a` non entra più nel dizionario mentre `c'è`, `n'è`, `s'è` restano imparabili — e sono l'unico modo in cui possano comparire, visto che nessun corpus contiene apostrofi. Prima: **2.3 — il peso delle parole imparate**: da 1.000.000 fisso a abitudine + spinta recente sulla scala del corpus, e la pressione prolungata su un candidato lo dimentica. Prima: **2.2 — la `b` prima della `a`**: una lettera singola imparata da una build vecchia dominava il tasto 2; la regola scende nel dizionario e l'archivio viene bonificato al caricamento. Prima: **Fase 2.1 — il bilinguismo si accende e si spegne**: schermata impostazioni raggiungibile dal launcher, e la lingua è un elenco (`Language`) invece di un interruttore per l'inglese, così una terza costa un dizionario e una riga. Prima: **Fase 2 — bilingue IT+EN** (versione 2.0): italiano e inglese attivi insieme, senza cambio lingua; l'inglese non scavalca mai l'italiano, quindi nessuna sequenza che funzionava prima si ordina diversamente. Prima: Step 1.26 — **riga dello spazio uniformata** alle file di lettere (senza far ricrescere la tastiera) e **una lettera sola non è mai un nome proprio**: premendo `2` la barra offriva "a B C à". Prima: 1.25 — **tastiera più bassa**: barra candidati quasi dimezzata e tasti più larghi che alti; la tastiera passa dal 40% al 31% dello schermo. Prima: 1.24 — **resilienza ai refusi doppi**: due tasti invertiti (che prima sfuggivano del tutto) e, come ultima risorsa sulle parole lunghe, due tasti sbagliati. Prima: 1.23 (anteprima leggibile: senza corrispondenze esatte il campo mostra la migliore offerta invece delle lettere di default), 1.22 — **completamento di parola**: dopo le parole che i tasti scrivono esattamente, la barra offre quelle di cui i tasti sono l'inizio (dieci tasti per `contemporaneamente`). Prima: 1.21 (la tastiera vibra sotto il dito, con durata regolabile — `KeyboardSettings.hapticMs`, default 18 ms), 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
+- **Ultimo step completato:** **3.2 — anteprima viva nella schermata impostazioni**: in fondo alla schermata c'è una tastiera **vera** (`KeyboardView` con le callback a vuoto), non un disegno. Serve alla 3.3 — una misura non si sceglie alla cieca — ma si ripaga già ora: i tasti sono vivi, quindi la durata della vibrazione si giudica premendo un tasto invece che dal solo colpo al rilascio dello slider. Prima: **3.1 — le impostazioni si raggiungono e contengono qualcosa**: una rotellina sopra la colonna, all'altezza dei candidati, apre la schermata senza uscire dall'app in cui si scrive; dentro ci sono maiuscola e spazio automatici e la durata della vibrazione, che vibra quando lasci lo slider. Prima: **2.5 — due ritocchi grafici chiesti dall'utente**: la riga dello spazio è un decimo più alta di una riga di lettere (si mancava lo spazio ogni tanto) e la freccia dello shift passa da 20sp a 26sp, perché un glifo di contorno alla misura dei pieni si legge più piccolo di loro. La tastiera si alza da 0,28 a 0,287 dello schermo — l'utente ha dato il permesso, così le lettere non si appiattiscono per pagare la riga. Prima: **2.4 — l'elisione non impara più spazzatura, e `c'è` sì**: `Elision.join` non unisce una coda di una sola lettera non accentata, quindi `l'a` non entra più nel dizionario mentre `c'è`, `n'è`, `s'è` restano imparabili — e sono l'unico modo in cui possano comparire, visto che nessun corpus contiene apostrofi. Prima: **2.3 — il peso delle parole imparate**: da 1.000.000 fisso a abitudine + spinta recente sulla scala del corpus, e la pressione prolungata su un candidato lo dimentica. Prima: **2.2 — la `b` prima della `a`**: una lettera singola imparata da una build vecchia dominava il tasto 2; la regola scende nel dizionario e l'archivio viene bonificato al caricamento. Prima: **Fase 2.1 — il bilinguismo si accende e si spegne**: schermata impostazioni raggiungibile dal launcher, e la lingua è un elenco (`Language`) invece di un interruttore per l'inglese, così una terza costa un dizionario e una riga. Prima: **Fase 2 — bilingue IT+EN** (versione 2.0): italiano e inglese attivi insieme, senza cambio lingua; l'inglese non scavalca mai l'italiano, quindi nessuna sequenza che funzionava prima si ordina diversamente. Prima: Step 1.26 — **riga dello spazio uniformata** alle file di lettere (senza far ricrescere la tastiera) e **una lettera sola non è mai un nome proprio**: premendo `2` la barra offriva "a B C à". Prima: 1.25 — **tastiera più bassa**: barra candidati quasi dimezzata e tasti più larghi che alti; la tastiera passa dal 40% al 31% dello schermo. Prima: 1.24 — **resilienza ai refusi doppi**: due tasti invertiti (che prima sfuggivano del tutto) e, come ultima risorsa sulle parole lunghe, due tasti sbagliati. Prima: 1.23 (anteprima leggibile: senza corrispondenze esatte il campo mostra la migliore offerta invece delle lettere di default), 1.22 — **completamento di parola**: dopo le parole che i tasti scrivono esattamente, la barra offre quelle di cui i tasti sono l'inizio (dieci tasti per `contemporaneamente`). Prima: 1.21 (la tastiera vibra sotto il dito, con durata regolabile — `KeyboardSettings.hapticMs`, default 18 ms), 1.20 (la versione è visibile: `versionName` è il numero dello step e da lì derivano nome app ed etichetta tastiera — nel selettore si legge "T9 1.21"), 1.19 (l'apostrofo dell'elisione sta dentro la parola: `l'aveva` si impara come parola unica e si riscrive digitando le sole lettere), 1.18 (la tastiera riprende la parola già scritta sotto il cursore: sposti il cursore a fine parola, continui a digitare, e la parola intera viene imparata sullo spazio o sul candidato), 1.12k (i popup da 5 celle vanno su due righe (3+2), che risolve anche l'ultima cella irraggiungibile sui tasti `6` e `9`), 1.12j (anche il popup del `.` preseleziona la prima cella), 1.12i (il gesto parte dalla cella preselezionata, risolto il salto della selezione al primo movimento), 1.12h (guadagni separati per asse, orizzontale ×1.5 e verticale ×2.5, pannello staccato di 10dp dal tasto), 1.12g (la cifra è preselezionata all'apertura: tenere premuto un tasto numerico e rilasciare scrive il suo numero), 1.12f (guadagno anche in orizzontale e cifra come prima cella), 1.12e (asse verticale amplificato ×2 e misurato dal dito anziché dal centro del tasto), 1.17 (dizionario da messaggi: sottotitoli 70% + prosa giornalistica 30%, che resta la fonte delle maiuscole per i nomi propri), 1.16 (nomi propri misurati), 1.15 (regole italiane di maiuscole e spaziatura), 1.14 (tasto singolo), 1.13 (maiuscola e spazio automatici), 1.12a–d (popup long-press).
 - **Da provare sul telefono:** tutto lo Step 1.15 e 1.16 insieme alla prova reale già in sospeso — in particolare abbreviazioni e puntini di sospensione, coperti dai test ma non provati a mano.
-- **Prossimo step:** **3.2 — anteprima viva della tastiera nella schermata impostazioni**. È il passo che rende scegliibili altezza e dimensione del testo (3.3): una misura non si sceglie alla cieca. `KeyboardView` non dipende dal servizio IME, quindi si istanzia lì con le callback a vuoto.
-- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce sull'emulatore — riprovato sulla 2.4 il 04/08 sia a inizio campo sia a inizio frase, con la maiuscola automatica armata (vedi sopra). Resta da provare sul telefono con `t9-3.1-debug.apk`, che è l'unico posto dove il difetto sia mai stato visto.
+- **Prossimo step:** **3.3 — altezza della tastiera e dimensione del testo dei candidati**, i due cursori che l'anteprima della 3.2 rende scegliibili. `BODY_HEIGHT_FRACTION` diventa una preferenza letta al momento di misurare, e `SuggestionBarView.textSizeSp` ha già il suo seam. Il lavoro vero è farlo **riproporzionare in modo uniforme** e far ridisegnare l'anteprima mentre il cursore si muove.
+- **In attesa di riscontro dall'utente:** il **punto 2** non si riproduce sull'emulatore — riprovato sulla 2.4 il 04/08 sia a inizio campo sia a inizio frase, con la maiuscola automatica armata (vedi sopra). Resta da provare sul telefono con `t9-3.2-debug.apk`, che è l'unico posto dove il difetto sia mai stato visto.
 - **Dopo:** altre lingue oltre IT/EN, e il dizionario binario indicizzato se il formato testo diventasse stretto.
 
 - 📌 **Code della 2.3 — entrambe chiuse il 2026-08-04.**
@@ -139,7 +139,7 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
      **Cosa questo non prova.** La segnalazione originale viene dal **telefono**, non
      dall'emulatore, e su un APK di cui non si conosce la versione. L'emulatore può solo
      continuare a dire che il difetto non c'è: a chiudere il punto è un riscontro sul
-     telefono con `t9-3.1-debug.apk`.
+     telefono con `t9-3.2-debug.apk`.
 
   3. ✅ **RISOLTO — Step 1.19.** *Elisioni come parola unica.*
 
@@ -299,9 +299,8 @@ testo → 3.4 cursore sulla barra spazio → 3.5 colonna e preferiti → 3.6 diz
 - [ ] Altezza tastiera regolabile con riproporzionamento uniforme — **Step 3.3**, dopo l'anteprima
 - [ ] Dimensione del testo dei candidati regolabile — **Step 3.3** (seam già pronto:
       `SuggestionBarView.textSizeSp`)
-- [ ] **Anteprima viva della tastiera nella schermata impostazioni** — **Step 3.2**, ciò che
-      rende scegliibili le due misure qui sopra. `KeyboardView` è un normale `FrameLayout` e non
-      dipende dal servizio IME: si istanzia nella schermata con le callback a vuoto
+- [x] **Anteprima viva della tastiera nella schermata impostazioni** — **Step 3.2**. È
+      `KeyboardView`, la stessa classe che mostra l'IME, con le callback a vuoto
 - [x] Vocali accentate (nella colonna) — anticipate allo Step 1.10
 - [x] Pannello emoji base — anticipato allo Step 1.10
 - [x] Long-press tasto 1 → simboli costosi altrove — **fatto nello Step 1.12**
@@ -581,6 +580,53 @@ esistente.
 
 <!-- Formato: ### AAAA-MM-GG — titolo step -->
 <!-- Cosa fatto, file toccati, note/decisioni, come verificare. -->
+
+### 2026-08-04 — Step 3.2: nella schermata impostazioni c'è una tastiera vera
+**Non un disegno e non un mock-up:** in fondo alla schermata sta `KeyboardView`, la stessa
+classe che mostra l'IME, con le callback che non vanno da nessuna parte.
+
+**Che si potesse fare è l'incidente fortunato di un'architettura presa bene tempo fa.**
+`KeyboardView` è un normale `FrameLayout` che prende un `Context` e delle lambda, e non ha mai
+saputo nulla di `InputMethodService`. Una tastiera che potesse esistere solo dentro il proprio
+servizio avrebbe reso questo step una riscrittura.
+
+**A cosa serve:** altezza della tastiera e dimensione del testo dei candidati (3.3) sono
+**misure**, e una misura scelta alla cieca è scelta male — muovi un cursore, esci, apri un campo,
+strizzi gli occhi e torni indietro. Qui la cosa misurata sta sulla stessa schermata del comando
+che la misura.
+
+**Si ripaga già prima di quei cursori:** i tasti sono vivi, quindi la durata della vibrazione si
+giudica **premendo un tasto** invece che dal solo colpo che lo slider dà al rilascio. Stesso
+`KeyViewFactory`, quindi stessa `Haptics`.
+
+La rotellina dell'anteprima non porta da nessuna parte, di proposito: è già la schermata
+impostazioni, e un comando che riapre la schermata su cui sei è una trappola, non una scorciatoia.
+
+**Due difetti trovati montandola, e la diagnosi giusta è arrivata solo al terzo tentativo.** La
+schermata si apriva col titolo tagliato. Ho incolpato prima i tasti dell'anteprima che rubavano
+il fuoco, poi l'ordine di `requestFocus()`; entrambe le correzioni non hanno cambiato nulla.
+Il dump di `uiautomator` ha detto la verità in una riga: `ScrollView` a `[0,0]`, titolo a `y=72`,
+**`scrollY` = 0**. Non era scorsa affatto — il titolo stava **sotto la barra di stato**, perché
+l'inset non arrivava più.
+
+Causa: l'inset lo reclama la vista **più esterna**, e fino alla 3.1 la `ScrollView` *era* la più
+esterna. Diventata figlia del nuovo contenitore, il padding ha smesso di arrivare. Spostato il
+listener sul contenitore; il basso resta della tastiera, che legge da sé l'inset della barra di
+navigazione.
+
+L'altra correzione — `requestFocus()` chiamato alla fine invece che su una vista ancora vuota —
+**resta in piedi anche se non era la causa di questo difetto**: chiedere il fuoco a un contenitore
+senza figli vince solo finché i figli non esistono, e il commento diceva già di volerlo per i
+checkbox. `FOCUS_BLOCK_DESCENDANTS` sull'anteprima resta per lo stesso motivo: un'anteprima non
+deve essere una tappa nel giro del modulo.
+
+**File modificati:** `settings/SettingsActivity.kt`, `app/build.gradle.kts` (3.1 → 3.2).
+
+**Verificato (2026-08-04):** 160 test verdi, e sull'emulatore — titolo visibile, anteprima
+ancorata in fondo con i candidati d'esempio e i simboli preferiti veri nella colonna. Che sia
+**viva** non è stato dedotto: premuti tre tasti dell'anteprima, `dumpsys vibrator_manager`
+registra tre vibrazioni di `com.daux.t9keyboard` con `Step=18ms` — esattamente la durata
+impostata dal cursore qui sopra. Screenshot: `docs/screenshots/step-3.2-anteprima-viva.png`.
 
 ### 2026-08-04 — Step 3.1: le impostazioni si raggiungono, e contengono qualcosa
 **Primo step della Fase 3**, pianificata con l'utente prima di scriverlo (vedi *Fase 3 —
@@ -1143,7 +1189,7 @@ d'occhio.
 - `res/values/strings.xml` — le due stringhe **tolte**: scritte a mano si sarebbero
   disallineate al primo step.
 - `tools/dev.sh` — `apk` stampa la versione e copia l'APK con la versione nel nome
-  (`t9-3.1-debug.apk`), così sul telefono non si confondono fra loro.
+  (`t9-3.2-debug.apk`), così sul telefono non si confondono fra loro.
 
 **Verificato (2026-07-31):** installato, `dumpsys package` riporta `versionName=1.21`, e nelle
 impostazioni Android la tastiera compare come **"T9 1.20"** (screenshot preso alla 1.20:

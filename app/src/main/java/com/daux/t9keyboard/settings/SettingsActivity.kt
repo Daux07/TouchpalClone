@@ -12,8 +12,10 @@ import android.widget.SeekBar
 import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.daux.t9keyboard.engine.Candidate
 import com.daux.t9keyboard.model.Language
 import com.daux.t9keyboard.ui.Haptics
+import com.daux.t9keyboard.ui.KeyboardView
 
 /**
  * The settings screen, opened from the launcher icon.
@@ -42,10 +44,13 @@ class SettingsActivity : Activity() {
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(24), dp(24), dp(24), dp(24))
-            // Without this the checkbox takes the initial focus and the scroll view
-            // jumps to it, opening the screen already past its own heading.
+            // Without this a control takes the initial focus and the scroll view jumps to
+            // it, opening the screen already past its own heading. Claimed at the end of
+            // this method, not here: asking an empty view for the focus wins only until
+            // its children exist. That went unnoticed until Step 3.2, because until the
+            // preview took its share of the screen everything fitted and there was nowhere
+            // to scroll to.
             isFocusableInTouchMode = true
-            requestFocus()
         }
 
         root.addView(
@@ -114,16 +119,74 @@ class SettingsActivity : Activity() {
             )
             isFillViewport = true
         }
-        // targetSdk 35 draws the window edge to edge, so the status and navigation bars
-        // sit *over* this screen unless it says otherwise — exactly as `KeyboardView`
-        // already does for the keyboard.
-        ViewCompat.setOnApplyWindowInsetsListener(scroll) { view, insets ->
+        val screen = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(scroll, LinearLayout.LayoutParams(MATCH, 0, 1f))
+            addView(preview(settings), LinearLayout.LayoutParams(MATCH, WRAP))
+        }
+
+        // targetSdk 35 draws the window edge to edge, so the status bar sits *over* this
+        // screen unless it says otherwise.
+        //
+        // The inset is claimed by the outermost view, not by the scroll view inside it.
+        // Until Step 3.2 the scroll view *was* the outermost one and held this itself; once
+        // it became a child the padding stopped arriving, and the title spent a build
+        // hidden under the clock. Only the top is handled here: the bottom belongs to the
+        // preview keyboard, which reads the navigation bar inset for itself.
+        ViewCompat.setOnApplyWindowInsetsListener(screen) { view, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            view.setPadding(0, bars.top, 0, bars.bottom)
+            view.setPadding(0, bars.top, 0, 0)
             insets
         }
-        setContentView(scroll)
+        setContentView(screen)
+        root.requestFocus()
     }
+
+    /**
+     * A **real keyboard**, pinned to the bottom of the settings screen (Step 3.2).
+     *
+     * Not a picture of one and not a mock-up: this is [KeyboardView], the same class the
+     * IME shows, with its callbacks going nowhere. That it can be built here at all is
+     * the useful accident — it is a plain `FrameLayout` that takes a `Context` and some
+     * lambdas, and never knew anything about `InputMethodService`. A keyboard that could
+     * only exist inside its own service would have made this step a rewrite.
+     *
+     * **What it is for.** Keyboard height and candidate text size (Step 3.3) are *sizes*,
+     * and a size chosen blind is chosen wrong — you would set a slider, leave, open a
+     * text field, squint, and come back. Here the thing being measured is on the same
+     * screen as the control measuring it.
+     *
+     * It already pays for itself before those sliders exist: the keys are live, so the
+     * vibration slider above can be judged by **pressing a key** rather than by the one
+     * buzz it fires on release. Same `KeyViewFactory`, so the same `Haptics`.
+     *
+     * The cog on the preview goes nowhere on purpose: it is already the settings screen,
+     * and a control that reopens the screen you are on is a trap, not a shortcut.
+     */
+    private fun preview(settings: KeyboardSettings): KeyboardView =
+        KeyboardView(
+            context = this,
+            onKey = {},
+            onPickCandidate = {},
+            onForgetCandidate = {},
+            onPickLetter = {},
+            onPickSymbol = {},
+            onEditSymbol = {},
+            onSettings = {},
+            keyAlternates = { emptyList() }
+        ).apply {
+            // Every key is focusable, because in the IME they are real keys. Here that
+            // meant one of them took the screen's initial focus and scrolled the settings
+            // past their own heading — the same bug the root view already guards against
+            // for the checkboxes. Blocked at the preview's root: a preview is something to
+            // look at and press, never a stop on the way through the form.
+            descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
+            isFocusable = false
+            setColumnFavourites(settings.favouriteSymbols())
+            // Words rather than an empty strip: the bar is one of the things being sized,
+            // and an empty one shows nothing of what the text size does to it.
+            setSuggestions(SAMPLE.mapIndexed { i, word -> Candidate(word, "", (10 - i).toLong()) })
+        }
 
     private fun check(label: String, initial: Boolean, onChange: (Boolean) -> Unit) =
         CheckBox(this).apply {
@@ -200,4 +263,16 @@ class SettingsActivity : Activity() {
     }
 
     private fun dp(value: Int) = (resources.displayMetrics.density * value).toInt()
+
+    private companion object {
+        const val MATCH = ViewGroup.LayoutParams.MATCH_PARENT
+        const val WRAP = ViewGroup.LayoutParams.WRAP_CONTENT
+
+        /**
+         * What the preview's bar shows. Ordinary Italian words of different lengths —
+         * the point is to see the strip full at the size chosen, and a short word next
+         * to a long one is what shows when the text stops fitting.
+         */
+        val SAMPLE = listOf("casa", "cara", "come", "quando", "perché", "insieme")
+    }
 }
