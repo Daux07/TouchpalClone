@@ -284,7 +284,27 @@ Un file disallineato è un bug, e va segnalato/riparato appena lo si nota.
 - [x] Long-press su candidato → rimuovi dal dizionario — anticipato alla 2.3 (solo le parole
       personali; sul corpus la barra dice che non c'è niente da dimenticare)
 - [ ] Opzione "salvataggio sicuro"
-- [ ] Pannello emoji base
+- [ ] **Pannello emoji da ampliare** (osservazione dell'utente, 04/08: *"le emoji sono
+      piuttosto ridotte"* — verificato, sono **32**, una pagina sola). Oggi è il pannello base
+      anticipato allo Step 1.10, giusto per non lasciare morto il tasto `☺`. Mancano categorie,
+      riga dei recenti, ricerca e toni della pelle. Da decidere **come**, prima che quali: a
+      pagine come i simboli, o a categorie con una barra propria? I recenti sono la cosa che si
+      usa davvero, e sono anche l'unica che richiede di memorizzare qualcosa.
+
+- [ ] 🐞 **Tre emoji sono disegnate più piccole delle altre** (trovato il 04/08, non corretto
+      su scelta dell'utente: nota di fine giornata, non urgente). `❤️`, `✌️` e `☀️` escono a
+      **18sp** invece di 22, e a occhio si vedono più piccole delle vicine — rapporto misurato
+      sullo screenshot ~0,81, cioè esattamente 18/22.
+
+      **Diagnosi già fatta:** in `KeyViewFactory.labelSize` i glifi singoli prendono 22sp con la
+      regola `codePointCount(0, length) == 1`, il resto cade su 18sp. Quelle tre portano il
+      **selettore di variazione `U+FE0F`** — quello che chiede ad Android di disegnarle a colori
+      invece che come simbolo di testo — quindi contano **due** code point e finiscono nel ramo
+      sbagliato. Il commento lì sopra parla delle coppie surrogate (`🔥`, un code point solo) ma
+      il selettore di variazione non era stato considerato.
+
+      **Correzione:** una riga — contare i code point ignorando `U+FE0F` (e `U+FE0E`, che è la
+      variante testuale usata dal tasto `☺︎` stesso).
 - [ ] Verifica layout responsive su S25 e S25 Ultra
 
 ---

@@ -773,6 +773,15 @@ identica operazione — non è una seconda strada con regole proprie.
 Un pannello di 32 emoji comuni, otto per riga (più spazio dei simboli, per restare
 riconoscibili). È **un altro `KeyGrid`**: nessuna vista nuova, solo una voce in `KeyboardMode`.
 
+**È un pannello base, e 32 sono poche:** una pagina sola, senza categorie, recenti, ricerca né
+toni della pelle. Ampliarlo è in Fase 3, con la decisione da prendere prima — a pagine come i
+simboli o a categorie con una barra propria.
+
+🐞 **Difetto noto:** `❤️`, `✌️` e `☀️` sono disegnate a 18sp invece di 22 e si vedono più
+piccole delle vicine. `KeyViewFactory.labelSize` dà 22sp ai glifi di **un solo code point**, e
+quelle tre portano il selettore di variazione `U+FE0F` — che le rende due. Non corretto: vedi
+la voce in `DEVELOPMENT.md`, dove sta anche la riga che lo sistemerebbe.
+
 ---
 
 ## 8. Cancellazione (tap, tenuto premuto, parole)
